@@ -1,0 +1,32 @@
+[submodule "cli"]
+	path = cli
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/cli.git
+	branch = develop
+[submodule "common"]
+	path = common
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/common.git
+	branch = develop
+[submodule "onboarding"]
+	path = onboarding
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/onboarding.git
+	branch = develop
+[submodule "security-attributes-provider"]
+	path = security-attributes-provider
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/security-attributes-provider.git
+	branch = develop
+[submodule "simpl-cloud-gateway"]
+	path = simpl-cloud-gateway
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/simpl-cloud-gateway.git
+	branch = develop
+[submodule "simpl-http-client"]
+	path = simpl-http-client
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/simpl-http-client.git
+	branch = develop
+[submodule "tls-gateway"]
+	path = tls-gateway
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/tls-gateway.git
+	branch = develop
+[submodule "users-roles"]
+	path = users-roles
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/users-roles.git
+	branch = develop
