@@ -1,7 +1,3 @@
-[submodule "cli"]
-	path = cli
-	url = https://code.europa.eu/simpl/simpl-open/development/iaa/cli.git
-	branch = develop
 [submodule "common"]
 	path = common
 	url = https://code.europa.eu/simpl/simpl-open/development/iaa/common.git
@@ -21,10 +17,6 @@
 [submodule "simpl-http-client"]
 	path = simpl-http-client
 	url = https://code.europa.eu/simpl/simpl-open/development/iaa/simpl-http-client.git
-	branch = develop
-[submodule "tls-gateway"]
-	path = tls-gateway
-	url = https://code.europa.eu/simpl/simpl-open/development/iaa/tls-gateway.git
 	branch = develop
 [submodule "users-roles"]
 	path = users-roles
