@@ -22,3 +22,7 @@
 	path = users-roles
 	url = https://code.europa.eu/simpl/simpl-open/development/iaa/users-roles.git
 	branch = develop
+[submodule "simpl-fe/code"]
+	path = simpl-fe/code
+	url = https://code.europa.eu/simpl/iaa/simpl-fe.git
+	branch = develop
