@@ -15,7 +15,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
 import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -35,34 +38,26 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
     @Autowired
     private TransactionalUtils tr;
 
+    @BeforeEach
+    public void cleanDB() {
+        tr.transactional(() -> {
+            repository.deleteAll();
+            manager.flush();
+            manager.clear();
+        });
+    }
+
     @Test
     @WithMockSecurityContext(roles = "IATTR_M")
     public void updateAssignableParameter() throws Exception {
 
-        var ids = new LinkedList<String>();
+        var iau = new IAUtil();
+        var ids = iau.getIds();
 
         tr.transactional(() -> {
-            var val1 = a(IdentityAttribute.class);
-            var val2 = a(IdentityAttribute.class);
-            var val3 = a(IdentityAttribute.class);
-
-            val1.setAssignableToRoles(false);
-            val1.setId(null);
-            val2.setAssignableToRoles(false);
-            val2.setId(null);
-            val3.setAssignableToRoles(false);
-            val3.setId(null);
-
-            repository.save(val1);
-            repository.save(val2);
-            repository.save(val3);
-
-            manager.flush();
-            manager.clear();
-
-            ids.add(val1.getId().toString());
-            ids.add(val2.getId().toString());
-            ids.add(val3.getId().toString());
+            iau.createIA("val1", ia -> ia.setAssignableToRoles(false));
+            iau.createIA("val2", ia -> ia.setAssignableToRoles(false));
+            iau.createIA("val3", ia -> ia.setAssignableToRoles(false));
         });
 
         var idsUpdate = ids.subList(0, 2);
@@ -87,37 +82,14 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
     @WithMockSecurityContext(roles = "IATTR_M")
     public void addParticipantType() throws Exception {
 
-        var ids = new LinkedList<String>();
+        var iau = new IAUtil();
+        var ids = iau.getIds();
 
         tr.transactional(() -> {
-            var val1 = a(IdentityAttribute.class);
-            var val2 = a(IdentityAttribute.class);
-            var val3 = a(IdentityAttribute.class);
-            var val4 = a(IdentityAttribute.class);
-
-            val1.setId(null);
-            val1.getParticipantTypes().clear();
-            val1.getParticipantTypes().add(ParticipantType.CONSUMER);
-            val2.setId(null);
-            val2.getParticipantTypes().clear();
-            val2.getParticipantTypes().add(ParticipantType.APPLICATION_PROVIDER);
-            val3.setId(null);
-            val3.getParticipantTypes().clear();
-            val4.setId(null);
-            val4.getParticipantTypes().clear();
-
-            repository.save(val1);
-            repository.save(val2);
-            repository.save(val3);
-            repository.save(val4);
-
-            manager.flush();
-            manager.clear();
-
-            ids.add(val1.getId().toString());
-            ids.add(val2.getId().toString());
-            ids.add(val3.getId().toString());
-            ids.add(val4.getId().toString());
+            iau.createIA("val1", ParticipantType.CONSUMER);
+            iau.createIA("val2", ParticipantType.APPLICATION_PROVIDER);
+            iau.createIA("val3");
+            iau.createIA("val4");
         });
 
         var idsUpdate = ids.subList(0, 3);
@@ -150,36 +122,20 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
     @WithMockSecurityContext(roles = "IATTR_M")
     public void search() throws Exception {
 
-        var ids = new LinkedList<String>();
+        var iau = new IAUtil();
+        var ids = iau.getIds();
 
         tr.transactional(() -> {
-            var val1 = createIA("val1", ParticipantType.DATA_PROVIDER);
-            var val2 = createIA("val2", ParticipantType.CONSUMER);
-            var val3 = createIA("val3", ParticipantType.APPLICATION_PROVIDER);
-            var val4 = createIA("val4", ParticipantType.APPLICATION_PROVIDER);
-            var val5 = createIA("val5", ParticipantType.INFRASTRUCTURE_PROVIDER);
-            var val6 = createIA("val6");
-
-            repository.save(val1);
-            repository.save(val2);
-            repository.save(val3);
-            repository.save(val4);
-            repository.save(val5);
-            repository.save(val6);
-
-            manager.flush();
-            manager.clear();
-
-            ids.add(val1.getId().toString());
-            ids.add(val2.getId().toString());
-            ids.add(val3.getId().toString());
-            ids.add(val4.getId().toString());
-            ids.add(val5.getId().toString());
-            ids.add(val6.getId().toString());
+            iau.createIA("val1", ParticipantType.DATA_PROVIDER);
+            iau.createIA("val2", ParticipantType.CONSUMER, ParticipantType.INFRASTRUCTURE_PROVIDER);
+            iau.createIA("val3", ParticipantType.APPLICATION_PROVIDER);
+            iau.createIA("val4", ParticipantType.APPLICATION_PROVIDER);
+            iau.createIA("val5", ParticipantType.INFRASTRUCTURE_PROVIDER);
+            iau.createIA("val6");
         });
 
-        var resp = mockMvc.perform(
-                        get("/identity-attribute/search?notInParticipantType=" + ParticipantType.APPLICATION_PROVIDER))
+        var resp = mockMvc.perform(get("/identity-attribute/search?sort=code,asc&notInParticipantType="
+                        + ParticipantType.APPLICATION_PROVIDER))
                 .andExpect(status().is(200));
 
         var responseNode =
@@ -193,12 +149,35 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
         assertThat(content.get(3).get("id").textValue()).isEqualTo(ids.get(5));
     }
 
-    private static IdentityAttribute createIA(String code, ParticipantType... pt) {
-        var ia = a(IdentityAttribute.class);
-        ia.setId(null);
-        ia.setCode(code);
-        ia.getParticipantTypes().clear();
-        ia.getParticipantTypes().addAll(Arrays.asList(pt));
-        return ia;
+    private class IAUtil {
+
+        private List<String> ids = new LinkedList<>();
+
+        public List<String> getIds() {
+            return ids;
+        }
+
+        private IdentityAttribute createIA(String code, ParticipantType... pt) {
+            return createIA(code, ia -> {}, pt);
+        }
+
+        private IdentityAttribute createIA(String code, Consumer<IdentityAttribute> consumer, ParticipantType... pt) {
+            var ia = a(IdentityAttribute.class);
+            ia.setId(null);
+            ia.setCode(code);
+            ia.getParticipantTypes().clear();
+            ia.getParticipantTypes().addAll(Arrays.asList(pt));
+
+            consumer.accept(ia);
+
+            repository.save(ia);
+
+            manager.flush();
+            manager.clear();
+
+            ids.add(ia.getId().toString());
+
+            return ia;
+        }
     }
 }
