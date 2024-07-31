@@ -99,7 +99,7 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
             val1.getParticipantTypes().add(ParticipantType.CONSUMER);
             val2.setId(null);
             val2.getParticipantTypes().clear();
-            val2.getParticipantTypes().addAll(Arrays.asList(ParticipantType.CONSUMER, ParticipantType.DATA_PROVIDER));
+            val2.getParticipantTypes().add(ParticipantType.APPLICATION_PROVIDER);
             val3.setId(null);
             val3.getParticipantTypes().clear();
             val4.setId(null);
@@ -135,7 +135,9 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
             assertThat(val1.getParticipantTypes()
                             .containsAll(Arrays.asList(ParticipantType.CONSUMER, ParticipantType.DATA_PROVIDER)))
                     .isTrue();
-            assertThat(val2.getParticipantTypes().contains(ParticipantType.DATA_PROVIDER))
+            assertThat(val2.getParticipantTypes()
+                            .containsAll(
+                                    Arrays.asList(ParticipantType.APPLICATION_PROVIDER, ParticipantType.DATA_PROVIDER)))
                     .isTrue();
             assertThat(val3.getParticipantTypes().contains(ParticipantType.DATA_PROVIDER))
                     .isTrue();
