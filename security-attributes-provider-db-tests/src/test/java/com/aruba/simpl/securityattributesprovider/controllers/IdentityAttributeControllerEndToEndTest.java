@@ -2,6 +2,7 @@ package com.aruba.simpl.securityattributesprovider.controllers;
 
 import static com.aruba.simpl.common.test.TestUtil.a;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -143,5 +144,61 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
                     .isTrue();
             assertThat(val4.getParticipantTypes().isEmpty()).isTrue();
         });
+    }
+
+    @Test
+    @WithMockSecurityContext(roles = "IATTR_M")
+    public void search() throws Exception {
+
+        var ids = new LinkedList<String>();
+
+        tr.transactional(() -> {
+            var val1 = createIA("val1", ParticipantType.DATA_PROVIDER);
+            var val2 = createIA("val2", ParticipantType.CONSUMER);
+            var val3 = createIA("val3", ParticipantType.APPLICATION_PROVIDER);
+            var val4 = createIA("val4", ParticipantType.APPLICATION_PROVIDER);
+            var val5 = createIA("val5", ParticipantType.INFRASTRUCTURE_PROVIDER);
+            var val6 = createIA("val6");
+
+            repository.save(val1);
+            repository.save(val2);
+            repository.save(val3);
+            repository.save(val4);
+            repository.save(val5);
+            repository.save(val6);
+
+            manager.flush();
+            manager.clear();
+
+            ids.add(val1.getId().toString());
+            ids.add(val2.getId().toString());
+            ids.add(val3.getId().toString());
+            ids.add(val4.getId().toString());
+            ids.add(val5.getId().toString());
+            ids.add(val6.getId().toString());
+        });
+
+        var resp = mockMvc.perform(
+                        get("/identity-attribute/search?notInParticipantType=" + ParticipantType.APPLICATION_PROVIDER))
+                .andExpect(status().is(200));
+
+        var responseNode =
+                new ObjectMapper().readTree(resp.andReturn().getResponse().getContentAsString());
+
+        var content = responseNode.withArrayProperty("content");
+        assertThat(content.size()).isEqualTo(4);
+        assertThat(content.get(0).get("id").textValue()).isEqualTo(ids.get(0));
+        assertThat(content.get(1).get("id").textValue()).isEqualTo(ids.get(1));
+        assertThat(content.get(2).get("id").textValue()).isEqualTo(ids.get(4));
+        assertThat(content.get(3).get("id").textValue()).isEqualTo(ids.get(5));
+    }
+
+    private static IdentityAttribute createIA(String code, ParticipantType... pt) {
+        var ia = a(IdentityAttribute.class);
+        ia.setId(null);
+        ia.setCode(code);
+        ia.getParticipantTypes().clear();
+        ia.getParticipantTypes().addAll(Arrays.asList(pt));
+        return ia;
     }
 }
