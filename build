@@ -1,0 +1,3 @@
+#!/bin/bash
+
+mvn -fae clean install -Dspring-boot.repackage.skip -am "$@"
