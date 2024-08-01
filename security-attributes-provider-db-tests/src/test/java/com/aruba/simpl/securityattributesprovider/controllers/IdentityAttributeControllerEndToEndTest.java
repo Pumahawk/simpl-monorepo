@@ -127,7 +127,7 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
             iau.createIA("val1", ParticipantType.DATA_PROVIDER);
             iau.createIA("val2", ParticipantType.CONSUMER, ParticipantType.INFRASTRUCTURE_PROVIDER);
             iau.createIA("val3", ParticipantType.APPLICATION_PROVIDER);
-            iau.createIA("val4", ParticipantType.APPLICATION_PROVIDER);
+            iau.createIA("val4", ParticipantType.APPLICATION_PROVIDER, ParticipantType.CONSUMER);
             iau.createIA("val5", ParticipantType.INFRASTRUCTURE_PROVIDER);
             iau.createIA("val6");
         });
@@ -140,7 +140,7 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
                 new ObjectMapper().readTree(resp.andReturn().getResponse().getContentAsString());
 
         var content = responseNode.withArrayProperty("content");
-        assertThat(content.size()).isEqualTo(4);
+        assertThat(responseNode.at("/page/totalElements").asInt()).isEqualTo(4);
         assertThat(content.get(0).get("id").textValue()).isEqualTo(ids.get(0));
         assertThat(content.get(1).get("id").textValue()).isEqualTo(ids.get(1));
         assertThat(content.get(2).get("id").textValue()).isEqualTo(ids.get(4));
