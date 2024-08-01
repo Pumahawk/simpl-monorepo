@@ -13,10 +13,7 @@ import com.aruba.simpl.securityattributesprovider.model.repositories.IdentityAtt
 import com.aruba.simpl.securityattributesprovider.utils.TransactionalUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -100,10 +97,11 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
                 .andExpect(status().is(200));
 
         tr.transactional(() -> {
-            var val1 = repository.getReferenceById(UUID.fromString(ids.get(0)));
-            var val2 = repository.getReferenceById(UUID.fromString(ids.get(1)));
-            var val3 = repository.getReferenceById(UUID.fromString(ids.get(2)));
-            var val4 = repository.getReferenceById(UUID.fromString(ids.get(3)));
+            iau.loadEntities();
+            var val1 = iau.get(0);
+            var val2 = iau.get(1);
+            var val3 = iau.get(2);
+            var val4 = iau.get(3);
 
             assertThat(val1.getParticipantTypes()
                             .containsAll(Arrays.asList(ParticipantType.CONSUMER, ParticipantType.DATA_PROVIDER)))
@@ -151,10 +149,28 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
 
     private class IAUtil {
 
-        private List<String> ids = new LinkedList<>();
+        private final List<String> ids = new LinkedList<>();
+        private List<IdentityAttribute> entities = Collections.emptyList();
 
         public List<String> getIds() {
             return ids;
+        }
+
+        public IdentityAttribute get(int i) {
+            return entities.stream()
+                    .filter(ia -> ia.getId().toString().equals(ids.get(i)))
+                    .findAny()
+                    .orElseThrow();
+        }
+
+        public List<IdentityAttribute> loadEntities() {
+            this.entities =
+                    repository.findAllById(ids.stream().map(UUID::fromString).toList());
+            return getEntities();
+        }
+
+        public List<IdentityAttribute> getEntities() {
+            return Collections.unmodifiableList(entities);
         }
 
         private IdentityAttribute createIA(String code, ParticipantType... pt) {
