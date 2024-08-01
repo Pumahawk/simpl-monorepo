@@ -4,13 +4,15 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>com.aruba.simpl</groupId>
-        <artifactId>simpl-parent</artifactId>
-        <version>0.0.2-SNAPSHOT</version>
-        <relativePath>common/pom.xml</relativePath>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.1</version>
+        <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
+    <groupId>com.aruba.simpl</groupId>
     <artifactId>simpl-backend</artifactId>
+    <version>0.0.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
@@ -27,6 +29,11 @@
             <dependency>
                 <groupId>com.aruba.simpl</groupId>
                 <artifactId>security-attributes-provider</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aruba.simpl</groupId>
+                <artifactId>simpl-test-lib</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
