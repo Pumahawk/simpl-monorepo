@@ -3,12 +3,6 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.1</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
 
     <groupId>com.aruba.simpl</groupId>
     <artifactId>simpl-backend</artifactId>
@@ -17,27 +11,12 @@
 
     <modules>
 	    <module>common</module>
+	    <module>simpl-backend-parent</module>
 	    <module>onboarding</module>
 	    <module>security-attributes-provider</module>
 	    <module>security-attributes-provider-db-tests</module>
 	    <module>simpl-cloud-gateway</module>
 	    <module>users-roles</module>
     </modules>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>com.aruba.simpl</groupId>
-                <artifactId>security-attributes-provider</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.aruba.simpl</groupId>
-                <artifactId>simpl-test-lib</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
 
 </project>

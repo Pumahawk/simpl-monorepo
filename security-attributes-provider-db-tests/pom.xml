@@ -3,9 +3,9 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.aruba.simpl</groupId>
-        <artifactId>simpl-backend</artifactId>
+        <artifactId>simpl-backend-parent</artifactId>
         <version>0.0.2-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+	<relativePath>../simpl-backend-parent/pom.xml</relativePath>
     </parent>
     <artifactId>security-attributes-provider-db-tests</artifactId>
     <name>Archetype - security-attributes-provider-db-tests</name>
