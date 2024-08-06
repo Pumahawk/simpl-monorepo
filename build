@@ -1,3 +1,13 @@
 #!/bin/bash
 
-mvn -fae clean install -Dspring-boot.repackage.skip -Dsurefire.failIfNoSpecifiedTests=false -am "$@"
+build='mvn -fae clean install -Dspring-boot.repackage.skip -Dsurefire.failIfNoSpecifiedTests=false -am'
+
+	case $1 in
+		--init)
+        $build -N -f common
+		shift
+		;;
+	esac
+
+
+$build "$@"
