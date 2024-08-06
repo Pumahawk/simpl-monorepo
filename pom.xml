@@ -18,6 +18,7 @@
 	    <module>simpl-cloud-gateway</module>
 	    <module>simpl-http-client</module>
 	    <module>users-roles</module>
+	    <module>users-roles-tests</module>
     </modules>
 
 </project>

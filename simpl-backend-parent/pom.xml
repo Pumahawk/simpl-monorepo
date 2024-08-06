@@ -20,6 +20,11 @@
                 <artifactId>security-attributes-provider</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>com.aruba.simpl</groupId>
+		<artifactId>usersroles</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
