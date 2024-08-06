@@ -1,13 +1,29 @@
 #!/bin/bash
+set -e
 
+# Maven build with default parameters
 build='mvn -fae clean install -Dspring-boot.repackage.skip -Dsurefire.failIfNoSpecifiedTests=false -am'
+
+# Flag file to trigger init build
+FLAG_FILE=".git/init.flag";
+
+[ ! -f "$FLAG_FILE" ] && INIT="true"
+
 
 	case $1 in
 		--init)
-        $build -N -f common
+        INIT="true"
+		shift
+		;;
+		--no-init)
+        INIT="false"
 		shift
 		;;
 	esac
 
+if [[ $INIT == "true" ]]; then
+    $build -N -f common;
+    touch "$FLAG_FILE";
+fi
 
 $build "$@"

@@ -16,6 +16,7 @@
 	    <module>security-attributes-provider</module>
 	    <module>security-attributes-provider-db-tests</module>
 	    <module>simpl-cloud-gateway</module>
+	    <module>simpl-http-client</module>
 	    <module>users-roles</module>
     </modules>
 
