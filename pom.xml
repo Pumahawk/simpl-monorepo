@@ -19,6 +19,7 @@
 	    <module>simpl-http-client</module>
 	    <module>users-roles</module>
 	    <module>users-roles-tests</module>
+	    <module>simpl-backend-common</module>
     </modules>
 
 </project>

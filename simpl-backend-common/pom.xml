@@ -7,42 +7,40 @@
         <version>0.0.2-SNAPSHOT</version>
 	<relativePath>../simpl-backend-parent/pom.xml</relativePath>
     </parent>
-    <artifactId>usersroles-tests</artifactId>
+    <artifactId>simpl-backend-common</artifactId>
     <url>http://maven.apache.org</url>
 
     <dependencies>
         <dependency>
-            <groupId>com.aruba.simpl</groupId>
-            <artifactId>simpl-backend-common</artifactId>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.aruba.simpl</groupId>
-            <artifactId>usersroles</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.aruba.simpl</groupId>
-            <artifactId>simpl-test-lib</artifactId>
+            <artifactId>simpl-spring-boot-starter</artifactId>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <scope>test</scope>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId>
-            <scope>test</scope>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-        </dependency>
+
     </dependencies>
 
 </project>
