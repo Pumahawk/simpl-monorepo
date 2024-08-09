@@ -5,7 +5,7 @@ set -e
 build='mvn -fae clean install -Dspring-boot.repackage.skip -Dsurefire.failIfNoSpecifiedTests=false -am'
 
 # Flag file to trigger init build
-FLAG_FILE=".git/init.flag";
+FLAG_FILE=".init.flag";
 
 [ ! -f "$FLAG_FILE" ] && INIT="true"
 
