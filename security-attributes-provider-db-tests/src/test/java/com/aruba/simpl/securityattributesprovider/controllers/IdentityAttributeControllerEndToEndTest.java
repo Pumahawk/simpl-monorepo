@@ -132,7 +132,7 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
             iau.createIA("val6");
         });
 
-        var resp = mockMvc.perform(get("/identity-attribute/search?sort=code,asc&notInParticipantType="
+        var resp = mockMvc.perform(get("/identity-attribute/search?sort=code,asc&participantTypeNotIn="
                         + ParticipantType.APPLICATION_PROVIDER))
                 .andExpect(status().is(200));
 
