@@ -1,11 +1,13 @@
 package com.aruba.simpl.usersroles.repositories;
 
 import com.aruba.simpl.usersroles.UsersRolesApplication;
+import com.aruba.simpl.usersroles.utils.TransactionalUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -21,6 +23,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
 @DirtiesContext
 @MockBean({
     UsersRolesApplication.class,
+})
+@Import({
+    TransactionalUtils.class,
 })
 public class DBTest {
 
