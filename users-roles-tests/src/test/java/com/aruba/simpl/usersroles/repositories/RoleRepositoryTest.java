@@ -34,14 +34,8 @@ public class RoleRepositoryTest extends DBTest {
     public void updateRoleMappings() {
 
         var identityAttributeRoles = List.of(
-                new IdentityAttributeRoles()
-                        .setId(UUID.randomUUID())
-                        .setEnabled(true)
-                        .setIdaCode("code_xyz"),
-                new IdentityAttributeRoles()
-                        .setId(UUID.randomUUID())
-                        .setEnabled(true)
-                        .setIdaCode("code_abc"));
+                new IdentityAttributeRoles().setEnabled(true).setIdaCode("code_xyz"),
+                new IdentityAttributeRoles().setEnabled(true).setIdaCode("code_abc"));
 
         var role = new Role()
                 .setId(UUID.randomUUID().toString())
@@ -54,7 +48,7 @@ public class RoleRepositoryTest extends DBTest {
     }
 
     @Test
-    public void findAlreadyAssignedToRole_extractFrom_expectedSuccess() {
+    public void findAlreadyAssignedToRole_withCommonValues_expectedValueInCommon() {
 
         var ias = List.of(iar("iar1"), iar("iar2"), iar("iar3"));
 
@@ -72,6 +66,24 @@ public class RoleRepositoryTest extends DBTest {
         assertThat(iasdb.get(0).getIdaCode()).isEqualTo("iar3");
     }
 
+    @Test
+    public void findAlreadyAssignedToRole_withoutCommonValues_expectedEmpyList() {
+
+        var ias = List.of(iar("iar1"), iar("iar2"), iar("iar3"));
+
+        identityAttributeRolesRepository.saveAll(ias);
+        identityAttributeRolesRepository.save(iar("iar4"));
+
+        var role1 = role("role1");
+        var role2 = role("role2");
+        role2.getAssignedIdentityAttributes().addAll(ias);
+
+        roleRepository.saveAll(List.of(role1, role2));
+
+        var iasdb = identityAttributeRolesRepository.findAlreadyAssignedToRole("role2", List.of("iar4"));
+        assertThat(iasdb.size()).isEqualTo(0);
+    }
+
     private static Role role(String id) {
         var role = a(Role.class);
         role.setId(id);
@@ -83,7 +95,7 @@ public class RoleRepositoryTest extends DBTest {
         var ia = a(IdentityAttributeRoles.class);
         ia.setEnabled(true);
         ia.setIdaCode(idaCode);
-        ia.setId(UUID.randomUUID());
+        ia.setId(null);
         return ia;
     }
 }
