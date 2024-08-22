@@ -14,6 +14,10 @@
     <dependencies>
         <dependency>
             <groupId>com.aruba.simpl</groupId>
+            <artifactId>simpl-backend-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.aruba.simpl</groupId>
             <artifactId>security-attributes-provider</artifactId>
         </dependency>
         <dependency>
