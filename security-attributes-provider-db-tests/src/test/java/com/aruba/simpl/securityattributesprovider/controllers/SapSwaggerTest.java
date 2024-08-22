@@ -3,6 +3,7 @@ package com.aruba.simpl.securityattributesprovider.controllers;
 import com.aruba.simpl.backend.common.SwaggerGeneratorTest;
 import com.aruba.simpl.common.exchanges.AttachmentExchange;
 import com.aruba.simpl.common.exchanges.CertificateExchange;
+import com.aruba.simpl.common.exchanges.CredentialExchange;
 import com.aruba.simpl.common.exchanges.UserExchange;
 import com.aruba.simpl.securityattributesprovider.services.CliService;
 import com.aruba.simpl.securityattributesprovider.services.IdentityAttributeService;
@@ -21,6 +22,7 @@ import org.springframework.test.context.TestPropertySource;
 @EnableAutoConfiguration(exclude = {DataSourceAutoConfiguration.class, SslAutoConfiguration.class})
 @MockBean({
     RestClientSsl.class,
+    CredentialExchange.class,
     CertificateExchange.class,
     AttachmentExchange.class,
     UserExchange.class,

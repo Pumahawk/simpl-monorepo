@@ -2,6 +2,7 @@ package com.aruba.simpl.securityattributesprovider.controllers;
 
 import com.aruba.simpl.common.exchanges.AttachmentExchange;
 import com.aruba.simpl.common.exchanges.CertificateExchange;
+import com.aruba.simpl.common.exchanges.CredentialExchange;
 import com.aruba.simpl.common.exchanges.UserExchange;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -22,6 +23,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 @AutoConfigureMockMvc
 @EnableAutoConfiguration(exclude = {SslAutoConfiguration.class})
 @MockBeans({
+    @MockBean(CredentialExchange.class),
     @MockBean(RestClientSsl.class),
     @MockBean(CertificateExchange.class),
     @MockBean(AttachmentExchange.class),
