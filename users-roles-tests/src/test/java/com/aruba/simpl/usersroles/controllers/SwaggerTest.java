@@ -35,6 +35,8 @@ import org.springframework.test.web.servlet.MockMvc;
     RestClientSsl.class,
     CertificateExchange.class,
     AttachmentExchange.class,
+    IdentityAttributeService.class,
+    RoleService.class,
     UserExchange.class,
     CredentialService.class,
     EchoService.class,
