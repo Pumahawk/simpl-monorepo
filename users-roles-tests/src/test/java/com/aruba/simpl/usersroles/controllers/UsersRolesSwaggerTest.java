@@ -5,6 +5,7 @@ import com.aruba.simpl.common.exchanges.AttachmentExchange;
 import com.aruba.simpl.common.exchanges.CertificateExchange;
 import com.aruba.simpl.common.exchanges.UserExchange;
 import com.aruba.simpl.usersroles.configurations.MtlsClientBuilder;
+import com.aruba.simpl.usersroles.configurations.RoleInitializer;
 import com.aruba.simpl.usersroles.service.*;
 import com.aruba.simpl.usersroles.service.core.KeycloakRealmService;
 import com.aruba.simpl.usersroles.service.user.KeycloakUserService;
@@ -26,6 +27,7 @@ import org.springframework.test.context.TestPropertySource;
     CertificateExchange.class,
     AttachmentExchange.class,
     IdentityAttributeService.class,
+    RoleInitializer.class,
     RoleService.class,
     UserExchange.class,
     CredentialService.class,

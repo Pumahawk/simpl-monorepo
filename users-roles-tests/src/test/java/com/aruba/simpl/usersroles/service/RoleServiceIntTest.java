@@ -11,6 +11,7 @@ import com.aruba.simpl.usersroles.model.entities.Role;
 import com.aruba.simpl.usersroles.repositories.DBTest;
 import com.aruba.simpl.usersroles.repositories.IdentityAttributeRolesRepository;
 import com.aruba.simpl.usersroles.repositories.RoleRepository;
+import com.aruba.simpl.usersroles.utils.TransactionalUtils;
 import jakarta.persistence.EntityManager;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -38,6 +39,9 @@ public class RoleServiceIntTest extends DBTest {
     @Autowired
     private EntityManager manager;
 
+    @Autowired
+    private TransactionalUtils transaction;
+
     private Map<String, Role> roleDB;
 
     private Map<String, IdentityAttributeRoles> iarDB;
@@ -47,12 +51,21 @@ public class RoleServiceIntTest extends DBTest {
         identityAttributeRolesRepository.deleteAll();
         roleRepository.deleteAll();
 
+        manager.flush();
+        manager.clear();
+
+        var idx = iar("ia1");
         var ias = List.of(iar("ia1"), iar("ia2"), iar("ia3"));
         iarDB = ias.stream().collect(Collectors.toMap(IdentityAttributeRoles::getIdaCode, ia -> ia));
 
+        identityAttributeRolesRepository.save(idx);
         identityAttributeRolesRepository.saveAll(ias);
 
-        var roles = List.of(role("r1", iarDB.get("ia1"), iarDB.get("ia2")), role("r2", iarDB.get("ia3")), role("r3"));
+        var roles = List.of(
+                role("r1", iarDB.get("ia1"), iarDB.get("ia2")),
+                role("r2", iarDB.get("ia3")),
+                role("r3"),
+                role("r4", idx));
 
         roleDB = roles.stream().collect(Collectors.toMap(Role::getId, r -> r));
         roleRepository.saveAll(roles);
@@ -82,6 +95,29 @@ public class RoleServiceIntTest extends DBTest {
                 .map(IdentityAttributeRoles::getIdaCode)
                 .toList();
         assertThat(ias).contains(expectedIAR.toArray(new String[0]));
+    }
+
+    public static Stream<Arguments> duplicateIdentityAttributeToAnOtherRole_usingRoles_expectedMatch() {
+        return Stream.of(
+                arguments("r1", "r2", List.of("ia1", "ia2", "ia3")),
+                arguments("r1", "r4", List.of("ia1", "ia2")),
+                arguments("r1", "r3", List.of("ia1", "ia2")),
+                arguments("r2", "r3", List.of("ia3")));
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    public void duplicateIdentityAttributeToAnOtherRole_usingRoles_expectedMatch(
+            String sourceRoleId, String destinationRoleId, List<String> expectedIdentityArgumentsCode) {
+
+        roleService.duplicateIdentityAttributeToAnOtherRole(sourceRoleId, destinationRoleId);
+        manager.flush();
+        manager.clear();
+        var ias = roleRepository.findById(destinationRoleId).orElseThrow().getAssignedIdentityAttributes().stream()
+                .map(IdentityAttributeRoles::getIdaCode)
+                .toList();
+
+        assertThat(ias).containsExactlyInAnyOrderElementsOf(expectedIdentityArgumentsCode);
     }
 
     private Role role(String id, IdentityAttributeRoles... ia) {
