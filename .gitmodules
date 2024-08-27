@@ -26,3 +26,7 @@
 	path = simpl-fe/code
 	url = https://code.europa.eu/simpl/iaa/simpl-fe.git
 	branch = develop
+[submodule "cli"]
+	path = cli
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/cli.git
+	branch = develop
