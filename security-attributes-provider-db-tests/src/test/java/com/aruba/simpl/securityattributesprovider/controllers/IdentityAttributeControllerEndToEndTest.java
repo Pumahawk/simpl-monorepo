@@ -159,12 +159,12 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
 
     public static Stream<Arguments> search_WithUpdateTimestampFilter_expectedOutput() {
         return Stream.of(
-                arguments("2024-08-24", "2024-08-24", List.of("val1")),
-                arguments("2024-08-24", "2024-08-25", List.of("val1", "val2")),
-                arguments("2024-08-24", "2024-08-27", List.of("val1", "val2", "val3")),
-                arguments("2024-08-23", "2024-08-23", List.of()),
-                arguments("2024-08-25", null, List.of("val2", "val3")),
-                arguments(null, "2024-08-25", List.of("val1", "val2")),
+                arguments("2024-08-24T00:00:00.000Z", "2024-08-25T00:00:00.000Z", List.of("val1")),
+                arguments("2024-08-24T00:00:00.000Z", "2024-08-26T00:00:00.000Z", List.of("val1", "val2")),
+                arguments("2024-08-24T00:00:00.000Z", "2024-08-27T00:00:00.000Z", List.of("val1", "val2", "val3")),
+                arguments("2024-08-23T00:00:00.000Z", "2024-08-24T00:00:00.000Z", List.of()),
+                arguments("2024-08-25T00:00:00.000Z", null, List.of("val2", "val3")),
+                arguments(null, "2024-08-26T00:00:00.000Z", List.of("val1", "val2")),
                 arguments(null, null, List.of("val1", "val2", "val3")));
     }
 
@@ -179,11 +179,12 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
         var ck = List.of(
                 ZonedDateTime.parse("2024-08-26T12:00:00+00:00"),
                 ZonedDateTime.parse("2024-08-25T12:00:00+00:00"),
-                ZonedDateTime.parse("2024-08-24T12:00:00+00:00"));
+                ZonedDateTime.parse("2024-08-24T12:00:00+00:00"),
+                ZonedDateTime.parse("2023-01-01T12:00:00+00:00"));
         try (MockedStatic<ZonedDateTime> utilities = Mockito.mockStatic(ZonedDateTime.class)) {
             utilities
                     .when(() -> ZonedDateTime.now(any(Clock.class)))
-                    .thenReturn(ck.get(2), ck.get(2), ck.get(1), ck.get(1), ck.get(0), ck.get(0));
+                    .thenReturn(ck.get(1), ck.get(2), ck.get(0), ck.get(1), ck.get(3), ck.get(0));
             tr.transactional(() -> {
                 iau.createIA(new IdentityAttribute().setCode("val1").setName("val1"));
                 iau.createIA(new IdentityAttribute().setCode("val2").setName("val2"));
