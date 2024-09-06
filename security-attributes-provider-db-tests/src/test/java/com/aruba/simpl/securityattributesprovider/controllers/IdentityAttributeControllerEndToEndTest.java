@@ -3,7 +3,6 @@ package com.aruba.simpl.securityattributesprovider.controllers;
 import static com.aruba.simpl.common.test.TestUtil.a;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -15,8 +14,7 @@ import com.aruba.simpl.securityattributesprovider.model.repositories.IdentityAtt
 import com.aruba.simpl.securityattributesprovider.utils.TransactionalUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
-import java.time.Clock;
-import java.time.ZonedDateTime;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -25,8 +23,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -159,12 +155,12 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
 
     public static Stream<Arguments> search_WithUpdateTimestampFilter_expectedOutput() {
         return Stream.of(
-                arguments("2024-08-24", "2024-08-24", List.of("val1")),
-                arguments("2024-08-24", "2024-08-25", List.of("val1", "val2")),
-                arguments("2024-08-24", "2024-08-27", List.of("val1", "val2", "val3")),
-                arguments("2024-08-23", "2024-08-23", List.of()),
-                arguments("2024-08-25", null, List.of("val2", "val3")),
-                arguments(null, "2024-08-25", List.of("val1", "val2")),
+                arguments("2024-08-24T00:00:00.000Z", "2024-08-25T00:00:00.000Z", List.of("val1")),
+                arguments("2024-08-24T00:00:00.000Z", "2024-08-26T00:00:00.000Z", List.of("val1", "val2")),
+                arguments("2024-08-24T00:00:00.000Z", "2024-08-27T00:00:00.000Z", List.of("val1", "val2", "val3")),
+                arguments("2024-08-23T00:00:00.000Z", "2024-08-24T00:00:00.000Z", List.of()),
+                arguments("2024-08-25T00:00:00.000Z", null, List.of("val2", "val3")),
+                arguments(null, "2024-08-26T00:00:00.000Z", List.of("val1", "val2")),
                 arguments(null, null, List.of("val1", "val2", "val3")));
     }
 
@@ -174,22 +170,17 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
     public void search_WithUpdateTimestampFilter_expectedOutput(
             String updateTimestampFrom, String updateTimestampTo, List<String> expected) throws Exception {
 
-        var iau = new IAUtil();
-
         var ck = List.of(
-                ZonedDateTime.parse("2024-08-26T12:00:00+00:00"),
-                ZonedDateTime.parse("2024-08-25T12:00:00+00:00"),
-                ZonedDateTime.parse("2024-08-24T12:00:00+00:00"));
-        try (MockedStatic<ZonedDateTime> utilities = Mockito.mockStatic(ZonedDateTime.class)) {
-            utilities
-                    .when(() -> ZonedDateTime.now(any(Clock.class)))
-                    .thenReturn(ck.get(2), ck.get(2), ck.get(1), ck.get(1), ck.get(0), ck.get(0));
-            tr.transactional(() -> {
-                iau.createIA(new IdentityAttribute().setCode("val1").setName("val1"));
-                iau.createIA(new IdentityAttribute().setCode("val2").setName("val2"));
-                iau.createIA(new IdentityAttribute().setCode("val3").setName("val3"));
-            });
-        }
+                Instant.parse("2024-08-26T12:00:00+00:00"),
+                Instant.parse("2024-08-25T12:00:00+00:00"),
+                Instant.parse("2024-08-24T12:00:00+00:00"),
+                Instant.parse("2023-01-01T12:00:00+00:00"));
+        tr.transactional(() -> {
+            var create = "2023-01-01T12:00:00+00:00";
+            cnIA("val1", create, "2024-08-24T12:00:00+00:00");
+            cnIA("val2", create, "2024-08-25T12:00:00+00:00");
+            cnIA("val3", create, "2024-08-26T12:00:00+00:00");
+        });
 
         var resp = mockMvc.perform(get("/identity-attribute/search?sort=code,asc"
                         + (updateTimestampFrom != null ? "&updateTimestampFrom=" + updateTimestampFrom : "")
@@ -204,6 +195,17 @@ public class IdentityAttributeControllerEndToEndTest extends EndToEndTest {
         var iac = new ArrayList<String>();
         content.forEach(c -> iac.add(c.get("code").asText()));
         assertThat(iac).containsExactlyInAnyOrderElementsOf(expected);
+    }
+
+    public void cnIA(String name, String create, String update) {
+        manager.createNativeQuery(
+                        "insert into identity_attribute (id, code, name, assignable_to_roles, enabled, creation_timestamp, update_timestamp) values (:id, :code, :name, true, true, :create, :update)")
+                .setParameter("id", UUID.randomUUID())
+                .setParameter("code", name)
+                .setParameter("name", name)
+                .setParameter("create", Instant.parse(create))
+                .setParameter("update", Instant.parse(update))
+                .executeUpdate();
     }
 
     private class IAUtil {
