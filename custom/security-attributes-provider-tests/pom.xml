@@ -7,8 +7,8 @@
         <version>0.0.4-SNAPSHOT</version>
 	<relativePath>../simpl-backend-parent/pom.xml</relativePath>
     </parent>
-    <artifactId>security-attributes-provider-db-tests</artifactId>
-    <name>Archetype - security-attributes-provider-db-tests</name>
+    <artifactId>security-attributes-provider-tests</artifactId>
+    <name>Archetype - security-attributes-provider-tests</name>
     <url>http://maven.apache.org</url>
 
     <dependencies>

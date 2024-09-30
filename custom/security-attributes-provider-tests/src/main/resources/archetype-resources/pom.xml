@@ -2,7 +2,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>$com.aruba.simpl</groupId>
-  <artifactId>$security-attributes-provider-db-tests</artifactId>
+  <artifactId>$security-attributes-provider-tests</artifactId>
   <version>$0.0.4-SNAPSHOT</version>
   <dependencies>
     <dependency>

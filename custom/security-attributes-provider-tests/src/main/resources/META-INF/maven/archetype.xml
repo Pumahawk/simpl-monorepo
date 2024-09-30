@@ -1,5 +1,5 @@
 <archetype>
-  <id>security-attributes-provider-db-tests</id>
+  <id>security-attributes-provider-tests</id>
   <sources>
     <source>src/main/java/App.java</source>
   </sources>
