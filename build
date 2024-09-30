@@ -22,7 +22,7 @@ FLAG_FILE=".init.flag";
 	esac
 
 if [[ $INIT == "true" ]]; then
-    $build -N -f common;
+    $build -N -f simpl-repo/common;
     touch "$FLAG_FILE";
 fi
 
