@@ -30,3 +30,11 @@
 	path = simpl-repo/cli
 	url = https://code.europa.eu/simpl/simpl-open/development/iaa/cli.git
 	branch = develop
+[submodule "simpl-repo/identity-provider"]
+	path = simpl-repo/identity-provider
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/identity-provider.git
+	branch = develop
+[submodule "simpl-repo/keycloak-authenticator"]
+	path = simpl-repo/keycloak-authenticator
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/keycloak-authenticator.git
+	branch = develop
