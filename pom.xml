@@ -10,16 +10,17 @@
     <packaging>pom</packaging>
 
     <modules>
-	    <module>common</module>
-	    <module>simpl-backend-parent</module>
-	    <module>onboarding</module>
-	    <module>security-attributes-provider</module>
-	    <module>security-attributes-provider-db-tests</module>
-	    <module>simpl-cloud-gateway</module>
-	    <module>simpl-http-client</module>
-	    <module>users-roles</module>
-	    <module>users-roles-tests</module>
-	    <module>simpl-backend-common</module>
+	    <module>simpl-repo/common</module>
+	    <module>simpl-repo/onboarding</module>
+	    <module>simpl-repo/security-attributes-provider</module>
+	    <module>simpl-repo/simpl-cloud-gateway</module>
+	    <module>simpl-repo/simpl-http-client</module>
+	    <module>simpl-repo/users-roles</module>
+
+	    <module>custom/security-attributes-provider-tests</module>
+	    <module>custom/users-roles-tests</module>
+	    <module>custom/simpl-backend-common</module>
+	    <module>custom/simpl-backend-parent</module>
     </modules>
 
 </project>
