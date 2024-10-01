@@ -38,3 +38,7 @@
 	path = simpl-repo/keycloak-authenticator
 	url = https://code.europa.eu/simpl/simpl-open/development/iaa/keycloak-authenticator.git
 	branch = develop
+[submodule "simpl-repo/charts"]
+	path = simpl-repo/charts
+	url = https://code.europa.eu/simpl/iaa/charts.git
+	branch = develop
