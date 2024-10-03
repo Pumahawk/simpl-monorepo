@@ -5,13 +5,17 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.aruba.simpl</groupId>
-    <artifactId>simpl-backend</artifactId>
+    <artifactId>simpl-repo</artifactId>
     <version>0.0.4-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
-	    <module>simpl-repo</module>
-	    <module>custom</module>
+	    <module>common</module>
+	    <module>onboarding</module>
+	    <module>security-attributes-provider</module>
+	    <module>simpl-cloud-gateway</module>
+	    <module>simpl-http-client</module>
+	    <module>users-roles</module>
     </modules>
 
 </project>
