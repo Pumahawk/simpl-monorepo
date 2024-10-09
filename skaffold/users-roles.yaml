@@ -1,0 +1,31 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: users-roles
+build:
+  artifacts:
+    - image: users-roles
+      context: simpl-repo/users-roles
+      docker:
+        dockerfile: Dockerfile
+deploy:
+  helm:
+    releases:
+      - name: users-roles
+        version: v0.0.0
+        chartPath: simpl-repo/users-roles/charts/
+        setValues:
+          global:
+            profile: authority
+            hostBe: participant.be.aruba-simpl.cloud
+            hostTls: tls.authority.aruba-simpl.cloud
+            keystore:
+              password: "your-keystore-password"
+          image:
+            repository: users-roles
+            tag: v0.0.0
+            pullPolicy: IfNotPresent
+          db:
+            url: "jdbc:postgresql://postgresql.iaa.svc.cluster.local:5432/usersroles"
+            username: "usersroles"
+            password: "usersroles"
