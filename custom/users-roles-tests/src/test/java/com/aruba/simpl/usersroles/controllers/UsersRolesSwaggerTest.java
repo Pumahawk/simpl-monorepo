@@ -7,8 +7,6 @@ import com.aruba.simpl.common.exchanges.UserExchange;
 import com.aruba.simpl.usersroles.configurations.MtlsClientBuilder;
 import com.aruba.simpl.usersroles.configurations.RoleInitializer;
 import com.aruba.simpl.usersroles.service.*;
-import com.aruba.simpl.usersroles.service.core.KeycloakRealmService;
-import com.aruba.simpl.usersroles.service.user.KeycloakUserService;
 import org.keycloak.admin.client.Keycloak;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -26,17 +24,8 @@ import org.springframework.test.context.TestPropertySource;
     RestClientSsl.class,
     CertificateExchange.class,
     AttachmentExchange.class,
-    IdentityAttributeService.class,
     RoleInitializer.class,
-    RoleService.class,
     UserExchange.class,
-    CredentialService.class,
-    EchoService.class,
-    KeycloakInitializerService.class,
-    KeycloakService.class,
-    MtlsService.class,
-    KeycloakRealmService.class,
-    KeycloakUserService.class,
     Keycloak.class,
     MtlsClientBuilder.class,
 })
