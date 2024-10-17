@@ -42,3 +42,7 @@
 	path = simpl-repo/charts
 	url = https://code.europa.eu/simpl/iaa/charts.git
 	branch = develop
+[submodule "simpl-repo/tls-gateway"]
+	path = simpl-repo/tls-gateway
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/tls-gateway.git
+	branch = develop
