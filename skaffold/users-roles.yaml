@@ -6,8 +6,14 @@ build:
   artifacts:
     - image: users-roles
       context: simpl-repo/users-roles
-      docker:
-        dockerfile: Dockerfile
+      buildpacks:
+        builder: paketobuildpacks/builder-jammy-base
+        env:
+          - "BPE_DEFAULT_SPRING_PROFILES_ACTIVE=local"
+          - "BP_JVM_VERSION=21"
+        volumes:
+          - host: "simpl-users-roles-bindings"
+            target: "/platform/bindings"
 deploy:
   helm:
     releases:
