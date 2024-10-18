@@ -14,6 +14,7 @@
 	    <module>onboarding</module>
 	    <module>security-attributes-provider</module>
 	    <module>simpl-cloud-gateway</module>
+	    <module>tls-gateway</module>
 	    <module>simpl-http-client</module>
 	    <module>users-roles</module>
     </modules>
