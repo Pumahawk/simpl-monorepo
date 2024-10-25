@@ -50,3 +50,7 @@
 	path = simpl-repo/agent-service
 	url = https://code.europa.eu/simpl/simpl-open/development/iaa/agent-service.git
 	branch = develop
+[submodule "custom-repo/simpl-fe-nx-react"]
+	path = custom-repo/simpl-fe-nx-react
+	url = https://github.com/Pumahawk/simpl-fe-nx-react.git
+	branch = main
