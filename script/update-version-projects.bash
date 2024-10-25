@@ -61,7 +61,7 @@ function git_fetch_remote() {
 function git_checkout_new_branch() {
 	GIT_DIR="$1";
 	echo "Create new branch. Git: $GIT_DIR, Branch name: $GIT_BRANCH_NAME";
-	GIT_DIR="$GIT_DIR" git checkout -b "$GIT_BRANCH_NAME";
+	GIT_DIR="$GIT_DIR" git checkout -b "$GIT_BRANCH_NAME" "$GIT_REMOTE_NAME/$GIT_REMOTE_BRANCH";
 }
 
 function git_stash_all() {
@@ -81,7 +81,7 @@ function git_commit() {
 	GIT_MESSAGE="Update pipeline version";
 	echo "Git add all and commit. Message: $GIT_MESSAGE";
 	GIT_DIR="$GIT_DIR" git add -A;
-	GIT_DIR="$GIT_DIR" git commit -m "$GIT_MESSAGE";
+	GIT_DIR="$GIT_DIR" git commit -n -m "$GIT_MESSAGE";
 }
 
 main "$@";
