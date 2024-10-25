@@ -7,20 +7,27 @@ GIT_REMOTE_BRANCH="develop"
 
 STASH_ENABLE="true"
 
-git='GIT_DIR="$GIT_DIR" git';
-
 function print_help() {
-		echo -e "--pom-version VERSION \t New pom version"
-		echo -e "--pipeline-version VERSION \t New pipeline version"
-		echo -e "--branch-name NAME \t Default: $GIT_BRANCH_NAME \t Create new branch with given name"
-		echo -e "--remote-name NAME \t Default: $GIT_REMOTE_NAME \t Remote repository name"
-		echo -e "--remote-branch NAME \t Default: $GIT_REMOTE_BRANCH \t Remote branch name"
-		echo -e "--git-stash \t Default: true"
-		echo -e "--no-git-stash \t "
+cat <<EOF
+Update parent pom and script version
+     --pom-version VERSION                                     New pom version
+     --pipeline-version VERSION                                New pipeline version
+     --dir PATH               Default: $BASE_DIRECTORY         Base directory
+     --branch-name NAME       Default: $GIT_BRANCH_NAME        Create new branch with given name
+     --remote-name NAME       Default: $GIT_REMOTE_NAME        Remote repository name
+     --remote-branch NAME Default: $GIT_REMOTE_BRANCH          Remote branch name
+     --git-stash Default: true
+     --no-git-stash 
+EOF
 }
 
 while true; do
 	case "$1" in
+		--dir)
+			BASE_DIRECTORY="$2";
+			shift;
+			shift;
+			;;
 		--branch-name)
 			GIT_BRANCH_NAME="$2";
 			shift;
@@ -57,6 +64,7 @@ while true; do
 		--help)
 			print_help;
 			exit 0;
+			;;
 		*)
 			break;
 			;;
@@ -91,20 +99,20 @@ function main() {
 function git_fetch_remote() {
 	GIT_DIR="$1";
 	echo "Fetch project. Git: $GIT_DIR, remote name: $GIT_REMOTE_NAME";
-	$git fetch "$GIT_REMOTE_NAME";
+	GIT_DIR="$GIT_DIR" git fetch "$GIT_REMOTE_NAME";
 }
 
 function git_checkout_new_branch() {
 	GIT_DIR="$1";
 	echo "Create new branch. Git: $GIT_DIR, Branch name: $GIT_BRANCH_NAME";
-	$git checkout -b "$GIT_BRANCH_NAME";
+	GIT_DIR="$GIT_DIR" git checkout -b "$GIT_BRANCH_NAME";
 }
 
 function git_stash_all() {
 	GIT_DIR="$1";
 	if [ $STASH_ENABLE == "true" ]; then
-		$git add -A;
-		$git stash;
+		GIT_DIR="$GIT_DIR" git add -A;
+		GIT_DIR="$GIT_DIR" git stash;
 	else
 		echo "Stash not enabled";
 	fi
@@ -119,15 +127,16 @@ function update_version_pipeline() {
 
 function update_version_pom() {
 	PROJECT_DIR="$1";
-	sed -i '/<parent>/,/<\/parent>/s/<version>.*<\/version>/<version>'"$POM_VERSION"'<\/version>/' $(find "$PROJECT_DIR" -name pom.xml);
+	echo "Update pom version"
+	sed -i '/simpl-parent/,/<\/version>/s/<version>.*<\/version>/<version>'"$POM_VERSION"'<\/version>/' $(find "$PROJECT_DIR" -name pom.xml);
 }
 
 function git_commit() {
 	GIT_DIR="$1";
 	GIT_MESSAGE="Update pipeline version";
 	echo "Git add all and commit. Message: $GIT_MESSAGE";
-	$git add -A;
-	$git commit -m "$GIT_MESSAGE";
+	GIT_DIR="$GIT_DIR" git add -A;
+	GIT_DIR="$GIT_DIR" git commit -m "$GIT_MESSAGE";
 }
 
 main "$@";
