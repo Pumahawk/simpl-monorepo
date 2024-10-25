@@ -8,16 +8,17 @@ GIT_REMOTE_BRANCH="develop"
 STASH_ENABLE="true"
 
 function print_help() {
-cat <<EOF
-Update parent pom and script version
-     --pom-version VERSION                                     New pom version
-     --pipeline-version VERSION                                New pipeline version
-     --dir PATH               Default: $BASE_DIRECTORY         Base directory
-     --branch-name NAME       Default: $GIT_BRANCH_NAME        Create new branch with given name
-     --remote-name NAME       Default: $GIT_REMOTE_NAME        Remote repository name
-     --remote-branch NAME Default: $GIT_REMOTE_BRANCH          Remote branch name
-     --git-stash Default: true
-     --no-git-stash 
+	echo "Update parent pom and script version"
+	echo;
+column -ts \; <<EOF
+     --pom-version VERSION;Mandatory;New pom version
+     --pipeline-version VERSION;Mandatory;New pipeline version
+     --dir PATH;Default: $BASE_DIRECTORY;Base directory
+     --branch-name NAME;Default: $GIT_BRANCH_NAME;Create new branch with given name
+     --remote-name NAME;Default: $GIT_REMOTE_NAME;Remote repository name
+     --remote-branch NAME;Default: $GIT_REMOTE_BRANCH;Remote branch name
+     --git-stash;Default: true;Enable stash mode
+     --no-git-stash;;Disable stash mode
 EOF
 }
 
