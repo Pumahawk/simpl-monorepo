@@ -1,8 +1,7 @@
 #!/bin/bash
 set -e
 
-# Maven build with default parameters
-build='mvn -fae clean install -Dspring-boot.repackage.skip -Dsurefire.failIfNoSpecifiedTests=false -am'
+REPACKAGE="false"
 
 # Flag file to trigger init build
 FLAG_FILE=".init.flag";
@@ -10,6 +9,7 @@ FLAG_FILE=".init.flag";
 [ ! -f "$FLAG_FILE" ] && INIT="true"
 
 
+while true; do
 	case $1 in
 		--init)
         INIT="true"
@@ -19,7 +19,28 @@ FLAG_FILE=".init.flag";
         INIT="false"
 		shift
 		;;
+		--repackage)
+        REPACKAGE="true"
+		shift
+		;;
+		--no-repackage)
+        REPACKAGE="false"
+		shift
+		;;
+		*)
+		break;
+		;;
 	esac
+done;
+
+if [[ $REPACKAGE == "true" ]]; then
+	REPACKAGE_COMMAND=""
+else
+	REPACKAGE_COMMAND="-Dspring-boot.repackage.skip"
+fi
+
+# Maven build with default parameters
+build='mvn -fae clean install '$REPACKAGE_COMMAND' -Dsurefire.failIfNoSpecifiedTests=false -am'
 
 if [[ $INIT == "true" ]]; then
     $build -N -f simpl-repo/common;
