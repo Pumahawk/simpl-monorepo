@@ -17,6 +17,7 @@
 	    <module>tls-gateway</module>
 	    <module>simpl-http-client</module>
 	    <module>users-roles</module>
+	    <module>agent-service</module>
     </modules>
 
 </project>

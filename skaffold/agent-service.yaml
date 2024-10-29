@@ -25,6 +25,6 @@ deploy:
             tag: v0.0.0
             pullPolicy: IfNotPresent
           db:
-            url: "jdbc:postgresql://postgresql.iaa.svc.cluster.local:5432/agentservice"
-            username: "agentservice"
-            password: "agentservice"
+            url: "jdbc:postgresql://postgresql.iaa.svc.cluster.local:5432/authenticationprovider"
+            username: "authenticationprovider"
+            password: "authenticationprovider"
