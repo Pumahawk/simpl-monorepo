@@ -1,0 +1,111 @@
+diff --git a/app-values/0.6/keycloak/values-participant.yaml b/app-values/0.6/keycloak/values-participant.yaml
+index 864930b..a855d00 100644
+--- a/app-values/0.6/keycloak/values-participant.yaml
++++ b/app-values/0.6/keycloak/values-participant.yaml
+@@ -1,13 +1,13 @@
+-apiUrl: "https://participant01-be.dev.simpl-europe.eu"
++apiUrl: "https://t1.USERNAME.dev.aruba-simpl.cloud"
+ extraEnvVars: 
+   - name: KC_HOSTNAME_ADMIN
+-    value: "https://participant01-be.dev.simpl-europe.eu/auth"
++    value: "{{ .Values.apiUrl }}/auth"
+   - name: KC_HOSTNAME
+-    value: "https://participant01-be.dev.simpl-europe.eu/auth"
++    value: "{{ .Values.apiUrl }}/auth"
+   - name: USERS_ROLES_BASE_URL
+-    value: "http://users-roles.iaa-01.svc.cluster.local:8080"
++    value: "http://users-roles.USERNAME.svc.cluster.local:8080"
+   - name: KEYCLOAK_BASE_URL
+-    value: "https://participant01-be.dev.simpl-europe.eu/auth"
++    value: "{{ .Values.apiUrl }}/auth"
+   - name: REALM
+     value: "participant"
+   - name: KEYCLOAK_EXTRA_ARGS
+@@ -20,7 +20,7 @@ postgresql:
+   enabled: false
+ 
+ externalDatabase:
+-  host: "postgresql.iaa.svc.cluster.local"
++  host: "postgresql.USERNAME.svc.cluster.local"
+   port: 5432
+   user: keycloak
+   database: keycloak
+diff --git a/app-values/0.6/simpl-cloud-gateway/values-participant.yaml b/app-values/0.6/simpl-cloud-gateway/values-participant.yaml
+index 56372c5..803a9fc 100644
+--- a/app-values/0.6/simpl-cloud-gateway/values-participant.yaml
++++ b/app-values/0.6/simpl-cloud-gateway/values-participant.yaml
+@@ -1,17 +1,14 @@
+ global:
+   cors:
+-    allowOrigin: https://participant01-be.dev.simpl-europe.eu,https://participant01-fe.dev.simpl-europe.eu,http://localhost:4202,http://localhost:3000
+-  hostBe: participant01-be.dev.simpl-europe.eu
+-  hostFe: participant01-fe.dev.simpl-europe.eu # not needed
+-  authorityUrl: https://authority.be.dev.simpl-europe.eu
+-  hostTls: tls-participant01.dev.simpl-europe.eu
++    allowOrigin: https://t1.USERNAME.dev.aruba-simpl.cloud,https://fe.USERNAME.dev.aruba-simpl.cloud,http://localhost:4202,http://localhost:3000
++  hostBe: t1.USERNAME.dev.aruba-simpl.cloud
+   ingress:
+-    issuer: dev-prod
++    issuer: issuer-ingress
+   profile: participant
+ 
+ microservices:
+-  keycloakUrl: http://keycloak.iaa-01.svc.cluster.local
+-  usersRolesUrl: http://users-roles.iaa-01.svc.cluster.local:8080
++  keycloakUrl: http://keycloak.USERNAME.svc.cluster.local
++  usersRolesUrl: http://users-roles.USERNAME.svc.cluster.local:8080
+ 
+ springRoutes: 
+   - id: keycloak
+diff --git a/app-values/0.6/simpl-fe/values-participant.yaml b/app-values/0.6/simpl-fe/values-participant.yaml
+index e8a059c..c49a484 100644
+--- a/app-values/0.6/simpl-fe/values-participant.yaml
++++ b/app-values/0.6/simpl-fe/values-participant.yaml
+@@ -1,14 +1,14 @@
+-hostFe: participant01-fe.dev.simpl-europe.eu
++hostFe: fe.USERNAME.dev.aruba-simpl.cloud
+ cors:
+-  allowOrigin: https://participant01-be.dev.simpl-europe.eu,https://participant01-fe.dev.simpl-europe.eu,http://localhost:4202,http://localhost:4203,http://localhost:3000
++  allowOrigin: https://t1.USERNAME.dev.aruba-simpl.cloud,https://fe.USERNAME.dev.aruba-simpl.cloud,http://localhost:4202,http://localhost:4203,http://localhost:3000
+ ingress:
+-  issuer: dev-prod
++  issuer: issuer-ingress
+ 
+ env:
+ - name: API_URL
+-  value: "https://participant01-be.dev.simpl-europe.eu"
++  value: "https://t1.USERNAME.dev.aruba-simpl.cloud"
+ - name: KEYCLOAK_URL
+-  value: "https://participant01-be.dev.simpl-europe.eu/auth"
++  value: "https://t1.USERNAME.dev.aruba-simpl.cloud/auth"
+ - name: KEYCLOAK_REALM
+   value: "participant"
+ - name: KEYCLOAK_CLIENT_ID
+diff --git a/app-values/0.6/users-roles/values-participant.yaml b/app-values/0.6/users-roles/values-participant.yaml
+index ccb4b5c..a37bc94 100644
+--- a/app-values/0.6/users-roles/values-participant.yaml
++++ b/app-values/0.6/users-roles/values-participant.yaml
+@@ -1,17 +1,17 @@
+ global:
+-  hostBe: participant01-be.dev.simpl-europe.eu
+-  hostTls: tls.authority.dev.simpl-europe.eu # authority
++  hostBe: t1.USERNAME.dev.aruba-simpl.cloud
++  hostTls: t2.authority.dev.aruba-simpl.cloud # authority
+   profile: participant
+   keystore:
+-    password: "keystore-generated-password"
++    password: "authority"
+ 
+ db:
+-  url: "jdbc:postgresql://postgresql.iaa-01.svc.cluster.local:5432/usersroles"
++  url: "jdbc:postgresql://postgresql.USERNAME.svc.cluster.local:5432/usersroles"
+   username: "usersroles"
+   password: "usersroles"
+ 
+ redis:
+-  host: "redis-master.iaa-01.svc.cluster.local"
++  host: "redis-master.USERNAME.svc.cluster.local"
+   port: "6379"
+   username: "default"
+   password: "admin" # update this
+
