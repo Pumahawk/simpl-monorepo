@@ -7,36 +7,191 @@ global:
     issuer: issuer-ingress
   profile: participant
   keystore:
-    password: "authority"
+    password: "participant"
 
 keycloak:
   apiUrl: "https://t1.lorenzo.dev.aruba-simpl.cloud"
   extraEnvVars:
     - name: KC_HOSTNAME_ADMIN
-      value: "https://t1.lorenzo.dev.aruba-simpl.cloud/auth"
+      value: "{{ .Values.apiUrl }}/auth"
     - name: KC_HOSTNAME
-      value: "https://t1.lorenzo.dev.aruba-simpl.cloud/auth"
+      value: "{{ .Values.apiUrl }}/auth"
     - name: USERS_ROLES_BASE_URL
       value: "http://users-roles.lorenzo.svc.cluster.local:8080"
     - name: KEYCLOAK_BASE_URL
-      value: "https://t1.lorenzo.dev.aruba-simpl.cloud/auth"
+      value: "{{ .Values.apiUrl }}/auth"
     - name: REALM
       value: "participant"
     - name: KEYCLOAK_EXTRA_ARGS
       value: --import-realm
 
+  auth:
+    adminPassword: "admin"
+
+  postgresql:
+    enabled: false
+
+  externalDatabase:
+    host: "simpl-participant-postgresql.lorenzo.svc.cluster.local"
+    port: 5432
+    user: keycloak
+    database: keycloak
+    password: "keycloak"
+    existingSecret: ""
+    existingSecretHostKey: ""
+    existingSecretPortKey: ""
+    existingSecretUserKey: ""
+    existingSecretDatabaseKey: ""
+    existingSecretPasswordKey: ""
+    annotations: {}
+
+  extraVolumes:
+    - name: spi-volume
+      emptyDir: {}
+    - name: realm-volume
+      emptyDir: {}
+
+  extraVolumeMounts:
+    - name: spi-volume
+      mountPath: /opt/bitnami/keycloak/providers/keycloak-authenticator.jar
+      subPath: keycloak-authenticator.jar
+    - name: realm-volume
+      mountPath: /opt/bitnami/keycloak/data/import/realm.json
+      subPath: realm.json
+
+  initContainers:
+    - name: init-spi
+      image: curlimages/curl
+      command: ["/bin/sh", "-c"]
+      env:
+        - name: ARTIFACT
+          value: keycloak-authenticator
+        - name: URL
+          value: https://code.europa.eu/api/v4/projects/915/packages/maven/com/aruba/simpl/keycloak-authenticator/0.6.0/keycloak-authenticator-0.6.0.jar
+      args:
+        - |
+          curl -o /custom-spi/${ARTIFACT}.jar ${URL};
+      volumeMounts:
+        - name: spi-volume
+          mountPath: /custom-spi
+
+    - name: import-realm
+      image: curlimages/curl
+      command: ["/bin/sh", "-c"]
+      env:
+        - name: REALM_NAME
+          value: realm
+        - name: URL
+          # uncomment below if you are deploying an authority
+          # value: https://code.europa.eu/simpl/simpl-open/development/iaa/charts/-/raw/develop/keycloak/kc-init/authority-realm-export.json?ref_type=heads
+          # uncomment below if you are deploying a participant
+          value: https://code.europa.eu/simpl/simpl-open/development/iaa/charts/-/raw/develop/keycloak/kc-init/participant-realm-export.json?ref_type=heads
+      args:
+        - |
+          curl -o /config/${REALM_NAME}.json ${URL};
+      volumeMounts:
+        - name: realm-volume
+          mountPath: /config
 
 simpl-cloud-gateway:
   microservices:
     keycloakUrl: http://keycloak.lorenzo.svc.cluster.local
     usersRolesUrl: http://users-roles.lorenzo.svc.cluster.local:8080
 
+  springRoutes:
+    - id: keycloak
+      uri: ${keycloak.url}
+      predicates:
+        - Path=/auth/**
+      filters:
+        - StripPrefix=1
+    - id: users-roles
+      uri: ${users-roles.url}
+      predicates:
+        - Path=/*/user-api/**
+      filters:
+        - StripPrefix=2
+
+  swaggerUrls:
+    - url: /public/user-api/v3/api-docs
+      name: Users & Roles Service
+
+  routes:
+    publicUrls:
+      - method: GET
+        path: "/swagger-ui.html"
+      - method: GET
+        path: "/swagger-ui/**"
+      - method: GET
+        path: "/v3/api-docs/**"
+      - method: GET
+        path: "/actuator/**"
+
+    rbac:
+      - path: "private/user-api/agent/identity-attributes"
+        method: GET
+        roles:
+          - T1UAR_M
+      - path: "private/user-api/agent/identity-attributes/*"
+        method: GET
+        roles:
+          - T1UAR_M
+      - path: "private/user-api/identity-attribute/search"
+        method: GET
+        roles:
+          - T1UAR_M
+      - path: "private/user-api/role/*"
+        method: GET
+        roles:
+          - T1UAR_M
+      - path: "private/user-api/role"
+        method: PUT
+        roles:
+          - T1UAR_M
+      - path: "private/user-api/role/*/identity-attributes"
+        method: POST
+        roles:
+          - T1UAR_M
+      - path: "private/user-api/role/delete-attribute"
+        method: DELETE
+        roles:
+          - T1UAR_M
+      - path: "private/user-api/role/*"
+        method: DELETE
+        roles:
+          - T1UAR_M
+      - path: "private/user-api/role/search"
+        method: GET
+        roles:
+          - T1UAR_M
+      - path: "private/user-api/role/*/duplicate-identity-attribute"
+        method: POST
+        roles:
+          - T1UAR_M
+      - path: "private/user-api/user/as-t1user"
+        method: POST
+        roles:
+          - T1UAR_M
+      - path: "private/user-api/user/*"
+        method: GET
+        roles:
+          - T1UAR_M
+      - path: "private/user-api/user/*"
+        method: PUT
+        roles:
+          - T1UAR_M
+      - path: "private/user-api/user/*"
+        method: DELETE
+        roles:
+          - T1UAR_M
+
 simpl-fe:
   hostFe: fe.lorenzo.dev.aruba-simpl.cloud
   cors:
     allowOrigin: https://t1.lorenzo.dev.aruba-simpl.cloud,https://fe.lorenzo.dev.aruba-simpl.cloud,http://localhost:4202,http://localhost:4203,http://localhost:3000
   ingress:
-    issuer: issuer-ingrees
+    issuer: issuer-ingress
+
   env:
   - name: API_URL
     value: "https://t1.lorenzo.dev.aruba-simpl.cloud"
@@ -47,13 +202,42 @@ simpl-fe:
   - name: KEYCLOAK_CLIENT_ID
     value: "frontend-cli"
 
+  microfrontends:
+  - name: usersroles
+    application: usersandroles
+    path: "/users-roles"
+  - name: participant
+    application: participant-utility
+    path: "/participant-utility"
+
 users-roles:
   db:
-    url: "jdbc:postgresql://postgresql.lorenzo.svc.cluster.local:5432/usersroles"
+    url: "jdbc:postgresql://simpl-participant-postgresql.lorenzo.svc.cluster.local:5432/usersroles"
     username: "usersroles"
     password: "usersroles"
+
   redis:
     host: "redis-master.lorenzo.svc.cluster.local"
     port: "6379"
     username: "default"
     password: "admin" # update this
+
+  keycloak:
+    master:
+      user: "user"
+      password: "admin"
+
+
+postgresql:
+  primary:
+    initdb:
+      scripts:
+        init.sql: |
+          CREATE USER keycloak WITH PASSWORD 'keycloak' CREATEDB;
+          CREATE DATABASE keycloak OWNER keycloak;
+          CREATE USER usersroles WITH PASSWORD 'usersroles' CREATEDB;
+          CREATE DATABASE usersroles OWNER usersroles;
+
+redis:
+  auth:
+    password: "admin"
