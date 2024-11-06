@@ -5,7 +5,7 @@ metadata:
 build:
   artifacts:
     - image: code.europa.eu:4567/simpl/simpl-open/development/iaa/users-roles
-      context: simpl-repo/users-roles
+      context: users-roles
       docker: {}
 manifests:
   remoteManifests: 
@@ -22,7 +22,7 @@ metadata:
 build:
   artifacts:
     - image: code.europa.eu:4567/simpl/simpl-open/development/iaa/identity-provider
-      context: simpl-repo/identity-provider
+      context: identity-provider
       docker:
 manifests:
   remoteManifests: 
@@ -39,7 +39,7 @@ metadata:
 build:
   artifacts:
     - image: code.europa.eu:4567/simpl/simpl-open/development/iaa/agent-service
-      context: simpl-repo/agent-service
+      context: agent-service
       docker: {}
 manifests:
   remoteManifests: 
