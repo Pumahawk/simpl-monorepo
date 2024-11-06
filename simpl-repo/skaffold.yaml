@@ -1,0 +1,48 @@
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: users-roles
+build:
+  artifacts:
+    - image: code.europa.eu:4567/simpl/simpl-open/development/iaa/users-roles
+      context: simpl-repo/users-roles
+      docker: {}
+manifests:
+  remoteManifests: 
+  - manifest: deployment.apps/users-roles
+deploy:
+  kubectl: {}
+
+---
+
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: identity-provider
+build:
+  artifacts:
+    - image: code.europa.eu:4567/simpl/simpl-open/development/iaa/identity-provider
+      context: simpl-repo/identity-provider
+      docker:
+manifests:
+  remoteManifests: 
+  - manifest: deployment.apps/identity-provider
+deploy:
+  kubectl: {}
+
+---
+
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
+  name: agent-service
+build:
+  artifacts:
+    - image: code.europa.eu:4567/simpl/simpl-open/development/iaa/agent-service
+      context: simpl-repo/agent-service
+      docker: {}
+manifests:
+  remoteManifests: 
+  - manifest: deployment.apps/agent-service
+deploy:
+  kubectl: {}
