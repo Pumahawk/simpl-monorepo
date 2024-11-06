@@ -18,6 +18,7 @@
 	    <module>simpl-http-client</module>
 	    <module>users-roles</module>
 	    <module>agent-service</module>
+	    <module>identity-provider</module>
     </modules>
 
 </project>
