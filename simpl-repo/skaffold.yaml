@@ -1,6 +1,23 @@
 apiVersion: skaffold/v4beta11
 kind: Config
 metadata:
+  name: onboarding
+build:
+  artifacts:
+    - image: code.europa.eu:4567/simpl/simpl-open/development/iaa/onboarding
+      context: simpl-repo/onboarding
+      docker: {}
+manifests:
+  remoteManifests: 
+  - manifest: deployment.apps/onboarding
+deploy:
+  kubectl: {}
+
+---
+
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
   name: users-roles
 build:
   artifacts:
