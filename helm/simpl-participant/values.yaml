@@ -1,8 +1,8 @@
 global:
   cors:
-    allowOrigin: https://t1.lorenzo.dev.aruba-simpl.cloud,https://fe.lorenzo.dev.aruba-simpl.cloud,http://localhost:4202,http://localhost:3000
-  hostBe: t1.lorenzo.dev.aruba-simpl.cloud
-  hostTls: t2.authority.dev.simpl-europe.eu # authority
+    allowOrigin: ""
+  hostBe: "--- VALUE_MUST_CHANGE ---"
+  hostTls: "--- VALUE_MUST_CHANGE ---"
   ingress:
     issuer: issuer-ingress
   profile: participant
@@ -10,14 +10,14 @@ global:
     password: "participant"
 
 keycloak:
-  apiUrl: "https://t1.lorenzo.dev.aruba-simpl.cloud"
+  apiUrl: "--- VALUE_MUST_CHANGE ---"
   extraEnvVars:
     - name: KC_HOSTNAME_ADMIN
       value: "{{ .Values.apiUrl }}/auth"
     - name: KC_HOSTNAME
       value: "{{ .Values.apiUrl }}/auth"
     - name: USERS_ROLES_BASE_URL
-      value: "http://users-roles.lorenzo.svc.cluster.local:8080"
+      value: "--- VALUE_MUST_CHANGE ---"
     - name: KEYCLOAK_BASE_URL
       value: "{{ .Values.apiUrl }}/auth"
     - name: REALM
@@ -32,7 +32,7 @@ keycloak:
     enabled: false
 
   externalDatabase:
-    host: "simpl-participant-postgresql.lorenzo.svc.cluster.local"
+    host: "--- VALUE_MUST_CHANGE ---"
     port: 5432
     user: keycloak
     database: keycloak
@@ -95,8 +95,8 @@ keycloak:
 
 simpl-cloud-gateway:
   microservices:
-    keycloakUrl: http://keycloak.lorenzo.svc.cluster.local
-    usersRolesUrl: http://users-roles.lorenzo.svc.cluster.local:8080
+    keycloakUrl: "--- VALUE_MUST_CHANGE ---"
+    usersRolesUrl: "--- VALUE_MUST_CHANGE ---"
 
   springRoutes:
     - id: keycloak
@@ -186,17 +186,17 @@ simpl-cloud-gateway:
           - T1UAR_M
 
 simpl-fe:
-  hostFe: fe.lorenzo.dev.aruba-simpl.cloud
+  hostFe: "--- VALUE_MUST_CHANGE ---"
   cors:
-    allowOrigin: https://t1.lorenzo.dev.aruba-simpl.cloud,https://fe.lorenzo.dev.aruba-simpl.cloud,http://localhost:4202,http://localhost:4203,http://localhost:3000
+    allowOrigin: "--- VALUE_MUST_CHANGE ---"
   ingress:
     issuer: issuer-ingress
 
   env:
   - name: API_URL
-    value: "https://t1.lorenzo.dev.aruba-simpl.cloud"
+    value: "--- VALUE_MUST_CHANGE ---"
   - name: KEYCLOAK_URL
-    value: "https://t1.lorenzo.dev.aruba-simpl.cloud/auth"
+    value: "--- VALUE_MUST_CHANGE ---"
   - name: KEYCLOAK_REALM
     value: "participant"
   - name: KEYCLOAK_CLIENT_ID
@@ -212,12 +212,12 @@ simpl-fe:
 
 users-roles:
   db:
-    url: "jdbc:postgresql://simpl-participant-postgresql.lorenzo.svc.cluster.local:5432/usersroles"
+    url: "--- VALUE_MUST_CHANGE ---"
     username: "usersroles"
     password: "usersroles"
 
   redis:
-    host: "redis-master.lorenzo.svc.cluster.local"
+    host: "--- VALUE_MUST_CHANGE ---"
     port: "6379"
     username: "default"
     password: "admin" # update this

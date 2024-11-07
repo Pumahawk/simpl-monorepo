@@ -1,0 +1,68 @@
+global:
+  cors:
+    allowOrigin: https://t1.lorenzo.dev.aruba-simpl.cloud,https://fe.lorenzo.dev.aruba-simpl.cloud,http://localhost:4202,http://localhost:3000
+  hostBe: t1.lorenzo.dev.aruba-simpl.cloud
+  hostTls: t2.authority.dev.simpl-europe.eu # authority
+
+postgresql:
+  primary:
+    persistence:
+      size: 1Gi
+
+redis:
+  replica:
+    replicaCount: 1
+    persistence:
+      size: 1Gi
+  master:
+    persistence:
+      size: 1Gi
+
+keycloak:
+  apiUrl: "https://t1.lorenzo.dev.aruba-simpl.cloud"
+  extraEnvVars:
+    - name: KC_HOSTNAME_ADMIN
+      value: "{{ .Values.apiUrl }}/auth"
+    - name: KC_HOSTNAME
+      value: "{{ .Values.apiUrl }}/auth"
+    - name: USERS_ROLES_BASE_URL
+      value: "http://users-roles.lorenzo-2.svc.cluster.local:8080"
+    - name: KEYCLOAK_BASE_URL
+      value: "{{ .Values.apiUrl }}/auth"
+    - name: REALM
+      value: "participant"
+    - name: KEYCLOAK_EXTRA_ARGS
+      value: --import-realm
+
+  externalDatabase:
+    host: "simpl-participant-postgresql.lorenzo-2.svc.cluster.local"
+
+simpl-cloud-gateway:
+  microservices:
+    keycloakUrl: http://simpl-participant-keycloak.lorenzo-2.svc.cluster.local
+    usersRolesUrl: http://users-roles.lorenzo-2.svc.cluster.local:8080
+
+simpl-fe:
+  hostFe: fe.lorenzo.dev.aruba-simpl.cloud
+  cors:
+    allowOrigin: https://t1.lorenzo.dev.aruba-simpl.cloud,https://fe.lorenzo.dev.aruba-simpl.cloud,http://localhost:4202,http://localhost:4203,http://localhost:3000
+  ingress:
+    issuer: issuer-ingress
+
+  env:
+  - name: API_URL
+    value: "https://t1.lorenzo.dev.aruba-simpl.cloud"
+  - name: KEYCLOAK_URL
+    value: "https://t1.lorenzo.dev.aruba-simpl.cloud/auth"
+  - name: KEYCLOAK_REALM
+    value: "participant"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+
+users-roles:
+  db:
+    url: "jdbc:postgresql://simpl-participant-postgresql.lorenzo-2.svc.cluster.local:5432/usersroles"
+
+  redis:
+    host: "redis-master.lorenzo-2.svc.cluster.local"
+
