@@ -94,9 +94,8 @@ keycloak:
           mountPath: /config
 
 simpl-cloud-gateway:
-  microservices:
-    keycloakUrl: "--- VALUE_MUST_CHANGE ---"
-    usersRolesUrl: "--- VALUE_MUST_CHANGE ---"
+  keycloakUrl: "--- VALUE_MUST_CHANGE ---"
+  usersRolesUrl: "--- VALUE_MUST_CHANGE ---"
 
   springRoutes:
     - id: keycloak
@@ -237,7 +236,16 @@ postgresql:
           CREATE DATABASE keycloak OWNER keycloak;
           CREATE USER usersroles WITH PASSWORD 'usersroles' CREATEDB;
           CREATE DATABASE usersroles OWNER usersroles;
+          CREATE USER authenticationprovider WITH PASSWORD 'authenticationprovider' CREATEDB;
+          CREATE DATABASE authenticationprovider OWNER authenticationprovider;
+
 
 redis:
   auth:
     password: "admin"
+
+authentication-provider:
+  simpl:
+    certificate:
+      san: "--- VALUE_MUST_CHANGE ---"
+

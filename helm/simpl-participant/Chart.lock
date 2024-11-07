@@ -10,12 +10,12 @@ dependencies:
   version: 22.2.5
 - name: simpl-cloud-gateway
   repository: https://code.europa.eu/api/v4/projects/772/packages/helm/stable
-  version: 0.6.0
+  version: 0.7.0-SNAPSHOT.242.68415818
 - name: users-roles
   repository: https://code.europa.eu/api/v4/projects/771/packages/helm/stable
-  version: 0.6.4
+  version: 0.7.0-SNAPSHOT.766.cf371aaa
 - name: simpl-fe
   repository: https://code.europa.eu/api/v4/projects/769/packages/helm/stable
-  version: 0.6.1
-digest: sha256:9f385234fd1d30121a1061410f0df831874ae99900a5abf83e59f995220b3a2c
-generated: "2024-10-31T00:27:06.525308297+01:00"
+  version: 0.7.0-SNAPSHOT.774.b2e5cb37
+digest: sha256:56fe81782a11b99ee6a737adb5c0e3645cf2ed1b92ef4ada74b2ee67ad767d52
+generated: "2024-11-07T13:24:36.795735997+01:00"

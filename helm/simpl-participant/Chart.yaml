@@ -4,9 +4,9 @@ description: A Helm chart for Kubernetes
 
 type: application
 
-version: 0.1.0
+version: "0.7.0-SNAPSHOT"
 
-appVersion: "0.6.0"
+appVersion: "0.7.0-SNAPSHOT"
 
 dependencies:
   - name: redis
@@ -20,11 +20,14 @@ dependencies:
     version: "22.2.5"
   - name: simpl-cloud-gateway
     repository: https://code.europa.eu/api/v4/projects/772/packages/helm/stable
-    version: "0.6.0"
+    version: "0.7.0-SNAPSHOT.242.68415818"
   - name: users-roles
-    version: "0.6.4"
+    version: "0.7.0-SNAPSHOT.766.cf371aaa"
     repository: https://code.europa.eu/api/v4/projects/771/packages/helm/stable
+  - name: authentication-provider
+    version: "0.7.0-SNAPSHOT.57.e77c5c7b"
+    repository: https://code.europa.eu/api/v4/projects/939/packages/helm/stable
   - name: simpl-fe
-    version: "0.6.1"
+    version: "0.7.0-SNAPSHOT.774.b2e5cb37"
     repository: https://code.europa.eu/api/v4/projects/769/packages/helm/stable
 
