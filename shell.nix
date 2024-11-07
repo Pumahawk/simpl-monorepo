@@ -5,7 +5,9 @@ pkgs.mkShell {
     pkgs.maven
     pkgs.docker
     pkgs.kubectl
+    pkgs.helm
     pkgs.skaffold
+    pkgs.nodejs_22
   ];
 
 }
