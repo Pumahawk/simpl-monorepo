@@ -28,6 +28,6 @@ dependencies:
     version: "0.7.0-SNAPSHOT.57.e77c5c7b"
     repository: https://code.europa.eu/api/v4/projects/939/packages/helm/stable
   - name: simpl-fe
-    version: "0.7.0-SNAPSHOT.774.b2e5cb37"
+    version: "0.7.0-SNAPSHOT.821.e098f635"
     repository: https://code.europa.eu/api/v4/projects/769/packages/helm/stable
 

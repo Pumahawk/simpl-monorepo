@@ -66,6 +66,8 @@ users-roles:
     host: "redis-master.lorenzo-2.svc.cluster.local"
 
 authentication-provider:
+  db:
+    url: "jdbc:postgresql://simpl-participant-postgresql.lorenzo-2.svc.cluster.local:5432/authenticationprovider"
   simpl:
     certificate:
       san: "t2.authority.dev.aruba-simpl.cloud"

@@ -14,8 +14,11 @@ dependencies:
 - name: users-roles
   repository: https://code.europa.eu/api/v4/projects/771/packages/helm/stable
   version: 0.7.0-SNAPSHOT.766.cf371aaa
+- name: authentication-provider
+  repository: https://code.europa.eu/api/v4/projects/939/packages/helm/stable
+  version: 0.7.0-SNAPSHOT.57.e77c5c7b
 - name: simpl-fe
   repository: https://code.europa.eu/api/v4/projects/769/packages/helm/stable
-  version: 0.7.0-SNAPSHOT.774.b2e5cb37
-digest: sha256:56fe81782a11b99ee6a737adb5c0e3645cf2ed1b92ef4ada74b2ee67ad767d52
-generated: "2024-11-07T13:24:36.795735997+01:00"
+  version: 0.7.0-SNAPSHOT.821.e098f635
+digest: sha256:5a7830232733f828442eb9ebc33cc49f8aa1dc2d4e583e876123809b9758a377
+generated: "2024-11-08T16:16:58.463711544+01:00"
