@@ -55,16 +55,17 @@ metadata:
   name: agent-service
 build:
   artifacts:
-    - image: code.europa.eu:4567/simpl/simpl-open/development/iaa/agent-service
+    - image: code.europa.eu:4567/simpl/simpl-open/development/iaa/authentication_provider
       context: simpl-repo/agent-service
       docker: {}
 manifests:
   remoteManifests: 
-  - manifest: deployment.apps/agent-service
+  - manifest: deployment.apps/authentication-provider
 deploy:
   kubectl: {}
 
 ---
+
 
 apiVersion: skaffold/v4beta11
 kind: Config
