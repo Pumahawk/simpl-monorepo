@@ -1,18 +1,20 @@
 #!/usr/bin/env bash
 
-BASE_DIRECTORY="."
+BASE_DIRECTORY="simpl-repo"
 GIT_BRANCH_NAME="feature/SIMPL-update-version"
 GIT_REMOTE_NAME="origin"
 GIT_REMOTE_BRANCH="develop"
 
 STASH_ENABLE="true"
+OPENAPI_HOST="https://t1.authority.dev.aruba-simpl.cloud"
 
 function print_help() {
 	echo "Update parent pom and script version"
 	echo;
 column -ts \; <<EOF
      --pom-version VERSION;Mandatory;New pom version
-     --pipeline-version VERSION;Mandatory;New pipeline version
+     --pipeline-version VERSION;Default: like pom version;New pipeline version
+     --openapi-version VERSION;Default: like pom version;New openapi version
      --dir PATH;Default: $BASE_DIRECTORY;Base directory
      --branch-name NAME;Default: $GIT_BRANCH_NAME;Create new branch with given name
      --remote-name NAME;Default: $GIT_REMOTE_NAME;Remote repository name
@@ -54,6 +56,11 @@ while true; do
 			shift;
 			shift;
 			;;
+		--openapi-version)
+			OPENAPI_VERSION="$2";
+			shift;
+			shift;
+			;;
 		--git-stash)
 			STASH_ENABLE="true"
 			shift;
@@ -78,8 +85,11 @@ if [ -z ${POM_VERSION+x} ]; then
 fi
 
 if [ -z ${PIPELINE_VERSION+x} ]; then
-	echo "--pipeline-version is mandatory"; 
-	exit 2;
+	PIPELINE_VERSION="$POM_VERSION"
+fi
+
+if [ -z ${OPENAPI_VERSION+x} ]; then
+	OPENAPI_VERSION="$POM_VERSION"
 fi
 
 function main() {
@@ -94,7 +104,8 @@ function main() {
 			update_version_pom "$PROJECT_DIR";
 			git_commit "$GIT_DIR";
 		done;
-	)
+	);
+	update_all_openapi
 }
 
 function git_fetch_remote() {
@@ -129,7 +140,8 @@ function update_version_pipeline() {
 function update_version_pom() {
 	PROJECT_DIR="$1";
 	echo "Update pom version"
-	sed -i '/simpl-parent/,/<\/version>/s/<version>.*<\/version>/<version>'"$POM_VERSION"'<\/version>/' $(find "$PROJECT_DIR" -name pom.xml);
+	sed -i '/simpl-.*parent/,/<\/version>/s/<version>.*<\/version>/<version>'"$POM_VERSION"'<\/version>/' $(find "$PROJECT_DIR" -name pom.xml);
+	sed -i 's!<simpl.httpclient.version>.*</simpl.httpclient.version>!<simpl.httpclient.version>'$POM_VERSION'</simpl.httpclient.version>!' $(find "$PROJECT_DIR" -name pom.xml);
 }
 
 function git_commit() {
@@ -138,6 +150,23 @@ function git_commit() {
 	echo "Git add all and commit. Message: $GIT_MESSAGE";
 	GIT_DIR="$GIT_DIR" git add -A;
 	GIT_DIR="$GIT_DIR" git commit -m "$GIT_MESSAGE";
+}
+
+function update_all_openapi() {
+	update_openapi "$BASE_DIRECTORY/agent-service"                     "$OPENAPI_HOST/public/auth-api/v3/api-docs"
+	update_openapi "$BASE_DIRECTORY/identity-provider"                 "$OPENAPI_HOST/public/identity-api/v3/api-docs"
+	update_openapi "$BASE_DIRECTORY/onboarding"                        "$OPENAPI_HOST/public/onboarding-api/v3/api-docs";
+	update_openapi "$BASE_DIRECTORY/security-attributes-provider"      "$OPENAPI_HOST/public/sap-api/v3/api-docs"
+	update_openapi "$BASE_DIRECTORY/users-roles"                       "$OPENAPI_HOST/public/user-api/v3/api-docs"
+}
+
+function update_openapi() {
+	PROJECT_DIR="$1";
+	URL="$2";
+	echo "Update openapi $PROJECT_DIR"
+	curl -s "$CURL" > "$PROJECT_DIR/openapi/openApi-doc-$OPENAPI_VERSION-release.json"
+	GIT_DIR="$PROJECT_DIR/.git" git add openapi;
+	GIT_DIR="$PROJECT_DIR/.git" git commit -m "Update opena Api, version: $OPENAPI_VERSION"
 }
 
 main "$@";
