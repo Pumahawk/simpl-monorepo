@@ -29,6 +29,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 })
 @TestPropertySource(
         properties = {
+            "database-seeding.securityAttributeProviderMapping.disable=true",
             "logging.level.org.hibernate.SQL=DEBUG",
         })
 @DirtiesContext
