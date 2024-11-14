@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>$com.aruba.simpl</groupId>
   <artifactId>$security-attributes-provider-tests</artifactId>
-  <version>$0.6.0-RC</version>
+  <version>$0.8.0-RC</version>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>

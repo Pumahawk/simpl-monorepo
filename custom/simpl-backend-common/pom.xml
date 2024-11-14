@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.aruba.simpl</groupId>
         <artifactId>simpl-backend-parent</artifactId>
-        <version>0.6.0-RC</version>
+        <version>0.8.0-RC</version>
 	<relativePath>../simpl-backend-parent/pom.xml</relativePath>
     </parent>
     <artifactId>simpl-backend-common</artifactId>
