@@ -2,6 +2,7 @@
 set -e
 
 REPACKAGE="true"
+SPOTLESS_CMD="spotless:apply";
 
 # Flag file to trigger init build
 FLAG_FILE=".init.flag";
@@ -17,6 +18,14 @@ while true; do
 		;;
 		--no-init)
         INIT="false"
+		shift
+		;;
+		--spotless)
+        SPOTLESS_CMD="spotless:apply"
+		shift
+		;;
+		--no-spotless)
+        SPOTLESS_CMD=""
 		shift
 		;;
 		--repackage)
@@ -39,8 +48,9 @@ else
 	REPACKAGE_COMMAND="-Dspring-boot.repackage.skip"
 fi
 
+
 # Maven build with default parameters
-build='mvn -fae clean install '$REPACKAGE_COMMAND' -Dsurefire.failIfNoSpecifiedTests=false -am'
+build='mvn -fae '$SPOTLESS_CMD' clean install '$REPACKAGE_COMMAND' -Dsurefire.failIfNoSpecifiedTests=false -am'
 
 if [[ $INIT == "true" ]]; then
     $build -N -f simpl-repo/common;
