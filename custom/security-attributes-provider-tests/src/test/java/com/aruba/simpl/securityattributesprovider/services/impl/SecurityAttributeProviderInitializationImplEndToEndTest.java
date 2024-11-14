@@ -20,6 +20,6 @@ public class SecurityAttributeProviderInitializationImplEndToEndTest extends DBT
 
     @Test
     public void loadContextAndInitialization() {
-        assertEquals(10, identityAttributeRepository.findAll().size());
+        assertEquals(7, identityAttributeRepository.findAll().size());
     }
 }
