@@ -3,6 +3,7 @@ package com.aruba.simpl.securityattributesprovider.services.impl;
 import static org.junit.Assert.assertEquals;
 
 import com.aruba.simpl.securityattributesprovider.configurations.DBSeedingProperties;
+import com.aruba.simpl.securityattributesprovider.model.mappers.IdentityAttributeMapperImpl;
 import com.aruba.simpl.securityattributesprovider.model.repositories.DBTest;
 import com.aruba.simpl.securityattributesprovider.model.repositories.IdentityAttributeRepository;
 import org.junit.jupiter.api.Test;
@@ -12,7 +13,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Import;
 
 @EnableConfigurationProperties(DBSeedingProperties.class)
-@Import({SecurityAttributeProviderInitializationImpl.class, ValidationAutoConfiguration.class})
+@Import({
+    SecurityAttributeProviderInitializationImpl.class,
+    ValidationAutoConfiguration.class,
+    IdentityAttributeMapperImpl.class
+})
 public class SecurityAttributeProviderInitializationImplEndToEndTest extends DBTest {
 
     @Autowired
