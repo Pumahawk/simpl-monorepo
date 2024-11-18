@@ -14,8 +14,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @TestPropertySource(
         properties = {
-            "database-seeding.securityAttributeProviderMapping.disable=false",
-            "database-seeding.securityAttributeProviderMapping.filePath=db.seeding/identityAttributes.default.json",
+            "databaseSeeding.securityAttributeProviderMapping.disable=false",
+            "databaseSeeding.securityAttributeProviderMapping.filePath=db.seeding/identityAttributes.default.json",
             "logging.level.org.hibernate.SQL=DEBUG",
         })
 @DirtiesContext
