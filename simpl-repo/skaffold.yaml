@@ -1,6 +1,23 @@
 apiVersion: skaffold/v4beta11
 kind: Config
 metadata:
+  name: security-attributes-provider
+build:
+  artifacts:
+    - image: code.europa.eu:4567/simpl/simpl-open/development/iaa/security-attributes-provider
+      context: simpl-repo/security-attributes-provider
+      docker: {}
+manifests:
+  remoteManifests: 
+  - manifest: deployment.apps/security-attributes-provider
+deploy:
+  kubectl: {}
+
+---
+
+apiVersion: skaffold/v4beta11
+kind: Config
+metadata:
   name: onboarding
 build:
   artifacts:
