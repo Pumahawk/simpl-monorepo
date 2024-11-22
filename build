@@ -36,6 +36,15 @@ while true; do
         REPACKAGE="false"
 		shift
 		;;
+		--nt)
+		# Skip test
+        NO_TESTS="true"
+		shift
+		;;
+		--)
+		shift
+		break;
+		;;
 		*)
 		break;
 		;;
@@ -48,9 +57,15 @@ else
 	REPACKAGE_COMMAND="-Dspring-boot.repackage.skip"
 fi
 
+if [[ $NO_TESTS == "true" ]]; then
+	MVN_SKIP_TEST="-Dmaven.test.skip"
+else
+	MVN_SKIP_TEST=""
+fi
+
 
 # Maven build with default parameters
-build='mvn -fae '$SPOTLESS_CMD' clean install '$REPACKAGE_COMMAND' -Dsurefire.failIfNoSpecifiedTests=false -am'
+build='mvn -fae '$SPOTLESS_CMD' '$MVN_SKIP_TEST' clean install '$REPACKAGE_COMMAND' -Dsurefire.failIfNoSpecifiedTests=false -am'
 
 if [[ $INIT == "true" ]]; then
     $build -N -f simpl-repo/common;
