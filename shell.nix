@@ -8,6 +8,7 @@ pkgs.mkShell {
     pkgs.helm
     pkgs.skaffold
     pkgs.nodejs_22
+    pkgs.postgresql_16
   ];
 
 }
