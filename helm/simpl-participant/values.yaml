@@ -94,8 +94,217 @@ keycloak:
           mountPath: /config
 
 simpl-cloud-gateway:
-  keycloakUrl: "--- VALUE_MUST_CHANGE ---"
-  usersRolesUrl: "--- VALUE_MUST_CHANGE ---"
+  appConfig:
+    routes:
+      denied-urls:
+      - method: GET
+        path: '*/auth-api/keypair'
+      public-urls:
+      - method: GET
+        path: /swagger-ui.html
+      - method: GET
+        path: /swagger-ui/**
+      - method: GET
+        path: /v3/api-docs/**
+      - method: GET
+        path: /actuator/**
+      rbac:
+      - method: GET
+        path: private/user-api/agent/identity-attributes
+        roles:
+        - T1UAR_M
+      - method: GET
+        path: private/user-api/agent/identity-attributes/*
+        roles:
+        - T1UAR_M
+      - method: GET
+        path: private/user-api/identity-attribute/search
+        roles:
+        - T1UAR_M
+      - method: GET
+        path: private/user-api/role/*
+        roles:
+        - T1UAR_M
+      - method: PUT
+        path: private/user-api/role
+        roles:
+        - T1UAR_M
+      - method: POST
+        path: private/user-api/role/*/identity-attributes
+        roles:
+        - T1UAR_M
+      - method: DELETE
+        path: private/user-api/role/delete-attribute
+        roles:
+        - T1UAR_M
+      - method: DELETE
+        path: private/user-api/role/*
+        roles:
+        - T1UAR_M
+      - method: GET
+        path: private/user-api/role/search
+        roles:
+        - T1UAR_M
+      - method: POST
+        path: private/user-api/role/*/duplicate-identity-attribute
+        roles:
+        - T1UAR_M
+      - method: POST
+        path: private/user-api/user/as-t1user
+        roles:
+        - T1UAR_M
+      - method: GET
+        path: private/user-api/user/**
+        roles:
+        - T1UAR_M
+      - method: PUT
+        path: private/user-api/user/**
+        roles:
+        - T1UAR_M
+      - method: DELETE
+        path: private/user-api/user/*
+        roles:
+        - T1UAR_M
+      - method: POST
+        path: private/auth-api/keypair/import
+        roles:
+        - ONBOARDER_M
+      - path: private/auth-api/keypair/**
+        roles:
+        - ONBOARDER_M
+      - method: POST
+        path: private/auth-api/csr/generate
+        roles:
+        - ONBOARDER_M
+    spring:
+      cloud:
+        gateway:
+          routes:
+          - filters:
+            - StripPrefix=1
+            id: keycloak
+            predicates:
+            - Path=/auth/**
+            uri: ${keycloak.url}
+          - filters:
+            - StripPrefix=2
+            id: users-roles
+            predicates:
+            - Path=/*/user-api/**
+            uri: ${users-roles.url}
+          - filters:
+            - StripPrefix=2
+            id: authentication-provider
+            predicates:
+            - Path=/*/auth-api/**
+            uri: ${authentication-provider.url}
+    springdoc:
+      swagger-ui:
+        urls:
+        - name: Users & Roles Service
+          url: /public/user-api/v3/api-docs
+        - name: Authentication Provider Service
+          url: /public/auth-api/v3/api-docs
+  authenticationProviderUrl: http://authentication-provider.lorenzo-2.svc.cluster.local:8080
+  ejbcaUrl: http://ejbca-community-helm.lorenzo-2.svc.cluster.local:30080
+  global:
+    cors:
+      allowOrigin: https://t1.lorenzo.dev.aruba-simpl.cloud,https://fe.lorenzo.dev.aruba-simpl.cloud,http://localhost:4202,http://localhost:3000
+    hostBe: t1.lorenzo.dev.aruba-simpl.cloud
+    ingress:
+      issuer: issuer-ingress
+    profile: participant
+  identityProviderUrl: http://identity-provider.lorenzo-2.svc.cluster.local:8080
+  keycloakUrl: http://keycloak.lorenzo-2.svc.cluster.local
+  microservices:
+    keycloakUrl: http://keycloak.lorenzo-2.svc.cluster.local
+    usersRolesUrl: http://users-roles.lorenzo-2.svc.cluster.local:8080
+  onboardingUrl: http://onboarding.lorenzo-2.svc.cluster.local:8080
+  routes:
+    publicUrls:
+    - method: GET
+      path: /swagger-ui.html
+    - method: GET
+      path: /swagger-ui/**
+    - method: GET
+      path: /v3/api-docs/**
+    - method: GET
+      path: /actuator/**
+    rbac:
+    - method: GET
+      path: private/user-api/agent/identity-attributes
+      roles:
+      - T1UAR_M
+    - method: GET
+      path: private/user-api/agent/identity-attributes/*
+      roles:
+      - T1UAR_M
+    - method: GET
+      path: private/user-api/identity-attribute/search
+      roles:
+      - T1UAR_M
+    - method: GET
+      path: private/user-api/role/*
+      roles:
+      - T1UAR_M
+    - method: PUT
+      path: private/user-api/role
+      roles:
+      - T1UAR_M
+    - method: POST
+      path: private/user-api/role/*/identity-attributes
+      roles:
+      - T1UAR_M
+    - method: DELETE
+      path: private/user-api/role/delete-attribute
+      roles:
+      - T1UAR_M
+    - method: DELETE
+      path: private/user-api/role/*
+      roles:
+      - T1UAR_M
+    - method: GET
+      path: private/user-api/role/search
+      roles:
+      - T1UAR_M
+    - method: POST
+      path: private/user-api/role/*/duplicate-identity-attribute
+      roles:
+      - T1UAR_M
+    - method: POST
+      path: private/user-api/user/as-t1user
+      roles:
+      - T1UAR_M
+    - method: GET
+      path: private/user-api/user/*
+      roles:
+      - T1UAR_M
+    - method: PUT
+      path: private/user-api/user/*
+      roles:
+      - T1UAR_M
+    - method: DELETE
+      path: private/user-api/user/*
+      roles:
+      - T1UAR_M
+  securityAttributesProviderUrl: http://security-attributes-provider.lorenzo-2.svc.cluster.local:8080
+  springRoutes:
+  - filters:
+    - StripPrefix=1
+    id: keycloak
+    predicates:
+    - Path=/auth/**
+    uri: ${keycloak.url}
+  - filters:
+    - StripPrefix=2
+    id: users-roles
+    predicates:
+    - Path=/*/user-api/**
+    uri: ${users-roles.url}
+  swaggerUrls:
+  - name: Users & Roles Service
+    url: /public/user-api/v3/api-docs
+  usersRolesUrl: http://users-roles.lorenzo-2.svc.cluster.local:8080
 
   springRoutes:
     - id: keycloak
@@ -245,7 +454,28 @@ redis:
     password: "admin"
 
 authentication-provider:
+  db:
+    cipherSecret: authenticationprovider-db-cipher-secret
+    password: authenticationprovider
+    url: jdbc:postgresql://postgresql.lorenzo-2.svc.cluster.local:5432/authenticationprovider
+    username: authenticationprovider
+  keypair:
+    algorithm: ECDSA
+    keyLength: 256
+    signatureAlgorithm: SHA256withECDSA
+  microservices:
+    usersRolesUrl: http://users-roles.lorenzo-2.svc.cluster.local:8080
   simpl:
     certificate:
-      san: "--- VALUE_MUST_CHANGE ---"
+      san: t2.authority.dev.aruba-simpl.cloud
 
+security-attributes-provider:
+  db:
+    password: securityattributesprovider
+    url: jdbc:postgresql://simpl-participant-postgresql.lorenzo-2.svc.cluster.local:5432/securityattributesprovider
+    username: securityattributesprovider
+  image:
+    tag: latest
+  microservices:
+    identityProviderUrl: http://identity-provider.authority.svc.cluster.local:8080
+    onboardingUrl: http://onboarding.authority.svc.cluster.local:8080

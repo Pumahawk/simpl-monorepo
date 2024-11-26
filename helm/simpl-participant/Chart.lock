@@ -10,15 +10,18 @@ dependencies:
   version: 22.2.5
 - name: simpl-cloud-gateway
   repository: https://code.europa.eu/api/v4/projects/772/packages/helm/stable
-  version: 0.7.0-SNAPSHOT.242.68415818
+  version: 0.8.0-SNAPSHOT.264.53277f8a
 - name: users-roles
   repository: https://code.europa.eu/api/v4/projects/771/packages/helm/stable
-  version: 0.7.0-SNAPSHOT.766.cf371aaa
+  version: 0.8.0-SNAPSHOT.830.12fbac0c
 - name: authentication-provider
   repository: https://code.europa.eu/api/v4/projects/939/packages/helm/stable
-  version: 0.7.0-SNAPSHOT.57.e77c5c7b
+  version: 0.8.0-SNAPSHOT.78.df08ed36
 - name: simpl-fe
   repository: https://code.europa.eu/api/v4/projects/769/packages/helm/stable
-  version: 0.7.0-SNAPSHOT.821.e098f635
-digest: sha256:5a7830232733f828442eb9ebc33cc49f8aa1dc2d4e583e876123809b9758a377
-generated: "2024-11-08T16:16:58.463711544+01:00"
+  version: 0.8.0-SNAPSHOT.974.fd00dd41
+- name: security-attributes-provider
+  repository: https://code.europa.eu/api/v4/projects/861/packages/helm/stable
+  version: 0.8.0-SNAPSHOT.437.261e8895
+digest: sha256:aeb523e61fb95fcd6887efc9f83243053c71549781dad03bf8914521ad7e44f4
+generated: "2024-11-26T17:06:52.833747732+01:00"

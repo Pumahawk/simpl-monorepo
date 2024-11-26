@@ -2,7 +2,7 @@ global:
   cors:
     allowOrigin: https://t1.lorenzo.dev.aruba-simpl.cloud,https://fe.lorenzo.dev.aruba-simpl.cloud,http://localhost:4202,http://localhost:3000
   hostBe: t1.lorenzo.dev.aruba-simpl.cloud
-  hostTls: t2.authority.dev.simpl-europe.eu # authority
+  hostTls: t2.authority.dev.aruba-simpl.cloud # authority
 
 postgresql:
   primary:
@@ -61,9 +61,12 @@ simpl-fe:
 users-roles:
   db:
     url: "jdbc:postgresql://simpl-participant-postgresql.lorenzo-2.svc.cluster.local:5432/usersroles"
-
   redis:
-    host: "redis-master.lorenzo-2.svc.cluster.local"
+    host: "simpl-participant-redis-master.lorenzo-2.svc.cluster.local"
+  microservices:
+    authenticationProviderUrl: http://authentication-provider.lorenzo-2.svc.cluster.local:8080
+    identityProviderUrl: http://identity-provider.lorenzo-2.svc.cluster.local:8080
+
 
 authentication-provider:
   db:
