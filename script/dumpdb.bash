@@ -8,5 +8,10 @@ TIME=$(date -Iminutes)
 while read DBNAME; do
 	FILE_NAME="$DBNAME-$TIME.dump"
 	echo "Dump database $DBNAME, File: $FILE_NAME"
-	pg_dump -Fc -d $DBNAME -f $FILE_NAME
+	pg_dump -Fc -d $DBNAME -f $FILE_NAME &
 done
+
+echo "-----------------------------------------------------"
+echo
+echo "Waiting for the completion of all backup processes..."
+wait
