@@ -8,7 +8,7 @@ GIT_REMOTE_BRANCH="develop"
 STASH_ENABLE="true"
 OPENAPI_HOST="https://t1.authority.dev.aruba-simpl.cloud"
 FORMAT_JSON="true"
-
+SKIP_FETCH="false"
 FORMAT_JSON_CMD="jq ."
 
 function print_help() {
@@ -24,6 +24,8 @@ column -ts \; <<EOF
      --remote-branch NAME;Default: $GIT_REMOTE_BRANCH;Remote branch name
      --git-stash;Default: true;Enable stash mode
      --no-git-stash;;Disable stash mode
+     --no-fetch;;Disable stash mode
+     --fetch --no-fetch;Default: true;Enable or disable git fetch
 EOF
 }
 
@@ -80,6 +82,14 @@ while true; do
 			FORMAT_JSON="false"
 			shift;
 			;;
+		--fetch)
+			SKIP_FETCH="false"
+			shift;
+			;;
+		--no-fetch)
+			SKIP_FETCH="true"
+			shift;
+			;;
 		--help)
 			print_help;
 			exit 0;
@@ -113,7 +123,9 @@ function main() {
 		while read line; do 
 			GIT_DIR="$line";
 			PROJECT_DIR="$(dirname "$GIT_DIR")"
-			git_fetch_remote "$GIT_DIR";
+			if [ $SKIP_FETCH == "false" ]; then
+				git_fetch_remote "$GIT_DIR";
+			fi
 			git_stash_all "$GIT_DIR";
 			git_checkout_new_branch "$GIT_DIR";
 			update_version_pipeline "$PROJECT_DIR";
@@ -133,7 +145,9 @@ function git_fetch_remote() {
 function git_checkout_new_branch() {
 	GIT_DIR="$1";
 	echo "Create new branch. Git: $GIT_DIR, Branch name: $GIT_BRANCH_NAME";
-	GIT_DIR="$GIT_DIR" git checkout -b "$GIT_BRANCH_NAME";
+	GIT_DIR="$GIT_DIR" git checkout --detach
+	GIT_DIR="$GIT_DIR" git branch -D "$GIT_BRANCH_NAME"
+	GIT_DIR="$GIT_DIR" git checkout -b "$GIT_BRANCH_NAME" origin/develop;
 }
 
 function git_stash_all() {
