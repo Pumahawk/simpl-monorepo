@@ -119,21 +119,32 @@ fi
 
 
 function main() {
+	update_all_projects
+	update_all_openapi
+}
+
+function update_all_projects() {
 	find "$BASE_DIRECTORY" -name .git | (
 		while read line; do 
 			GIT_DIR="$line";
 			PROJECT_DIR="$(dirname "$GIT_DIR")"
-			if [ $SKIP_FETCH == "false" ]; then
-				git_fetch_remote "$GIT_DIR";
-			fi
-			git_stash_all "$GIT_DIR";
-			git_checkout_new_branch "$GIT_DIR";
-			update_version_pipeline "$PROJECT_DIR";
-			update_version_pom "$PROJECT_DIR";
-			git_commit "$GIT_DIR";
+			update_project $GIT_DIR $PROJECT_DIR &
 		done;
+		wait
 	);
-	update_all_openapi
+}
+
+function update_project() {
+	GIT_DIR="$1"
+	PROJECT_DIR="$2"
+	if [ $SKIP_FETCH == "false" ]; then
+		git_fetch_remote "$GIT_DIR";
+	fi
+	git_stash_all "$GIT_DIR";
+	git_checkout_new_branch "$GIT_DIR";
+	update_version_pipeline "$PROJECT_DIR";
+	update_version_pom "$PROJECT_DIR";
+	git_commit "$GIT_DIR";
 }
 
 function git_fetch_remote() {
@@ -183,11 +194,12 @@ function git_commit() {
 }
 
 function update_all_openapi() {
-	update_openapi "$BASE_DIRECTORY/agent-service"                     "$OPENAPI_HOST/public/auth-api/v3/api-docs"
-	update_openapi "$BASE_DIRECTORY/identity-provider"                 "$OPENAPI_HOST/public/identity-api/v3/api-docs"
-	update_openapi "$BASE_DIRECTORY/onboarding"                        "$OPENAPI_HOST/public/onboarding-api/v3/api-docs";
-	update_openapi "$BASE_DIRECTORY/security-attributes-provider"      "$OPENAPI_HOST/public/sap-api/v3/api-docs"
-	update_openapi "$BASE_DIRECTORY/users-roles"                       "$OPENAPI_HOST/public/user-api/v3/api-docs"
+	update_openapi "$BASE_DIRECTORY/agent-service"                     "$OPENAPI_HOST/public/auth-api/v3/api-docs" &
+	update_openapi "$BASE_DIRECTORY/identity-provider"                 "$OPENAPI_HOST/public/identity-api/v3/api-docs" &
+	update_openapi "$BASE_DIRECTORY/onboarding"                        "$OPENAPI_HOST/public/onboarding-api/v3/api-docs" &
+	update_openapi "$BASE_DIRECTORY/security-attributes-provider"      "$OPENAPI_HOST/public/sap-api/v3/api-docs" &
+	update_openapi "$BASE_DIRECTORY/users-roles"                       "$OPENAPI_HOST/public/user-api/v3/api-docs" &
+	wait
 }
 
 function update_openapi() {
