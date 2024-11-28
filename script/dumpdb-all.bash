@@ -1,14 +1,14 @@
-CONTEXT_DIR=/bitnami/postgresql/dump
-DB_LIST=db-list.txt
-SCRIPT_NAME=dumpdb.bash
+PDB_DUMP_ALL_CONTEXT_DIR=${PDB_DUMP_ALL_CONTEXT_DIR:-/bitnami/postgresql/dump}
+PDB_DUMP_ALL_DB_LIST=${PDB_DUMP_ALL_DB_LIST:-db-list.txt}
+PDB_DUMP_ALL_SCRIPT_NAME=${PDB_DUMP_ALL_SCRIPT_NAME:-dumpdb.bash}
 
-export PGUSER=postgres
-export PGPASSWORD=postgres
-export PGHOST=postgresql.authority.svc.cluster.local
+export PGUSER=${PGUSER:-postgres}
+export PGPASSWORD=${PGPASSWORD:-postgres}
+export PGHOST=${PGHOST:-postgresql.authority.svc.cluster.local}
 
-pushd "$CONTEXT_DIR"
+pushd "$PDB_DUMP_ALL_CONTEXT_DIR"
 
-echo "Context directory: $CONTEXT_DIR"
-cat "$DB_LIST" | bash "$SCRIPT_NAME"
+echo "Context directory: $PDB_DUMP_ALL_CONTEXT_DIR"
+cat "$PDB_DUMP_ALL_DB_LIST" | bash "$PDB_DUMP_ALL_SCRIPT_NAME"
 
 popd
