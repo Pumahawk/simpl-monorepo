@@ -164,7 +164,7 @@ function update_openapi() {
 	PROJECT_DIR="$1";
 	URL="$2";
 	echo "Update openapi $PROJECT_DIR"
-	curl -s "$CURL" > "$PROJECT_DIR/openapi/openApi-doc-$OPENAPI_VERSION-release.json"
+	curl -s "$URL" > "$PROJECT_DIR/openapi/openApi-doc-$OPENAPI_VERSION-release.json"
 	GIT_DIR="$PROJECT_DIR/.git" git add openapi;
 	GIT_DIR="$PROJECT_DIR/.git" git commit -m "Update opena Api, version: $OPENAPI_VERSION"
 }
