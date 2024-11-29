@@ -149,13 +149,13 @@ function update_project() {
 
 function git_fetch_remote() {
 	GIT_DIR="$1";
-	echo "Fetch project. Git: $GIT_DIR, remote name: $GIT_REMOTE_NAME";
+	log "$GIT_DIR" "Fetch project. Git: $GIT_DIR, remote name: $GIT_REMOTE_NAME";
 	GIT_DIR="$GIT_DIR" git fetch "$GIT_REMOTE_NAME";
 }
 
 function git_checkout_new_branch() {
 	GIT_DIR="$1";
-	echo "Create new branch. Git: $GIT_DIR, Branch name: $GIT_BRANCH_NAME";
+	log "$GIT_DIR" "Create new branch. Git: $GIT_DIR, Branch name: $GIT_BRANCH_NAME";
 	GIT_DIR="$GIT_DIR" git checkout --detach
 	GIT_DIR="$GIT_DIR" git branch -D "$GIT_BRANCH_NAME"
 	GIT_DIR="$GIT_DIR" git checkout -b "$GIT_BRANCH_NAME" origin/develop;
@@ -167,20 +167,20 @@ function git_stash_all() {
 		GIT_DIR="$GIT_DIR" git add -A;
 		GIT_DIR="$GIT_DIR" git stash;
 	else
-		echo "Stash not enabled";
+		log "$GIT_DIR" "Stash not enabled";
 	fi
 }
 
 function update_version_pipeline() {
 	PROJECT_DIR="$1";
 	PIPELINE_FILE="$(find "$PROJECT_DIR" -name pipeline.variables.sh)";
-	echo "Update versione pipeline. Project directory: $PROJECT_DIR, pipeline version: $PIPELINE_VERSION, pipeline file: $PIPELINE_FILE";
+	log "$PROJECT_DIR" "Update versione pipeline. Project directory: $PROJECT_DIR, pipeline version: $PIPELINE_VERSION, pipeline file: $PIPELINE_FILE";
 	sed -i 's/PROJECT_VERSION_NUMBER=.*/PROJECT_VERSION_NUMBER="'"$PIPELINE_VERSION"'"/' "$PIPELINE_FILE"
 }
 
 function update_version_pom() {
 	PROJECT_DIR="$1";
-	echo "Update pom version"
+	log "$PROJECT_DIR" "Update pom version"
 	sed -i '/simpl-.*parent/,/<\/version>/s/<version>.*<\/version>/<version>'"$POM_VERSION"'<\/version>/' $(find "$PROJECT_DIR" -name pom.xml);
 	sed -i 's!<simpl.httpclient.version>.*</simpl.httpclient.version>!<simpl.httpclient.version>'$POM_VERSION'</simpl.httpclient.version>!' $(find "$PROJECT_DIR" -name pom.xml);
 }
@@ -188,7 +188,7 @@ function update_version_pom() {
 function git_commit() {
 	GIT_DIR="$1";
 	GIT_MESSAGE="Update pipeline version";
-	echo "Git add all and commit. Message: $GIT_MESSAGE";
+	log "$GIT_DIR" "Git add all and commit. Message: $GIT_MESSAGE";
 	GIT_DIR="$GIT_DIR" git add -A;
 	GIT_DIR="$GIT_DIR" git commit -m "$GIT_MESSAGE";
 }
@@ -205,10 +205,15 @@ function update_all_openapi() {
 function update_openapi() {
 	PROJECT_DIR="$1";
 	URL="$2";
-	echo "Update openapi $PROJECT_DIR"
+	log "$PROJECT_DIR" "Update openapi $PROJECT_DIR"
 	curl -s "$URL" | $FORMAT_JSON_CMD > "$PROJECT_DIR/openapi/openApi-doc-$OPENAPI_VERSION-release.json"
 	GIT_DIR="$PROJECT_DIR/.git" git add openapi;
-	GIT_DIR="$PROJECT_DIR/.git" git commit -m "Update opena Api, version: $OPENAPI_VERSION"
+	GIT_DIR="$PROJECT_DIR/.git" git commit -m "Update open Api, version: $OPENAPI_VERSION"
 }
 
+function log() {
+	CONTEXT="$1"
+	shift
+	echo "$(date -Iseconds) - $CONTEXT : $@"
+}
 main "$@";
