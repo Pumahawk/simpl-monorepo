@@ -194,11 +194,11 @@ function git_commit() {
 }
 
 function update_all_openapi() {
-	update_openapi "$BASE_DIRECTORY/agent-service"                     "$OPENAPI_HOST/public/auth-api/v3/api-docs" &
-	update_openapi "$BASE_DIRECTORY/identity-provider"                 "$OPENAPI_HOST/public/identity-api/v3/api-docs" &
-	update_openapi "$BASE_DIRECTORY/onboarding"                        "$OPENAPI_HOST/public/onboarding-api/v3/api-docs" &
-	update_openapi "$BASE_DIRECTORY/security-attributes-provider"      "$OPENAPI_HOST/public/sap-api/v3/api-docs" &
-	update_openapi "$BASE_DIRECTORY/users-roles"                       "$OPENAPI_HOST/public/user-api/v3/api-docs" &
+	update_openapi "$BASE_DIRECTORY/agent-service"                     "$OPENAPI_HOST/auth-api/v3/api-docs" &
+	update_openapi "$BASE_DIRECTORY/identity-provider"                 "$OPENAPI_HOST/identity-api/v3/api-docs" &
+	update_openapi "$BASE_DIRECTORY/onboarding"                        "$OPENAPI_HOST/onboarding-api/v3/api-docs" &
+	update_openapi "$BASE_DIRECTORY/security-attributes-provider"      "$OPENAPI_HOST/sap-api/v3/api-docs" &
+	update_openapi "$BASE_DIRECTORY/users-roles"                       "$OPENAPI_HOST/user-api/v3/api-docs" &
 	wait
 }
 
