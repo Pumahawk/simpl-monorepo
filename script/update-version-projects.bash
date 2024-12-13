@@ -181,7 +181,7 @@ function update_version_pipeline() {
 function update_version_pom() {
 	PROJECT_DIR="$1";
 	log "$PROJECT_DIR" "Update pom version"
-	sed -i '/simpl-.*parent/,/<\/version>/s/<version>.*<\/version>/<version>'"$POM_VERSION"'<\/version>/' $(find "$PROJECT_DIR" -name pom.xml);
+	sed -i '/simpl-.*/,/<\/version>/s/<version>.*<\/version>/<version>'"$POM_VERSION"'<\/version>/' $(find "$PROJECT_DIR" -name pom.xml);
 	sed -i 's!<simpl.httpclient.version>.*</simpl.httpclient.version>!<simpl.httpclient.version>'$POM_VERSION'</simpl.httpclient.version>!' $(find "$PROJECT_DIR" -name pom.xml);
 }
 
