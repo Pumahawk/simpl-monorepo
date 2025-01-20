@@ -1,12 +1,53 @@
 function main() {
-	CHART_FILE="${1?Missing chart file parameter}"
+	while true; do
+		case "$1" in
+			--chart-file)
+				CHART_FILE=${2?Add chart file path}
+				shift
+				shift
+				;;
+			--git-url)
+				REPO_URL=${2?Add path to config file}
+				shift
+				shift
+				;;
+			--path)
+				REPO_DIR=${2?Add path to config file}
+				shift
+				shift
+				;;
+			--git-credential)
+				GIT_CREDENTIAL=${2?Add git credential}
+				shift
+				shift
+				;;
+			--git-branch)
+				GIT_BRANCH=${2?Add git branch}
+				shift
+				shift
+				;;
+			--version-filter)
+				HELM_VERSION_FILTER=${2?Add version filter}
+				shift
+				shift
+				;;
+			*)
+				break;
+				;;
+		esac
+	done
 	log "Start update project."
 	log "Chart file: $CHART_FILE"
+	git_init_credential "$GIT_CREDENTIAL"
+	git_clone_pull "$REPO_URL" "$REPO_DIR"
 	CHART_DATA="$(cat "$CHART_FILE" | yq -p yaml -o json)"
 	DEP_LIST="$(dep_list "$CHART_FILE")"
 	UPDATE_LIST="$(update_list "$DEP_LIST")"
 	CHART_DATA="$(update_chart_data "$CHART_DATA" "$UPDATE_LIST")"
+	git_commit_and_push
 	write_chart_data "$CHART_FILE" "$CHART_DATA"
+	log "Pop directory"
+	popd
 }
 
 function dep_list() {
@@ -53,6 +94,37 @@ function helm_get_repo_last_version() {
 function helm_client_index_json() {
 	HELM_REPO_URL="${1?Missing helm repo url parameter}"
 	http_c "$HELM_REPO_URL/index.yaml" | yq -p yaml -o json
+}
+
+function git_clone_pull() {
+	REPO_URL="${1?Repo url}"
+	REPO_DIR="${2?Repo dir}"
+	if [[ ! -d "$REPO_DIR" ]] ; then
+		log "Create clone reposiroty. Dir: $REPO_DIR, Url: $REPO_URL"
+		git clone "$REPO_URL" "$REPO_DIR"
+	fi
+	log "Move to repo dir $REPO_DIR"
+	pushd "$REPO_DIR"
+	log "Git checkout branch $GIT_BRANCH"
+	git checkout "$GIT_BRANCH"
+	log "Git pull"
+	git pull
+}
+
+function git_commit_and_push() {
+	log "Commit and push disabled"
+	# CHART_FILE="${1?"Missing parameter CHART_FILE"}"
+	# log "Git add, commit and push"
+	# git add "$CHART_FILE" \
+	# 	&& git commit -m "Update dependencies version" \
+	# 	&& git push
+}
+
+function git_init_credential() {
+	GIT_CREDENTIAL=${1?Add git credential}
+	log "Set git credential"
+	git config --global credential.helper "store --file /tmp/gitcredential"
+	echo "$GIT_CREDENTIAL" > /tmp/gitcredential
 }
 
 function http_c() {
