@@ -101,29 +101,26 @@ function git_clone_pull() {
 	REPO_DIR="${2?Repo dir}"
 	if [[ ! -d "$REPO_DIR" ]] ; then
 		log "Create clone reposiroty. Dir: $REPO_DIR, Url: $REPO_URL"
-		git clone "$REPO_URL" "$REPO_DIR"
+		git -c credential.helper="store --file /tmp/gitcredential" clone "$REPO_URL" "$REPO_DIR"
 	fi
 	log "Move to repo dir $REPO_DIR"
 	pushd "$REPO_DIR"
 	log "Git checkout branch $GIT_BRANCH"
 	git checkout "$GIT_BRANCH"
 	log "Git pull"
-	git pull
+	git -c credential.helper="store --file /tmp/gitcredential" pull
 }
 
 function git_commit_and_push() {
-	log "Commit and push disabled"
-	# CHART_FILE="${1?"Missing parameter CHART_FILE"}"
-	# log "Git add, commit and push"
-	# git add "$CHART_FILE" \
-	# 	&& git commit -m "Update dependencies version" \
-	# 	&& git push
+	log "Git add, commit and push"
+	git add -A\
+		&& git commit -m "Update dependencies version" \
+		&& git -c credential.helper="store --file /tmp/gitcredential" push
 }
 
 function git_init_credential() {
 	GIT_CREDENTIAL=${1?Add git credential}
 	log "Set git credential"
-	git config --global credential.helper "store --file /tmp/gitcredential"
 	echo "$GIT_CREDENTIAL" > /tmp/gitcredential
 }
 
