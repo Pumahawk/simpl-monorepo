@@ -44,8 +44,8 @@ function main() {
 	DEP_LIST="$(dep_list "$CHART_FILE")"
 	UPDATE_LIST="$(update_list "$DEP_LIST")"
 	CHART_DATA="$(update_chart_data "$CHART_DATA" "$UPDATE_LIST")"
-	git_commit_and_push
 	write_chart_data "$CHART_FILE" "$CHART_DATA"
+	git_commit_and_push
 	log "Pop directory"
 	popd
 }
@@ -113,6 +113,7 @@ function git_clone_pull() {
 
 function git_commit_and_push() {
 	log "Git add, commit and push"
+	git status
 	git add -A\
 		&& git commit -m "Update dependencies version" \
 		&& git -c credential.helper="store --file /tmp/gitcredential" push
