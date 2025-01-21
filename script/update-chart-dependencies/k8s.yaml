@@ -21,19 +21,22 @@ spec:
                 --git-url https://code.europa.eu/simpl/iaa/charts.git \
                 --git-credential "https://$GIT_USER:$GIT_PASSWORD@code.europa.eu" \
                 --git-branch feature/autoupdate-script-test
-            env:
-            - name: GIT_USER
-              value: XXXXXXXX
-            - name: GIT_PASSWORD
-              value: XXXXXXXXXXXXXXXXXXXX
-            - name: GIT_COMMITTER_NAME
-              value: "XXXXXXXXXXXXXXX Script"
-            - name: GIT_AUTHOR_NAME
-              value: "XXXXXXXXXXXXXXX Script"
-            - name: GIT_COMMITTER_EMAIL
-              value: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-            - name: GIT_AUTHOR_EMAIL
-              value: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-            
+            envFrom:
+            - secretRef:
+                name: update-chart-dependencies-credentials
           restartPolicy: Never
 
+---
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: update-chart-dependencies-credentials
+type: Opaque
+data:
+  GIT_USER: "xxxxxxxxxxxx"
+  GIT_PASSWORD: "xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  GIT_COMMITTER_NAME: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  GIT_AUTHOR_NAME: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  GIT_COMMITTER_EMAIL: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  GIT_AUTHOR_EMAIL: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
