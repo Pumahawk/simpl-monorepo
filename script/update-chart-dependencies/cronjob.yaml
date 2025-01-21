@@ -12,20 +12,20 @@ spec:
           - name: update-chart-dependencies
             image: update-chart-dependencies:latest
             imagePullPolicy: IfNotPresent
-            command: ["bash"]
+            command: ["bash", "-c"]
             args:
-              - "/app/update-chart-dependencies.bash"
-              - "--chart-file"
-              - "/tmp/p1/app-values/ovh-dev-components/iaads-1.0/participant-02/Chart.yaml"
-              - "--path"
-              - "/tmp/p1"
-              - "--git-url"
-              - "https://code.europa.eu/simpl/iaa/charts.git"
-              - "--git-credential"
-              - "https://USER:TOKEN@code.europa.eu/simpl/iaa/charts.git"
-              - "--git-branch"
-              - "feature/autoupdate-script-test"
+              - |
+                /app/update-chart-dependencies.bash \
+                --chart-file /tmp/p1/app-values/ovh-dev-components/iaads-1.0/participant-02/Chart.yaml \
+                --path /tmp/p1 \
+                --git-url https://code.europa.eu/simpl/iaa/charts.git \
+                --git-credential "https://$GIT_USER:$GIT_PASSWORD@code.europa.eu" \
+                --git-branch feature/autoupdate-script-test
             env:
+            - name: GIT_USER
+              value: XXXXXXXX
+            - name: GIT_PASSWORD
+              value: XXXXXXXXXXXXXXXXXXXX
             - name: GIT_COMMITTER_NAME
               value: "XXXXXXXXXXXXXXX Script"
             - name: GIT_AUTHOR_NAME
