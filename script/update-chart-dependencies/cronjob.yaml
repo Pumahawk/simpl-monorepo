@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: update-chart-dependencies
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: update-chart-dependencies
+            image: update-chart-dependencies:latest
+            imagePullPolicy: IfNotPresent
+            command: ["bash"]
+            args:
+              - "/app/update-chart-dependencies.bash"
+              - "--chart-file"
+              - "/tmp/p1/app-values/ovh-dev-components/iaads-1.0/participant-02/Chart.yaml"
+              - "--path"
+              - "/tmp/p1"
+              - "--git-url"
+              - "https://code.europa.eu/simpl/iaa/charts.git"
+              - "--git-credential"
+              - "https://USER:TOKEN@code.europa.eu/simpl/iaa/charts.git"
+              - "--git-branch"
+              - "feature/autoupdate-script-test"
+            env:
+            - name: GIT_COMMITTER_NAME
+              value: "XXXXXXXXXXXXXXX Script"
+            - name: GIT_AUTHOR_NAME
+              value: "XXXXXXXXXXXXXXX Script"
+            - name: GIT_COMMITTER_EMAIL
+              value: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+            - name: GIT_AUTHOR_EMAIL
+              value: "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+            
+          restartPolicy: Never
+

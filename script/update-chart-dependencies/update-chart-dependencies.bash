@@ -100,7 +100,7 @@ function git_clone_pull() {
 	REPO_URL="${1?Repo url}"
 	REPO_DIR="${2?Repo dir}"
 	if [[ ! -d "$REPO_DIR" ]] ; then
-		log "Create clone reposiroty. Dir: $REPO_DIR, Url: $REPO_URL"
+		log "Create clone repository. Dir: $REPO_DIR, Url: $REPO_URL"
 		git -c credential.helper="store --file /tmp/gitcredential" clone "$REPO_URL" "$REPO_DIR"
 	fi
 	log "Move to repo dir $REPO_DIR"
