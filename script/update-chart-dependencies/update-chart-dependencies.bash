@@ -42,10 +42,11 @@ function main() {
 	git_clone_pull "$REPO_URL" "$REPO_DIR"
 	CHART_DATA="$(cat "$CHART_FILE" | yq -p yaml -o json)"
 	DEP_LIST="$(dep_list "$CHART_FILE")"
-	UPDATE_LIST="$(update_list "$DEP_LIST")"
+	UPDATE_LIST="$(HELM_VERSION_FILTER="$HELM_VERSION_FILTER" update_list "$DEP_LIST")"
 	CHART_DATA="$(update_chart_data "$CHART_DATA" "$UPDATE_LIST")"
 	write_chart_data "$CHART_FILE" "$CHART_DATA"
-	git_commit_and_push
+	helm_dependency_update "$CHART_FILE"
+	git_commit_and_push "$CHART_FILE"
 	log "Pop directory"
 	popd
 }
@@ -111,10 +112,18 @@ function git_clone_pull() {
 	git -c credential.helper="store --file /tmp/gitcredential" pull
 }
 
+function helm_dependency_update() {
+	CHART_FILE="${1?"Missing parameter CHART_FILE"}"
+	log "Helm update dependencies"
+	pushd $(dirname "$CHART_FILE")
+	helm dep update
+	popd
+}
 function git_commit_and_push() {
+	CHART_FILE="${1?"Missing parameter CHART_FILE"}"
 	log "Git add, commit and push"
 	git status
-	git add -A\
+	git add $(dirname "$CHART_FILE") \
 		&& git commit -m "Update dependencies version" \
 		&& git -c credential.helper="store --file /tmp/gitcredential" push
 }
