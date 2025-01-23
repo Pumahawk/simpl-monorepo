@@ -45,7 +45,7 @@ function main() {
 	UPDATE_LIST="$(HELM_VERSION_FILTER="$HELM_VERSION_FILTER" update_list "$DEP_LIST")"
 	CHART_DATA="$(update_chart_data "$CHART_DATA" "$UPDATE_LIST")"
 	write_chart_data "$CHART_FILE" "$CHART_DATA"
-	helm_dependency_update "$CHART_FILE"
+	# helm_dependency_update "$CHART_FILE"
 	git_commit_and_push "$CHART_FILE"
 	log "Pop directory"
 	popd
