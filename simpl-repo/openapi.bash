@@ -10,9 +10,9 @@ cp -v -t onboarding/openapi/ common/simpl-api-iaa/src/main/resources/static/open
 cp -v -t security-attributes-provider/openapi/ common/simpl-api-iaa/src/main/resources/static/openapi/securityattributesprovider-v1.yaml
 cp -v -t users-roles/openapi/ common/simpl-api-iaa/src/main/resources/static/openapi/usersroles-v1.yaml
 
-pushd agent-service; git fetch; git checkout -b feature/openapi-align origin/develop; git add -A; git commit -m "Update openapi"; git push -o ci -u origin feature/openapi-align; popd;
-pushd identity-provider; git fetch; git checkout -b feature/openapi-align origin/develop; git add -A; git commit -m "Update openapi"; git push -o ci -u origin feature/openapi-align; popd;
-pushd onboarding; git fetch; git checkout -b feature/openapi-align origin/develop; git add -A; git commit -m "Update openapi"; git push -o ci -u origin feature/openapi-align; popd;
-pushd security-attributes-provider; git fetch; git checkout -b feature/openapi-align origin/develop; git add -A; git commit -m "Update openapi"; git push -o ci -u origin feature/openapi-align; popd;
-pushd users-roles; git fetch; git checkout -b feature/openapi-align origin/develop; git add -A; git commit -m "Update openapi"; git push -o ci -u origin feature/openapi-align; popd;
+pushd agent-service; git fetch; git checkout -b feature/openapi-align origin/develop; git add -A; git commit -m "Update openapi"; popd;
+pushd identity-provider; git fetch; git checkout -b feature/openapi-align origin/develop; git add -A; git commit -m "Update openapi"; popd;
+pushd onboarding; git fetch; git checkout -b feature/openapi-align origin/develop; git add -A; git commit -m "Update openapi"; popd;
+pushd security-attributes-provider; git fetch; git checkout -b feature/openapi-align origin/develop; git add -A; git commit -m "Update openapi"; popd;
+pushd users-roles; git fetch; git checkout -b feature/openapi-align origin/develop; git add -A; git commit -m "Update openapi"; popd;
 
