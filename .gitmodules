@@ -54,3 +54,7 @@
 	path = custom-repo/simpl-fe-nx-react
 	url = https://github.com/Pumahawk/simpl-fe-nx-react.git
 	branch = main
+[submodule "simpl-repo/documentation"]
+	path = simpl-repo/documentation
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/documentation.git
+	branch = develop
