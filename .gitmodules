@@ -58,3 +58,7 @@
 	path = simpl-repo/documentation
 	url = https://code.europa.eu/simpl/simpl-open/development/iaa/documentation.git
 	branch = develop
+[submodule "simpl-repo/echo-backend"]
+	path = simpl-repo/echo-backend
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/echo-backend.git
+	branch = develop
