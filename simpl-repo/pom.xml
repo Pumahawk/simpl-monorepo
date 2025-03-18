@@ -20,6 +20,7 @@
 	    <module>users-roles</module>
 	    <module>agent-service</module>
 	    <module>identity-provider</module>
+	    <module>echo-backend</module>
     </modules>
 
 </project>
