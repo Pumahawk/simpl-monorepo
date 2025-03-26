@@ -1,0 +1,279 @@
+templates:
+  basicMessage: '{{ printf "%-46s" .Name }} {{.PodName}} {{ .Message }}'
+  basicMessageAndPodInfo: '{{ printf "%s/%s" .Namespace .PodName }} {{ .Message }}'
+  withJq: '{{ printf "%-46s" .Name }} {{ jq .Message .Vars.jqtemplate }}'
+  withJqAndPodInfo: '{{ printf "%s/%s" .Namespace .PodName }} {{ jq .Message .Vars.jqtemplate }}'
+  hpipeMessage: '{{ printf "%-20s" .Name }} {{ .Message }}'
+  toJson: |
+    {{with $mm := jq .Message .Vars.jqRoot -}}
+      {{- mapAdd $mm "name" $.Name | jsonEncode -}}
+    {{- else -}}
+      NONE
+    {{- end -}}
+  withTextMessage: '{{ template "basicMessage" . }}'
+  withJsonMessage: '{{ template "withJq" . }}'
+vars:
+  jqtemplate: >
+    "\(.timestamp) \(.level) \(.message) \(."error.stack_trace" // "")"
+  jqRoot: .
+logs:
+  - namespace: "iaa-dstest-data-provider"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "test-data-provider/authentication-provider"
+    labels: "app.kubernetes.io/name=authentication-provider"
+    tags: ["participant", "env:test", "dstest-data-provider", "type:data-provider", "name:authentication-provider"]
+  - namespace: "iaa-dstest-data-provider"
+    template: '{{ template "withTextMessage" . }}'
+    name: "test-data-provider/echo-backend"
+    labels: "app.kubernetes.io/name=echo-backend"
+    tags: ["participant", "env:test", "dstest-data-provider", "type:data-provider", "name:echo-backend"]
+  - namespace: "iaa-dstest-data-provider"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "test-data-provider/tier1-gateway"
+    labels: "app.kubernetes.io/name=tier1-gateway"
+    tags: ["participant", "env:test", "dstest-data-provider", "type:data-provider", "name:tier1-gateway"]
+  - namespace: "iaa-dstest-data-provider"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "test-data-provider/tier2-gateway"
+    labels: "app.kubernetes.io/name=tier2-gateway"
+    tags: ["participant", "env:test", "dstest-data-provider", "type:data-provider", "name:tier2-gateway"]
+  - namespace: "iaa-dstest-data-provider"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "test-data-provider/users-roles"
+    labels: "app.kubernetes.io/name=users-roles"
+    tags: ["participant", "env:test", "dstest-data-provider", "type:data-provider", "name:users-roles"]
+  - namespace: "iaa-dstest-consumer"
+    template: '{{ template "withTextMessage" . }}'
+    name: "test-consumer/authentication-provider"
+    labels: "app.kubernetes.io/name=authentication-provider"
+    tags: ["participant", "env:test", "dstest-consumer", "type:consumer", "name:authentication-provider"]
+  - namespace: "iaa-dstest-consumer"
+    template: '{{ template "withTextMessage" . }}'
+    name: "test-consumer/echo-backend"
+    labels: "app.kubernetes.io/name=echo-backend"
+    tags: ["participant", "env:test", "dstest-consumer", "type:consumer", "name:echo-backend"]
+  - namespace: "iaa-dstest-consumer"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "test-consumer/tier1-gateway"
+    labels: "app.kubernetes.io/name=tier1-gateway"
+    tags: ["participant", "env:test", "dstest-consumer", "type:consumer", "name:tier1-gateway"]
+  - namespace: "iaa-dstest-consumer"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "test-consumer/tier2-gateway"
+    labels: "app.kubernetes.io/name=tier2-gateway"
+    tags: ["participant", "env:test", "dstest-consumer", "type:consumer", "name:tier2-gateway"]
+  - namespace: "iaa-dstest-consumer"
+    template: '{{ template "withTextMessage" . }}'
+    name: "test-consumer/users-roles"
+    labels: "app.kubernetes.io/name=users-roles"
+    tags: ["participant", "env:test", "dstest-consumer", "type:consumer", "name:users-roles"]
+  - namespace: "iaa-dstest-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "test-authority/authentication-provider"
+    labels: "app.kubernetes.io/name=authentication-provider"
+    tags: ["authority", "env:test", "dstest-authority", "type:authority", "name:authentication-provider"]
+  - namespace: "iaa-dstest-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "test-authority/identity-provider"
+    labels: "app.kubernetes.io/name=identity-provider"
+    tags: ["authority", "env:test", "dstest-authority", "type:authority", "name:identity-provider"]
+  - namespace: "iaa-dstest-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "test-authority/onboarding"
+    labels: "app.kubernetes.io/name=onboarding"
+    tags: ["authority", "env:test", "dstest-authority", "type:authority", "name:onboarding"]
+  - namespace: "iaa-dstest-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "test-authority/security-attributes-provider"
+    labels: "app.kubernetes.io/name=security-attributes-provider"
+    tags: ["authority", "env:test", "dstest-authority", "type:authority", "name:security-attributes-provider"]
+  - namespace: "iaa-dstest-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "test-authority/tier1-gateway"
+    labels: "app.kubernetes.io/name=tier1-gateway"
+    tags: ["authority", "env:test", "dstest-authority", "type:authority", "name:tier1-gateway"]
+  - namespace: "iaa-dstest-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "test-authority/tier2-gateway"
+    labels: "app.kubernetes.io/name=tier2-gateway"
+    tags: ["authority", "env:test", "dstest-authority", "type:authority", "name:tier2-gateway"]
+  - namespace: "iaa-dstest-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "test-authority/users-roles"
+    labels: "app.kubernetes.io/name=users-roles"
+    tags: ["authority", "env:test", "dstest-authority", "type:authority", "name:users-roles"]
+  - namespace: "iaa-dsstaging-data-provider"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "staging-data-provider/authentication-provider"
+    labels: "app.kubernetes.io/name=authentication-provider"
+    tags: ["participant", "env:staging", "dsstaging-data-provider", "type:data-provider", "name:authentication-provider"]
+  - namespace: "iaa-dsstaging-data-provider"
+    template: '{{ template "withTextMessage" . }}'
+    name: "staging-data-provider/echo-backend"
+    labels: "app.kubernetes.io/name=echo-backend"
+    tags: ["participant", "env:staging", "dsstaging-data-provider", "type:data-provider", "name:echo-backend"]
+  - namespace: "iaa-dsstaging-data-provider"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "staging-data-provider/tier1-gateway"
+    labels: "app.kubernetes.io/name=tier1-gateway"
+    tags: ["participant", "env:staging", "dsstaging-data-provider", "type:data-provider", "name:tier1-gateway"]
+  - namespace: "iaa-dsstaging-data-provider"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "staging-data-provider/tier2-gateway"
+    labels: "app.kubernetes.io/name=tier2-gateway"
+    tags: ["participant", "env:staging", "dsstaging-data-provider", "type:data-provider", "name:tier2-gateway"]
+  - namespace: "iaa-dsstaging-data-provider"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "staging-data-provider/users-roles"
+    labels: "app.kubernetes.io/name=users-roles"
+    tags: ["participant", "env:staging", "dsstaging-data-provider", "type:data-provider", "name:users-roles"]
+  - namespace: "iaa-dsstaging-consumer"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "staging-consumer/authentication-provider"
+    labels: "app.kubernetes.io/name=authentication-provider"
+    tags: ["participant", "env:staging", "dsstaging-consumer", "type:consumer", "name:authentication-provider"]
+  - namespace: "iaa-dsstaging-consumer"
+    template: '{{ template "withTextMessage" . }}'
+    name: "staging-consumer/echo-backend"
+    labels: "app.kubernetes.io/name=echo-backend"
+    tags: ["participant", "env:staging", "dsstaging-consumer", "type:consumer", "name:echo-backend"]
+  - namespace: "iaa-dsstaging-consumer"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "staging-consumer/tier1-gateway"
+    labels: "app.kubernetes.io/name=tier1-gateway"
+    tags: ["participant", "env:staging", "dsstaging-consumer", "type:consumer", "name:tier1-gateway"]
+  - namespace: "iaa-dsstaging-consumer"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "staging-consumer/tier2-gateway"
+    labels: "app.kubernetes.io/name=tier2-gateway"
+    tags: ["participant", "env:staging", "dsstaging-consumer", "type:consumer", "name:tier2-gateway"]
+  - namespace: "iaa-dsstaging-consumer"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "staging-consumer/users-roles"
+    labels: "app.kubernetes.io/name=users-roles"
+    tags: ["participant", "env:staging", "dsstaging-consumer", "type:consumer", "name:users-roles"]
+  - namespace: "iaa-dsstaging-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "staging-authority/authentication-provider"
+    labels: "app.kubernetes.io/name=authentication-provider"
+    tags: ["authority", "env:staging", "dsstaging-authority", "type:authority", "name:authentication-provider"]
+  - namespace: "iaa-dsstaging-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "staging-authority/identity-provider"
+    labels: "app.kubernetes.io/name=identity-provider"
+    tags: ["authority", "env:staging", "dsstaging-authority", "type:authority", "name:identity-provider"]
+  - namespace: "iaa-dsstaging-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "staging-authority/onboarding"
+    labels: "app.kubernetes.io/name=onboarding"
+    tags: ["authority", "env:staging", "dsstaging-authority", "type:authority", "name:onboarding"]
+  - namespace: "iaa-dsstaging-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "staging-authority/security-attributes-provider"
+    labels: "app.kubernetes.io/name=security-attributes-provider"
+    tags: ["authority", "env:staging", "dsstaging-authority", "type:authority", "name:security-attributes-provider"]
+  - namespace: "iaa-dsstaging-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "staging-authority/tier1-gateway"
+    labels: "app.kubernetes.io/name=tier1-gateway"
+    tags: ["authority", "env:staging", "dsstaging-authority", "type:authority", "name:tier1-gateway"]
+  - namespace: "iaa-dsstaging-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "staging-authority/tier2-gateway"
+    labels: "app.kubernetes.io/name=tier2-gateway"
+    tags: ["authority", "env:staging", "dsstaging-authority", "type:authority", "name:tier2-gateway"]
+  - namespace: "iaa-dsstaging-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "staging-authority/users-roles"
+    labels: "app.kubernetes.io/name=users-roles"
+    tags: ["authority", "env:staging", "dsstaging-authority", "type:authority", "name:users-roles"]
+  - namespace: "iaa-dsdev-data-provider"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "dev-data-provider/authentication-provider"
+    labels: "app.kubernetes.io/name=authentication-provider"
+    tags: ["participant", "env:dev", "dsdev-data-provider", "type:data-provider", "name:authentication-provider"]
+  - namespace: "iaa-dsdev-data-provider"
+    template: '{{ template "withTextMessage" . }}'
+    name: "dev-data-provider/echo-backend"
+    labels: "app.kubernetes.io/name=echo-backend"
+    tags: ["participant", "env:dev", "dsdev-data-provider", "type:data-provider", "name:echo-backend"]
+  - namespace: "iaa-dsdev-data-provider"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "dev-data-provider/tier1-gateway"
+    labels: "app.kubernetes.io/name=tier1-gateway"
+    tags: ["participant", "env:dev", "dsdev-data-provider", "type:data-provider", "name:tier1-gateway"]
+  - namespace: "iaa-dsdev-data-provider"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "dev-data-provider/tier2-gateway"
+    labels: "app.kubernetes.io/name=tier2-gateway"
+    tags: ["participant", "env:dev", "dsdev-data-provider", "type:data-provider", "name:tier2-gateway"]
+  - namespace: "iaa-dsdev-data-provider"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "dev-data-provider/users-roles"
+    labels: "app.kubernetes.io/name=users-roles"
+    tags: ["participant", "env:dev", "dsdev-data-provider", "type:data-provider", "name:users-roles"]
+  - namespace: "iaa-dsdev-consumer"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "dev-consumer/authentication-provider"
+    labels: "app.kubernetes.io/name=authentication-provider"
+    tags: ["participant", "env:dev", "dsdev-consumer", "type:consumer", "name:authentication-provider"]
+  - namespace: "iaa-dsdev-consumer"
+    template: '{{ template "withTextMessage" . }}'
+    name: "dev-consumer/echo-backend"
+    labels: "app.kubernetes.io/name=echo-backend"
+    tags: ["participant", "env:dev", "dsdev-consumer", "type:consumer", "name:echo-backend"]
+  - namespace: "iaa-dsdev-consumer"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "dev-consumer/tier1-gateway"
+    labels: "app.kubernetes.io/name=tier1-gateway"
+    tags: ["participant", "env:dev", "dsdev-consumer", "type:consumer", "name:tier1-gateway"]
+  - namespace: "iaa-dsdev-consumer"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "dev-consumer/tier2-gateway"
+    labels: "app.kubernetes.io/name=tier2-gateway"
+    tags: ["participant", "env:dev", "dsdev-consumer", "type:consumer", "name:tier2-gateway"]
+  - namespace: "iaa-dsdev-consumer"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "dev-consumer/users-roles"
+    labels: "app.kubernetes.io/name=users-roles"
+    tags: ["participant", "env:dev", "dsdev-consumer", "type:consumer", "name:users-roles"]
+  - namespace: "iaa-dsdev-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "dev-authority/authentication-provider"
+    labels: "app.kubernetes.io/name=authentication-provider"
+    tags: ["authority", "env:dev", "dsdev-authority", "type:authority", "name:authentication-provider"]
+  - namespace: "iaa-dsdev-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "dev-authority/identity-provider"
+    labels: "app.kubernetes.io/name=identity-provider"
+    tags: ["authority", "env:dev", "dsdev-authority", "type:authority", "name:identity-provider"]
+  - namespace: "iaa-dsdev-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "dev-authority/onboarding"
+    labels: "app.kubernetes.io/name=onboarding"
+    tags: ["authority", "env:dev", "dsdev-authority", "type:authority", "name:onboarding"]
+  - namespace: "iaa-dsdev-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "dev-authority/security-attributes-provider"
+    labels: "app.kubernetes.io/name=security-attributes-provider"
+    tags: ["authority", "env:dev", "dsdev-authority", "type:authority", "name:security-attributes-provider"]
+  - namespace: "iaa-dsdev-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "dev-authority/tier1-gateway"
+    labels: "app.kubernetes.io/name=tier1-gateway"
+    tags: ["authority", "env:dev", "dsdev-authority", "type:authority", "name:tier1-gateway"]
+  - namespace: "iaa-dsdev-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "dev-authority/tier2-gateway"
+    labels: "app.kubernetes.io/name=tier2-gateway"
+    tags: ["authority", "env:dev", "dsdev-authority", "type:authority", "name:tier2-gateway"]
+  - namespace: "iaa-dsdev-authority"
+    template: '{{ template "withJsonMessage" . }}'
+    name: "dev-authority/users-roles"
+    labels: "app.kubernetes.io/name=users-roles"
+    tags: ["authority", "env:dev", "dsdev-authority", "type:authority", "name:users-roles"]
+  - namespace: "iaa-dstest-authority"
+    template: '{{ template "hpipeMessage" . }}'
+    name: "hpipe-iaa"
+    labels: "update-chart-dependencies-name=iaa"
+    tags: ["cronjob", "hpipe", "iaa"]
