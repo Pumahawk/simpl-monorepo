@@ -18,7 +18,7 @@ vars:
   jqRoot: .
 logs:
   - namespace: "iaa-dstest-data-provider"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "test-data-provider/authentication-provider"
     labels: "app.kubernetes.io/name=authentication-provider"
     tags: ["participant", "env:test", "dstest-data-provider", "type:data-provider", "name:authentication-provider"]
@@ -28,17 +28,17 @@ logs:
     labels: "app.kubernetes.io/name=echo-backend"
     tags: ["participant", "env:test", "dstest-data-provider", "type:data-provider", "name:echo-backend"]
   - namespace: "iaa-dstest-data-provider"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "test-data-provider/tier1-gateway"
     labels: "app.kubernetes.io/name=tier1-gateway"
     tags: ["participant", "env:test", "dstest-data-provider", "type:data-provider", "name:tier1-gateway"]
   - namespace: "iaa-dstest-data-provider"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "test-data-provider/tier2-gateway"
     labels: "app.kubernetes.io/name=tier2-gateway"
     tags: ["participant", "env:test", "dstest-data-provider", "type:data-provider", "name:tier2-gateway"]
   - namespace: "iaa-dstest-data-provider"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "test-data-provider/users-roles"
     labels: "app.kubernetes.io/name=users-roles"
     tags: ["participant", "env:test", "dstest-data-provider", "type:data-provider", "name:users-roles"]
@@ -53,12 +53,12 @@ logs:
     labels: "app.kubernetes.io/name=echo-backend"
     tags: ["participant", "env:test", "dstest-consumer", "type:consumer", "name:echo-backend"]
   - namespace: "iaa-dstest-consumer"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "test-consumer/tier1-gateway"
     labels: "app.kubernetes.io/name=tier1-gateway"
     tags: ["participant", "env:test", "dstest-consumer", "type:consumer", "name:tier1-gateway"]
   - namespace: "iaa-dstest-consumer"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "test-consumer/tier2-gateway"
     labels: "app.kubernetes.io/name=tier2-gateway"
     tags: ["participant", "env:test", "dstest-consumer", "type:consumer", "name:tier2-gateway"]
@@ -113,7 +113,7 @@ logs:
     labels: "app.kubernetes.io/name=echo-backend"
     tags: ["participant", "env:staging", "dsstaging-data-provider", "type:data-provider", "name:echo-backend"]
   - namespace: "iaa-dsstaging-data-provider"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "staging-data-provider/tier1-gateway"
     labels: "app.kubernetes.io/name=tier1-gateway"
     tags: ["participant", "env:staging", "dsstaging-data-provider", "type:data-provider", "name:tier1-gateway"]
@@ -123,7 +123,7 @@ logs:
     labels: "app.kubernetes.io/name=tier2-gateway"
     tags: ["participant", "env:staging", "dsstaging-data-provider", "type:data-provider", "name:tier2-gateway"]
   - namespace: "iaa-dsstaging-data-provider"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "staging-data-provider/users-roles"
     labels: "app.kubernetes.io/name=users-roles"
     tags: ["participant", "env:staging", "dsstaging-data-provider", "type:data-provider", "name:users-roles"]
@@ -138,7 +138,7 @@ logs:
     labels: "app.kubernetes.io/name=echo-backend"
     tags: ["participant", "env:staging", "dsstaging-consumer", "type:consumer", "name:echo-backend"]
   - namespace: "iaa-dsstaging-consumer"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "staging-consumer/tier1-gateway"
     labels: "app.kubernetes.io/name=tier1-gateway"
     tags: ["participant", "env:staging", "dsstaging-consumer", "type:consumer", "name:tier1-gateway"]
@@ -148,7 +148,7 @@ logs:
     labels: "app.kubernetes.io/name=tier2-gateway"
     tags: ["participant", "env:staging", "dsstaging-consumer", "type:consumer", "name:tier2-gateway"]
   - namespace: "iaa-dsstaging-consumer"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "staging-consumer/users-roles"
     labels: "app.kubernetes.io/name=users-roles"
     tags: ["participant", "env:staging", "dsstaging-consumer", "type:consumer", "name:users-roles"]
@@ -158,7 +158,7 @@ logs:
     labels: "app.kubernetes.io/name=authentication-provider"
     tags: ["authority", "env:staging", "dsstaging-authority", "type:authority", "name:authentication-provider"]
   - namespace: "iaa-dsstaging-authority"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "staging-authority/identity-provider"
     labels: "app.kubernetes.io/name=identity-provider"
     tags: ["authority", "env:staging", "dsstaging-authority", "type:authority", "name:identity-provider"]
@@ -168,7 +168,7 @@ logs:
     labels: "app.kubernetes.io/name=onboarding"
     tags: ["authority", "env:staging", "dsstaging-authority", "type:authority", "name:onboarding"]
   - namespace: "iaa-dsstaging-authority"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "staging-authority/security-attributes-provider"
     labels: "app.kubernetes.io/name=security-attributes-provider"
     tags: ["authority", "env:staging", "dsstaging-authority", "type:authority", "name:security-attributes-provider"]
@@ -188,7 +188,7 @@ logs:
     labels: "app.kubernetes.io/name=users-roles"
     tags: ["authority", "env:staging", "dsstaging-authority", "type:authority", "name:users-roles"]
   - namespace: "iaa-dsdev-data-provider"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "dev-data-provider/authentication-provider"
     labels: "app.kubernetes.io/name=authentication-provider"
     tags: ["participant", "env:dev", "dsdev-data-provider", "type:data-provider", "name:authentication-provider"]
@@ -198,22 +198,22 @@ logs:
     labels: "app.kubernetes.io/name=echo-backend"
     tags: ["participant", "env:dev", "dsdev-data-provider", "type:data-provider", "name:echo-backend"]
   - namespace: "iaa-dsdev-data-provider"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "dev-data-provider/tier1-gateway"
     labels: "app.kubernetes.io/name=tier1-gateway"
     tags: ["participant", "env:dev", "dsdev-data-provider", "type:data-provider", "name:tier1-gateway"]
   - namespace: "iaa-dsdev-data-provider"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "dev-data-provider/tier2-gateway"
     labels: "app.kubernetes.io/name=tier2-gateway"
     tags: ["participant", "env:dev", "dsdev-data-provider", "type:data-provider", "name:tier2-gateway"]
   - namespace: "iaa-dsdev-data-provider"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "dev-data-provider/users-roles"
     labels: "app.kubernetes.io/name=users-roles"
     tags: ["participant", "env:dev", "dsdev-data-provider", "type:data-provider", "name:users-roles"]
   - namespace: "iaa-dsdev-consumer"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "dev-consumer/authentication-provider"
     labels: "app.kubernetes.io/name=authentication-provider"
     tags: ["participant", "env:dev", "dsdev-consumer", "type:consumer", "name:authentication-provider"]
@@ -223,7 +223,7 @@ logs:
     labels: "app.kubernetes.io/name=echo-backend"
     tags: ["participant", "env:dev", "dsdev-consumer", "type:consumer", "name:echo-backend"]
   - namespace: "iaa-dsdev-consumer"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "dev-consumer/tier1-gateway"
     labels: "app.kubernetes.io/name=tier1-gateway"
     tags: ["participant", "env:dev", "dsdev-consumer", "type:consumer", "name:tier1-gateway"]
@@ -233,7 +233,7 @@ logs:
     labels: "app.kubernetes.io/name=tier2-gateway"
     tags: ["participant", "env:dev", "dsdev-consumer", "type:consumer", "name:tier2-gateway"]
   - namespace: "iaa-dsdev-consumer"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "withJq" . }}'
     name: "dev-consumer/users-roles"
     labels: "app.kubernetes.io/name=users-roles"
     tags: ["participant", "env:dev", "dsdev-consumer", "type:consumer", "name:users-roles"]
