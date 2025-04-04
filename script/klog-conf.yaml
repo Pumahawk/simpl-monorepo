@@ -273,7 +273,7 @@ logs:
     labels: "app.kubernetes.io/name=users-roles"
     tags: ["authority", "env:dev", "dsdev-authority", "type:authority", "name:users-roles"]
   - namespace: "iaa-dstest-authority"
-    template: '{{ template "withTextMessage" . }}'
+    template: '{{ template "hpipeMessage" . }}'
     name: "hpipe-iaa"
     labels: "update-chart-dependencies-name=iaa"
     tags: ["cronjob", "hpipe", "iaa"]
