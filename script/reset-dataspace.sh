@@ -46,7 +46,7 @@ function cleanDB() {
 # Delete all EJBCA secrets
 function deleteEJBCASecrets() {
 	log "Delete EJBCA secrets"
-	if ! kubect delete secret ejbca-rest-api-secret; then
+	if ! kubectl delete secret ejbca-rest-api-secret; then
 		log "Unable to delete secret ejbca-rest-api-secret"
 		return 1
 	fi
