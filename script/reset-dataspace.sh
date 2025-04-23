@@ -1,5 +1,10 @@
 #! /bin/bash
 
+KUBECTL_CMD=(kubectl)
+if [[ -n $K_NAMESPACE ]]; then
+	KUBECTL_CMD+=("--namespace" "${K_NAMESPACE}")
+fi
+
 ALL_DATABASE=(
 	"authenticationprovider"
 	"ejbca"
@@ -20,6 +25,7 @@ ALL_DEPLOYMENTS=(
 	"tier2-gateway"
 	"users-roles"
 )
+
 
 function main() {
 	LOG_CONTEXT=main
@@ -74,7 +80,7 @@ function cleanDB() {
 # Delete all EJBCA secrets
 function deleteEJBCASecrets() {
 	log "Delete EJBCA secrets"
-	if ! kubectl delete secret ejbca-rest-api-secret; then
+	if ! kubectl_cmd delete secret ejbca-rest-api-secret; then
 		log "Unable to delete secret ejbca-rest-api-secret"
 		return 1
 	fi
@@ -93,16 +99,11 @@ function verifyEnvironment() {
 	&& exitsAllExpectedDatabase
 }
 
-function log() {
-	>&2 echo "$(date -Iseconds) - ${LOG_CONTEXT-"NC"} " "$@"
-}
-
-
 # Verify is current namespace is an Authority dataspace
 function isAuthorityDataspace() {
 	log "Verify isAuthorityDataspace"
 	log "Retrieve current namespace from onboardin deployment"
-	local namespace="$(kubectl get deployment -ojsonpath='{.items[].metadata.namespace}' | head -n1)"
+	local namespace="$(kubectl_cmd get deployment -ojsonpath='{.items[].metadata.namespace}' | head -n1)"
 	if [[ $? -ne 0 ]]; then
 		log. "ERROR Unable to retrieve namespace"
 		return 1
@@ -121,7 +122,7 @@ function isAuthorityDataspace() {
 function verifyEJBCAStatus() {
 	log "Verify verifyEJBCAStatus"
 	log "Retrieve deployment.apps/ejbca-community-helm"
-	if kubectl get deployment.apps/ejbca-community-helm; then
+	if kubectl_cmd get deployment.apps/ejbca-community-helm; then
 		log "OK - deployment.apps/ejbca-community-helm"
 		return 0
 	else
@@ -139,7 +140,7 @@ function hasAllDeployments() {
 function hasDeployment() {
 	local dep_name="$1"
 	log "Find deployment $dep_name"
-	kubectl get deployment "$dep_name" > /dev/null
+	kubectl_cmd get deployment "$dep_name" > /dev/null
 }
 
 function exitsAllExpectedDatabase() {
@@ -156,7 +157,7 @@ function exitsAllExpectedDatabase() {
 function scaleAllTo1() {
 	for dep in "${ALL_DEPLOYMENTS[@]}"; do
 		log "Scale to 1 $dep"
-		kubectl scale --replicas 1 deployment "$dep" || { log "ERROR - Unable to scale project $dep"; return 1; }
+		kubectl_cmd scale --replicas 1 deployment "$dep" || { log "ERROR - Unable to scale project $dep"; return 1; }
 	done
 }
 
@@ -165,7 +166,7 @@ function scaleAllTo0() {
 	local seconds="5"
 	for dep in "${ALL_DEPLOYMENTS[@]}"; do
 		log "Scale to 0 $dep"
-		kubectl scale --replicas 0 deployment "$dep" || { log "ERROR - Unable to scale project $dep"; return 1; }
+		kubectl_cmd scale --replicas 0 deployment "$dep" || { log "ERROR - Unable to scale project $dep"; return 1; }
 	done
 }
 
@@ -192,7 +193,7 @@ function waitDeploymentStatus() {
 
 	local dep_status=0
 	while [[ "$dep_status" != 1 ]]; do
-		local dep_output="$( kubectl get deployment --no-headers "$dep_name" )"
+		local dep_output="$( kubectl_cmd get deployment --no-headers "$dep_name" )"
 		if [[ $? != 0 ]]; then
 			log "ERROR - unable to get deployment $dep_name"
 			return 1
@@ -203,6 +204,14 @@ function waitDeploymentStatus() {
 			sleep "$wait_seconds"
 		fi
 	done
+}
+
+function kubectl_cmd() {
+	"${KUBECTL_CMD[@]}" "$@"
+}
+
+function log() {
+	>&2 echo "$(date -Iseconds) - ${LOG_CONTEXT-"NC"} " "$@"
 }
 
 main
