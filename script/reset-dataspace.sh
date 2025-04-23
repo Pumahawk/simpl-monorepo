@@ -19,8 +19,6 @@ if [[ "$RESET_AUTHORITY_ENVIRONMENT_SKIP" != "1" ]]; then
 	sleep "$sleep_sec"
 fi
 
-exit 1
-
 KUBECTL_CMD=(kubectl)
 if [[ -n $K_NAMESPACE ]]; then
 	KUBECTL_CMD+=("--namespace" "${K_NAMESPACE}")
@@ -116,7 +114,7 @@ function verifyEnvironment() {
 
 function isAuthorityDataspace() {
 	log "Verify isAuthorityDataspace"
-	log "Retrieve current namespace from onboardin deployment"
+	log "Retrieve current namespace from onboarding deployment"
 	local namespace="$(kubectl_cmd get deployment -ojsonpath='{.items[].metadata.namespace}' | head -n1)"
 	if [[ $? -ne 0 ]]; then
 		log. "ERROR Unable to retrieve namespace"
@@ -175,8 +173,6 @@ function scaleAllTo1() {
 }
 
 function scaleAllTo0() {
-	local cond="0/0"
-	local seconds="5"
 	for dep in "${ALL_DEPLOYMENTS[@]}"; do
 		log "Scale to 0 $dep"
 		kubectl_cmd scale --replicas 0 deployment "$dep" || { log "ERROR - Unable to scale project $dep"; return 1; }
@@ -184,7 +180,7 @@ function scaleAllTo0() {
 }
 
 function waitAllScaleTo1() {
-	local cond="1/1"
+	local cond="[1-9]/"
 	local seconds="5"
 	for dep in "${ALL_DEPLOYMENTS[@]}"; do
 		waitDeploymentStatus  "$dep" "$cond" "$seconds" || { log "ERROR - Unable to wait project $dep"; return 1; }
@@ -192,7 +188,7 @@ function waitAllScaleTo1() {
 }
 
 function waitAllScaleTo0() {
-	local cond="0/0"
+	local cond="0/"
 	local seconds="5"
 	for dep in "${ALL_DEPLOYMENTS[@]}"; do
 		waitDeploymentStatus  "$dep" "$cond" "$seconds" || { log "ERROR - Unable to wait project $dep"; return 1; }
@@ -211,7 +207,7 @@ function waitDeploymentStatus() {
 			log "ERROR - unable to get deployment $dep_name"
 			return 1
 		fi
-		dep_status="$(echo "$dep_output" | grep -w $dep_exp_status | wc -l )"
+		dep_status="$(echo "$dep_output" | grep -E "$dep_exp_status" | wc -l )"
 		if [[ $dep_status != 1 ]]; then
 			log "Waiting deployment $dep_name"
 			sleep "$wait_seconds"
