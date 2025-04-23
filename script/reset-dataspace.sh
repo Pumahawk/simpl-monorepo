@@ -1,4 +1,5 @@
 #! /bin/bash
+
 function main() {
 	LOG_CONTEXT=main
 	log  "Clean dataspace start."
@@ -13,6 +14,11 @@ function main() {
 		return 1
 	}
 
+	LOG_CONTEXT="waitAllScaleTo0" waitAllScaleTo0 || {
+		log "Unable to waitAllScaleTo0"
+		return 1
+	}
+
 	LOG_CONTEXT="cleanDB" cleanDB || {
 		log "Unable to clean database"
 		return 1
@@ -20,11 +26,16 @@ function main() {
 
 	LOG_CONTEXT="deleteEJBCASecrets" deleteEJBCASecrets || {
 		log "Unable to delate EJBCA Secrets"
-		return 1
+		log "Skip condition secrets"
 	}
 
 	LOG_CONTEXT="scaleAllTo1" scaleAllTo1 || {
 		log "Unable to scale all to 1"
+		return 1
+	}
+
+	LOG_CONTEXT="waitAllScaleTo1" waitAllScaleTo1 || {
+		log "Unable to waitAllScaleTo1"
 		return 1
 	}
 
@@ -60,7 +71,7 @@ function verifyEnvironment() {
 	log "Verify environment"
 
 	isAuthorityDataspace \
-	&& isEJBCAReachable \
+	&& verifyEJBCAStatus \
 	&& exitsAllExpectedDatabase
 }
 
@@ -73,7 +84,7 @@ function log() {
 function isAuthorityDataspace() {
 	log "Verify isAuthorityDataspace"
 	log "Retrieve current namespace from onboardin deployment"
-	local namespace="$(kubectl get pod -ojsonpath='{.items[].metadata.namespace}' | head -n1)"
+	local namespace="$(kubectl get deployment -ojsonpath='{.items[].metadata.namespace}' | head -n1)"
 	if [[ $? -ne 0 ]]; then
 		log. "ERROR Unable to retrieve namespace"
 		return 1
@@ -89,8 +100,8 @@ function isAuthorityDataspace() {
 }
 
 # Verify if EJBCA exist and is receable in current dataspace
-function isEJBCAReachable() {
-	log "Verify isEJBCAReachable"
+function verifyEJBCAStatus() {
+	log "Verify verifyEJBCAStatus"
 	log "Retrieve deployment.apps/ejbca-community-helm"
 	if kubectl get deployment.apps/ejbca-community-helm; then
 		log "OK - deployment.apps/ejbca-community-helm"
@@ -180,5 +191,50 @@ function scaleAllTo0() {
 	kubectl scale --replicas 0 deployment "users-roles" || { log "ERROR - Unable to scale project users-roles"; return 1; }
 }
 
-main
+function waitAllScaleTo1() {
+	local cond="1/1"
+	local seconds="5"
+	waitDeploymentStatus  "authentication-provider" "$cond" "$seconds" || { log "ERROR - Unable to wait project authentication-provider"; return 1; }
+	waitDeploymentStatus  "ejbca-community-helm" "$cond" "$seconds" || { log "ERROR - Unable to wait project ejbca-community-helm"; return 1; }
+	waitDeploymentStatus  "identity-provider" "$cond" "$seconds" || { log "ERROR - Unable to wait project identity-provider"; return 1; }
+	waitDeploymentStatus  "onboarding" "$cond" "$seconds" || { log "ERROR - Unable to wait project onboarding"; return 1; }
+	waitDeploymentStatus  "security-attributes-provider" "$cond" "$seconds" || { log "ERROR - Unable to wait project security-attributes-provider"; return 1; }
+	waitDeploymentStatus  "tier1-gateway" "$cond" "$seconds" || { log "ERROR - Unable to wait project tier1-gateway"; return 1; }
+	waitDeploymentStatus  "tier2-gateway" "$cond" "$seconds" || { log "ERROR - Unable to wait project tier2-gateway"; return 1; }
+	waitDeploymentStatus  "users-roles" "$cond" "$seconds" || { log "ERROR - Unable to wait project users-roles"; return 1; }
+}
 
+function waitAllScaleTo0() {
+	local cond="0/0"
+	local seconds="5"
+	waitDeploymentStatus  "authentication-provider" "$cond" "$seconds" || { log "ERROR - Unable to wait project authentication-provider"; return 1; }
+	waitDeploymentStatus  "ejbca-community-helm" "$cond" "$seconds" || { log "ERROR - Unable to wait project ejbca-community-helm"; return 1; }
+	waitDeploymentStatus  "identity-provider" "$cond" "$seconds" || { log "ERROR - Unable to wait project identity-provider"; return 1; }
+	waitDeploymentStatus  "onboarding" "$cond" "$seconds" || { log "ERROR - Unable to wait project onboarding"; return 1; }
+	waitDeploymentStatus  "security-attributes-provider" "$cond" "$seconds" || { log "ERROR - Unable to wait project security-attributes-provider"; return 1; }
+	waitDeploymentStatus  "tier1-gateway" "$cond" "$seconds" || { log "ERROR - Unable to wait project tier1-gateway"; return 1; }
+	waitDeploymentStatus  "tier2-gateway" "$cond" "$seconds" || { log "ERROR - Unable to wait project tier2-gateway"; return 1; }
+	waitDeploymentStatus  "users-roles" "$cond" "$seconds" || { log "ERROR - Unable to wait project users-roles"; return 1; }
+}
+
+function waitDeploymentStatus() {
+	local dep_name="$1"
+	local dep_exp_status="$2"
+	local wait_seconds="$3"
+
+	local dep_status=0
+	while [[ "$dep_status" != 1 ]]; do
+		local dep_output="$( kubectl get deployment --no-headers "$dep_name" )"
+		if [[ $? != 0 ]]; then
+			log "ERROR - unable to get deployment $dep_name"
+			return 1
+		fi
+		dep_status="$(echo "$dep_output" | grep -w $dep_exp_status | wc -l )"
+		if [[ $dep_status != 1 ]]; then
+			log "Waiting deployment $dep_name"
+			sleep "$wait_seconds"
+		fi
+	done
+}
+
+main
