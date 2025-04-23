@@ -71,6 +71,7 @@ function verifyEnvironment() {
 	log "Verify environment"
 
 	isAuthorityDataspace \
+	&& hasAllDeployments \
 	&& verifyEJBCAStatus \
 	&& exitsAllExpectedDatabase
 }
@@ -110,6 +111,23 @@ function verifyEJBCAStatus() {
 		log "ERROR - deployment ejbca-community-helm not found"
 		return 1
 	fi
+}
+
+function hasAllDeployments() {
+	hasDeployment  "authentication-provider" || { log "ERROR - Not found deployment authentication-provider"; return 1; }
+	hasDeployment  "ejbca-community-helm" || { log "ERROR - Not found deployment ejbca-community-helm"; return 1; }
+	hasDeployment  "identity-provider" || { log "ERROR - Not found deployment identity-provider"; return 1; }
+	hasDeployment  "onboarding" || { log "ERROR - Not found deployment onboarding"; return 1; }
+	hasDeployment  "security-attributes-provider" || { log "ERROR - Not found deployment security-attributes-provider"; return 1; }
+	hasDeployment  "tier1-gateway" || { log "ERROR - Not found deployment tier1-gateway"; return 1; }
+	hasDeployment  "tier2-gateway" || { log "ERROR - Not found deployment tier2-gateway"; return 1; }
+	hasDeployment  "users-roles" || { log "ERROR - Not found deployment users-roles"; return 1; }
+}
+
+function hasDeployment() {
+	local dep_name="$1"
+	log "Find deployment $dep_name"
+	kubectl get deployment "$dep_name" > /dev/null
 }
 
 function exitsAllExpectedDatabase() {
