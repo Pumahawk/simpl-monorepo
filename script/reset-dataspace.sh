@@ -1,5 +1,26 @@
 #! /bin/bash
 
+ALL_DATABASE=(
+	"authenticationprovider"
+	"ejbca"
+	"identityprovider"
+	"keycloak"
+	"onboarding"
+	"securityattributesprovider"
+	"usersroles"
+)
+
+ALL_DEPLOYMENTS=(
+	"authentication-provider"
+	"ejbca-community-helm"
+	"identity-provider"
+	"onboarding"
+	"security-attributes-provider"
+	"tier1-gateway"
+	"tier2-gateway"
+	"users-roles"
+)
+
 function main() {
 	LOG_CONTEXT=main
 	log  "Clean dataspace start."
@@ -44,13 +65,9 @@ function main() {
 # Delete all database
 function cleanDB() {
 	log "Start Clean DB"
-	( dropdb authenticationprovider && createdb -O authenticationprovider authenticationprovider ) || { log "Unable drop or create db authenticationprovider"; return 1; }
-	( dropdb ejbca && createdb -O ejbca ejbca ) || { log "Unable drop or create db ejbca"; return 1; }
-	( dropdb identityprovider && createdb -O identityprovider identityprovider ) || { log "Unable drop or create db identityprovider"; return 1; }
-	( dropdb keycloak && createdb -O keycloak keycloak ) || { log "Unable drop or create db keycloak"; return 1; }
-	( dropdb onboarding && createdb -O onboarding onboarding ) || { log "Unable drop or create db onboarding"; return 1; }
-	( dropdb securityattributesprovider && createdb -O securityattributesprovider securityattributesprovider ) || { log "Unable drop or create db securityattributesprovider"; return 1; }
-	( dropdb usersroles && createdb -O usersroles usersroles ) || { log "Unable drop or create db usersroles"; return 1; }
+	for db in "${ALL_DATABASE[@]}"; do
+		( dropdb "$db" && createdb -O "$db" "$db" ) || { log "Unable drop or create db $db"; return 1; }
+	done
 	log "Success Clean Database"
 }
 
@@ -114,14 +131,9 @@ function verifyEJBCAStatus() {
 }
 
 function hasAllDeployments() {
-	hasDeployment  "authentication-provider" || { log "ERROR - Not found deployment authentication-provider"; return 1; }
-	hasDeployment  "ejbca-community-helm" || { log "ERROR - Not found deployment ejbca-community-helm"; return 1; }
-	hasDeployment  "identity-provider" || { log "ERROR - Not found deployment identity-provider"; return 1; }
-	hasDeployment  "onboarding" || { log "ERROR - Not found deployment onboarding"; return 1; }
-	hasDeployment  "security-attributes-provider" || { log "ERROR - Not found deployment security-attributes-provider"; return 1; }
-	hasDeployment  "tier1-gateway" || { log "ERROR - Not found deployment tier1-gateway"; return 1; }
-	hasDeployment  "tier2-gateway" || { log "ERROR - Not found deployment tier2-gateway"; return 1; }
-	hasDeployment  "users-roles" || { log "ERROR - Not found deployment users-roles"; return 1; }
+	for dep in "${ALL_DEPLOYMENTS[@]}"; do
+		hasDeployment  "$dep" || { log "ERROR - Not found deployment $dep"; return 1; }
+	done
 }
 
 function hasDeployment() {
@@ -132,107 +144,45 @@ function hasDeployment() {
 
 function exitsAllExpectedDatabase() {
 	log "Verify exitsAllExpectedDatabase"
-	log "Find database:"
-	log "- authenticationprovider"
-	log "- ejbca"
-	log "- identityprovider"
-	log "- keycloak"
-	log "- onboarding"
-	log "- securityattributesprovider"
-	log "- usersroles"
 
- 	if ! psql -tAc "select 1 from pg_database where datname = 'authenticationprovider'" | grep -q 1; then
-		log "ERROR - Not found dabatase 'authenticationprovider'"
-		return 1
-	fi
- 	if ! psql -tAc "select 1 from pg_database where datname = 'ejbca'" | grep -q 1; then
-		log "ERROR - Not found dabatase 'ejbca'"
-		return 1
-	fi
- 	if ! psql -tAc "select 1 from pg_database where datname = 'identityprovider'" | grep -q 1; then
-		log "ERROR - Not found dabatase 'identityprovider'"
-		return 1
-	fi
- 	if ! psql -tAc "select 1 from pg_database where datname = 'keycloak'" | grep -q 1; then
-		log "ERROR - Not found dabatase 'keycloak'"
-		return 1
-	fi
- 	if ! psql -tAc "select 1 from pg_database where datname = 'onboarding'" | grep -q 1; then
-		log "ERROR - Not found dabatase 'onboarding'"
-		return 1
-	fi
- 	if ! psql -tAc "select 1 from pg_database where datname = 'securityattributesprovider'" | grep -q 1; then
-		log "ERROR - Not found dabatase 'securityattributesprovider'"
-		return 1
-	fi
- 	if ! psql -tAc "select 1 from pg_database where datname = 'usersroles'" | grep -q 1; then
-		log "ERROR - Not found dabatase 'usersroles'"
-		return 1
-	fi
+	for db in "${ALL_DATABASE[@]}"; do
+		if ! psql -tAc "select 1 from pg_database where datname = '$db'" | grep -q 1; then
+			log "ERROR - Not found dabatase '$db'"
+			return 1
+		fi
+	done
 }
 
 function scaleAllTo1() {
-	log "Scale to 1 authentication-provider"
-	kubectl scale --replicas 1 deployment "authentication-provider" || { log "ERROR - Unable to scale project authentication-provider"; return 1; }
-	log "Scale to 1 ejbca-community-helm"
-	kubectl scale --replicas 1 deployment "ejbca-community-helm" || { log "ERROR - Unable to scale project ejbca-community-helm"; return 1; }
-	log "Scale to 1 identity-provider"
-	kubectl scale --replicas 1 deployment "identity-provider" || { log "ERROR - Unable to scale project identity-provider"; return 1; }
-	log "Scale to 1 onboarding"
-	kubectl scale --replicas 1 deployment "onboarding" || { log "ERROR - Unable to scale project onboarding"; return 1; }
-	log "Scale to 1 security-attributes-provider"
-	kubectl scale --replicas 1 deployment "security-attributes-provider" || { log "ERROR - Unable to scale project security-attributes-provider"; return 1; }
-	log "Scale to 1 tier1-gateway"
-	kubectl scale --replicas 1 deployment "tier1-gateway" || { log "ERROR - Unable to scale project tier1-gateway"; return 1; }
-	log "Scale to 1 tier2-gateway"
-	kubectl scale --replicas 1 deployment "tier2-gateway" || { log "ERROR - Unable to scale project tier2-gateway"; return 1; }
-	log "Scale to 1 users-roles"
-	kubectl scale --replicas 1 deployment "users-roles" || { log "ERROR - Unable to scale project users-roles"; return 1; }
+	for dep in "${ALL_DEPLOYMENTS[@]}"; do
+		log "Scale to 1 $dep"
+		kubectl scale --replicas 1 deployment "$dep" || { log "ERROR - Unable to scale project $dep"; return 1; }
+	done
 }
 
 function scaleAllTo0() {
-	log "Scale to 0 authentication-provider"
-	kubectl scale --replicas 0 deployment "authentication-provider" || { log "ERROR - Unable to scale project authentication-provider"; return 1; }
-	log "Scale to 0 ejbca-community-helm"
-	kubectl scale --replicas 0 deployment "ejbca-community-helm" || { log "ERROR - Unable to scale project ejbca-community-helm"; return 1; }
-	log "Scale to 0 identity-provider"
-	kubectl scale --replicas 0 deployment "identity-provider" || { log "ERROR - Unable to scale project identity-provider"; return 1; }
-	log "Scale to 0 onboarding"
-	kubectl scale --replicas 0 deployment "onboarding" || { log "ERROR - Unable to scale project onboarding"; return 1; }
-	log "Scale to 0 security-attributes-provider"
-	kubectl scale --replicas 0 deployment "security-attributes-provider" || { log "ERROR - Unable to scale project security-attributes-provider"; return 1; }
-	log "Scale to 0 tier1-gateway"
-	kubectl scale --replicas 0 deployment "tier1-gateway" || { log "ERROR - Unable to scale project tier1-gateway"; return 1; }
-	log "Scale to 0 tier2-gateway"
-	kubectl scale --replicas 0 deployment "tier2-gateway" || { log "ERROR - Unable to scale project tier2-gateway"; return 1; }
-	log "Scale to 0 users-roles"
-	kubectl scale --replicas 0 deployment "users-roles" || { log "ERROR - Unable to scale project users-roles"; return 1; }
+	local cond="0/0"
+	local seconds="5"
+	for dep in "${ALL_DEPLOYMENTS[@]}"; do
+		log "Scale to 0 $dep"
+		kubectl scale --replicas 0 deployment "$dep" || { log "ERROR - Unable to scale project $dep"; return 1; }
+	done
 }
 
 function waitAllScaleTo1() {
 	local cond="1/1"
 	local seconds="5"
-	waitDeploymentStatus  "authentication-provider" "$cond" "$seconds" || { log "ERROR - Unable to wait project authentication-provider"; return 1; }
-	waitDeploymentStatus  "ejbca-community-helm" "$cond" "$seconds" || { log "ERROR - Unable to wait project ejbca-community-helm"; return 1; }
-	waitDeploymentStatus  "identity-provider" "$cond" "$seconds" || { log "ERROR - Unable to wait project identity-provider"; return 1; }
-	waitDeploymentStatus  "onboarding" "$cond" "$seconds" || { log "ERROR - Unable to wait project onboarding"; return 1; }
-	waitDeploymentStatus  "security-attributes-provider" "$cond" "$seconds" || { log "ERROR - Unable to wait project security-attributes-provider"; return 1; }
-	waitDeploymentStatus  "tier1-gateway" "$cond" "$seconds" || { log "ERROR - Unable to wait project tier1-gateway"; return 1; }
-	waitDeploymentStatus  "tier2-gateway" "$cond" "$seconds" || { log "ERROR - Unable to wait project tier2-gateway"; return 1; }
-	waitDeploymentStatus  "users-roles" "$cond" "$seconds" || { log "ERROR - Unable to wait project users-roles"; return 1; }
+	for dep in "${ALL_DEPLOYMENTS[@]}"; do
+		waitDeploymentStatus  "$dep" "$cond" "$seconds" || { log "ERROR - Unable to wait project $dep"; return 1; }
+	done
 }
 
 function waitAllScaleTo0() {
 	local cond="0/0"
 	local seconds="5"
-	waitDeploymentStatus  "authentication-provider" "$cond" "$seconds" || { log "ERROR - Unable to wait project authentication-provider"; return 1; }
-	waitDeploymentStatus  "ejbca-community-helm" "$cond" "$seconds" || { log "ERROR - Unable to wait project ejbca-community-helm"; return 1; }
-	waitDeploymentStatus  "identity-provider" "$cond" "$seconds" || { log "ERROR - Unable to wait project identity-provider"; return 1; }
-	waitDeploymentStatus  "onboarding" "$cond" "$seconds" || { log "ERROR - Unable to wait project onboarding"; return 1; }
-	waitDeploymentStatus  "security-attributes-provider" "$cond" "$seconds" || { log "ERROR - Unable to wait project security-attributes-provider"; return 1; }
-	waitDeploymentStatus  "tier1-gateway" "$cond" "$seconds" || { log "ERROR - Unable to wait project tier1-gateway"; return 1; }
-	waitDeploymentStatus  "tier2-gateway" "$cond" "$seconds" || { log "ERROR - Unable to wait project tier2-gateway"; return 1; }
-	waitDeploymentStatus  "users-roles" "$cond" "$seconds" || { log "ERROR - Unable to wait project users-roles"; return 1; }
+	for dep in "${ALL_DEPLOYMENTS[@]}"; do
+		waitDeploymentStatus  "$dep" "$cond" "$seconds" || { log "ERROR - Unable to wait project $dep"; return 1; }
+	done
 }
 
 function waitDeploymentStatus() {
