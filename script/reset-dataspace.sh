@@ -68,7 +68,6 @@ function main() {
 
 }
 
-# Delete all database
 function cleanDB() {
 	log "Start Clean DB"
 	for db in "${ALL_DATABASE[@]}"; do
@@ -77,7 +76,6 @@ function cleanDB() {
 	log "Success Clean Database"
 }
 
-# Delete all EJBCA secrets
 function deleteEJBCASecrets() {
 	log "Delete EJBCA secrets"
 	if ! kubectl_cmd delete secret ejbca-rest-api-secret; then
@@ -86,10 +84,6 @@ function deleteEJBCASecrets() {
 	fi
 }
 
-# Verify environment status.
-#   Is an Authority dataspace?
-#   Is EJBCA reachable?
-#   Contains all expected database?
 function verifyEnvironment() {
 	log "Verify environment"
 
@@ -99,7 +93,6 @@ function verifyEnvironment() {
 	&& exitsAllExpectedDatabase
 }
 
-# Verify is current namespace is an Authority dataspace
 function isAuthorityDataspace() {
 	log "Verify isAuthorityDataspace"
 	log "Retrieve current namespace from onboardin deployment"
@@ -118,7 +111,6 @@ function isAuthorityDataspace() {
 	fi
 }
 
-# Verify if EJBCA exist and is receable in current dataspace
 function verifyEJBCAStatus() {
 	log "Verify verifyEJBCAStatus"
 	log "Retrieve deployment.apps/ejbca-community-helm"
