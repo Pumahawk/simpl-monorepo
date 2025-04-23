@@ -1,5 +1,26 @@
 #! /bin/bash
 
+CRITICAL_MESSAGE="WARNING! Critical script running. ALL DATABASES WILL BE DROPPED and the EJBCA SECRET WILL BE DELETED. Ensure you understand the implications."
+
+function log() {
+	>&2 echo "$(date -Iseconds) - ${LOG_CONTEXT-"NC"} " "$@"
+}
+
+if [[ "$RESET_AUTHORITY_ENVIRONMENT" != "1" ]]; then
+	log "$CRITICAL_MESSAGE"
+	log "Set environment variable RESET_AUTHORITY_ENVIRONMENT=1"
+	exit 1
+fi
+
+if [[ "$RESET_AUTHORITY_ENVIRONMENT_SKIP" != "1" ]]; then
+	sleep_sec="10"
+	log "$CRITICAL_MESSAGE"
+	log "System will pause for $sleep_sec seconds, providing an opportunity to abort."
+	sleep "$sleep_sec"
+fi
+
+exit 1
+
 KUBECTL_CMD=(kubectl)
 if [[ -n $K_NAMESPACE ]]; then
 	KUBECTL_CMD+=("--namespace" "${K_NAMESPACE}")
@@ -200,10 +221,6 @@ function waitDeploymentStatus() {
 
 function kubectl_cmd() {
 	"${KUBECTL_CMD[@]}" "$@"
-}
-
-function log() {
-	>&2 echo "$(date -Iseconds) - ${LOG_CONTEXT-"NC"} " "$@"
 }
 
 main
