@@ -13,7 +13,7 @@ spec:
     env:
       - name: REDIRECT_URIS
         # Json string value
-        value: |
+        value: |-
           [ "TESTING_12345" ]
       - name: REALM_NAME
         value: realm
