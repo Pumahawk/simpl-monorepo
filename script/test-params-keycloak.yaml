@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: init-container-test
+spec:
+  volumes:
+  - name: realm-volume
+    emptyDir: {}
+  initContainers:
+  - name: realm-volume
+    image: nginx:latest
+    command: ["/bin/sh", "-c"]
+    env:
+      - name: REDIRECT_URIS
+        # Json string value
+        value: |
+          [ "TESTING_12345" ]
+      - name: REALM_NAME
+        value: realm
+      - name: URL
+        # uncomment below if you are deploying an authority
+        value: https://code.europa.eu/simpl/simpl-open/development/iaa/charts/-/raw/feature/paramsin-realm-export/samples/keycloak-realms/1.0.0/authority-realm-export.json?ref_type=heads
+        # uncomment below if you are deploying a participant
+        # value: https://code.europa.eu/simpl/simpl-open/development/iaa/charts/-/raw/develop/samples/keycloak-realms/1.0.0/participant-realm-export.json?ref_type=heads
+    args:
+      - |
+        curl ${URL} | envsubst '$REDIRECT_URIS' > /config/${REALM_NAME}.json;
+    volumeMounts:
+      - name: realm-volume
+        mountPath: /config
+
+  containers:
+  - name: main-container
+    image: busybox
+    command: ['sh', '-c', 'echo Main container in esecuzione... && sleep 3600']
+    volumeMounts:
+      - name: realm-volume
+        mountPath: /config
+
+  restartPolicy: Never
+
