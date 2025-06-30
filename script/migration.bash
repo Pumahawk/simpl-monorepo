@@ -1,7 +1,19 @@
 #!/bin/bash
 
-# From securityattributesprovider
-# To onboarding
+# Purpose:
+#   Transfers associations between identity_attribute and participant_type
+#   from the securityattributesprovider DB to the onboarding DB.
+#
+# What it does:
+#   - Extracts data from identity_attribute and identity_attribute_paonbrticipant_type
+#   - Saves it to a temporary CSV file
+#   - Imports it into the onboarding DB
+#   - Inserts associations into onboarding_procedure_template_identity_attribute
+#
+# Usage:
+#   ./script.sh --db-host <host> \
+#               --from-user <securityattributesprovider_user> --from-password <securityattributesprovider_pwd> \
+#               --to-user <onboarding_user> --to-password <onboarding_pwd>
 
 TMP_TABLE="tmp_stage";
 CSV_PATH="/tmp/identity_attributes_participant_types.csv";
