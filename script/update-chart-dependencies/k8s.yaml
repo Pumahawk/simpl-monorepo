@@ -15,29 +15,31 @@ spec:
             imagePullPolicy: IfNotPresent
             command: ["bash", "-c"]
             args:
-              - |
-                function update_chart() {
-                  CHART_FILE="$1"
-                  shift
-                  HELM_FILTER="$*"
-                  LOG_CONTEXT="$CHART_FILE" /app/update-chart-dependencies.bash \
-                  --chart-file "$CHART_FILE" \
-                  --path /tmp/p1 \
-                  --git-url https://code.europa.eu/simpl/iaa/charts.git \
-                  --git-credential "https://$GIT_USER:$GIT_PASSWORD@code.europa.eu" \
-                  --git-branch feature/autoupdate-script-test \
-                  --version-filter "$HELM_FILTER"
-                }
-                while read line; do
-                  update_chart $line
-                done << EOF
-                /tmp/p1/app-values/ovh-dev-components/iaa-dsdev/authority/Chart.yaml .version | test("SNAPSHOT")
-                /tmp/p1/app-values/ovh-dev-components/iaa-dsdev/consumer/Chart.yaml .version | test("SNAPSHOT")
-                /tmp/p1/app-values/ovh-dev-components/iaa-dsdev/data-provider/Chart.yaml .version | test("SNAPSHOT")
-                /tmp/p1/app-values/ovh-dev-components/iaa-dsstaging/authority/Chart.yaml .version | test("SNAPSHOT") | not
-                /tmp/p1/app-values/ovh-dev-components/iaa-dsstaging/data-provider/Chart.yaml .version | test("SNAPSHOT") | not
-                /tmp/p1/app-values/ovh-dev-components/iaa-dsstaging/consumer/Chart.yaml .version | test("SNAPSHOT") | not
-                EOF
+            - |
+              function update_chart() {
+                CHART_FILE="$1"
+                HELM_FILTER="$2"
+                GIT_COMMIT_MESSAGE="$3"
+                GIT_BRANCH="$4"
+                GIT_COMMIT_MESSAGE="$GIT_COMMIT_MESSAGE" LOG_CONTEXT="$CHART_FILE" /app/update-chart-dependencies.bash \
+                --chart-file "$CHART_FILE" \
+                --path /tmp/p1 \
+                --git-url https://code.europa.eu/simpl/iaa/charts.git \
+                --git-credential "https://$GIT_USER:$GIT_PASSWORD@code.europa.eu" \
+                --git-branch "$GIT_BRANCH" \
+                --version-filter "$HELM_FILTER"
+              }
+              git config --global user.name 'CI Script'
+              git config --global user.email 'project_779_bot_968636c24b2e429f6e52ce5a830e454a@noreply.code.europa.eu'
+              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/authority/Chart.yaml '.version | test("SNAPSHOT")' "iaa: update authority" feature/iaa-dsdev
+              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/data-provider/Chart.yaml '.version | test("SNAPSHOT")' "iaa: update data-provider" feature/iaa-dsdev
+              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/consumer/Chart.yaml '.version | test("SNAPSHOT")' "iaa: update consumer" feature/iaa-dsdev
+              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/authority/Chart.yaml '.version | test("SNAPSHOT") | not' "iaa-dsstaging: update authority" "feature/iaa-dsstaging"
+              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/data-provider/Chart.yaml '.version | test("SNAPSHOT") | not' "iaa-dsstaging: update data-provider" "feature/iaa-dsstaging"
+              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/consumer/Chart.yaml '.version | test("SNAPSHOT") | not' "iaa-dsstaging: update consumer" "feature/iaa-dsstaging"
+              # update_chart /tmp/p1/app-values/ovh-dev-components/iaa-dsdev/authority/Chart.yaml '.version | test("SNAPSHOT")' "iaa-dsdev: update authority"
+              # update_chart /tmp/p1/app-values/ovh-dev-components/iaa-dsdev/consumer/Chart.yaml '.version | test("SNAPSHOT")' "iaa-dsdev: update consumer"
+              # update_chart /tmp/p1/app-values/ovh-dev-components/iaa-dsdev/data-provider/Chart.yaml '.version | test("SNAPSHOT")' "iaa-dsdev: update data-provider"
 
             envFrom:
             - secretRef:
