@@ -61,7 +61,8 @@ function update_list() {
 	echo "$DEP_LIST" | while read line; do
 		REPO=$(echo "$line" | jq -r .repository)
 		NAME=$(echo "$line" | jq -r .name)
-		VERSION="$(helm_get_repo_last_version "$REPO" "$NAME")"
+		local version_current=$(echo "$line" | jq -r .version)
+		VERSION="$(helm_get_repo_last_version "$REPO" "$NAME" "$version_current")"
 		echo "$line" | jq -c ".version = \"$VERSION\""
 	done
 }
@@ -88,8 +89,14 @@ function write_chart_data() {
 function helm_get_repo_last_version() {
 	HELM_REPO_URL="${1?Missing helm repo url parameter}"
 	HELM_REPO_NAME="${2?Missing helm repo name parameter}"
+	local version_current="${3?Missing current version}"
 	log "Get last version. Name: $HELM_REPO_NAME, Url: $HELM_REPO_URL, Filter: $HELM_VERSION_FILTER"
-	helm_client_index_json "$HELM_REPO_URL" | jq -r '.entries."'"$HELM_REPO_NAME"'" | sort_by(.created) '"$( [ -n "$HELM_VERSION_FILTER" ] && echo "| [ .[] | select($HELM_VERSION_FILTER)]")"' | last | .version'
+	local version="$(helm_client_index_json "$HELM_REPO_URL" | jq -r '.entries."'"$HELM_REPO_NAME"'" | sort_by(.created) '"$( [ -n "$HELM_VERSION_FILTER" ] && echo "| [ .[] | select($HELM_VERSION_FILTER)]")"' | last | .version')"
+	if [[ "$version" == "null" || "$version" == "" ]]; then
+		echo "$version_current"
+	else
+		echo "$version"
+	fi
 }
 
 function helm_client_index_json() {
