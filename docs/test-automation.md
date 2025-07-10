@@ -6,7 +6,7 @@ The **test-automation** project enables automated testing using [Cucumber](https
 
 Each Jira story is covered by:
 - **One feature file** per story
-- **One scenario** for each Accepted Criteria (AC)
+- **One scenario** for each Acceptance Criteria (AC)
 
 This approach ensures that automated tests directly reflect the business requirements tracked in Jira.
 
@@ -20,7 +20,7 @@ Here’s the typical lifecycle of a test execution in the `test-automation` proj
 
 1. **Write Feature Files**
    - Each feature represents a Jira story.
-   - Each scenario represents an Accepted Criteria (AC).
+   - Each scenario represents an Acceptance Criteria (AC).
    - Feature files are written in Gherkin syntax.
 
 2. **Run Tests with Cucumber**
