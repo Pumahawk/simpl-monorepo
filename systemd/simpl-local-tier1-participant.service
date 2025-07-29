@@ -1,0 +1,9 @@
+[Unit]
+Description=Tier1 env=local
+
+[Service]
+ExecStart=mvn -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local,participant
+WorkingDirectory=%h/personal/persona/simpl-monorepo/simpl-repo/simpl-cloud-gateway
+Environment=GATEWAY_URL=http://localhost:9010
+StandardOutput=journal
+StandardError=journal
