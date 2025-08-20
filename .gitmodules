@@ -66,3 +66,7 @@
 	path = simpl-repo/test-automation
 	url = https://code.europa.eu/simpl/simpl-open/development/iaa/test-automation.git
 	branch = develop
+[submodule "simpl-repo/tier2-proxy"]
+	path = simpl-repo/tier2-proxy
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/tier2-proxy.git
+	branch = develop
