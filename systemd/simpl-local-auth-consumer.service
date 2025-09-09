@@ -1,0 +1,16 @@
+[Unit]
+Description=Auth env=local
+
+[Service]
+# DEBUG: -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
+ExecStart=mvn -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local,local-consumer
+# ExecStart=bash -l -c "java -Dspring.profiles.active=local,local-consumer -jar target/authenticationprovider-2.4.0-RC.jar | jqlog"
+Environment=SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://localhost:9010/auth/realms/participant
+# Consumer dsdev
+Environment=CRYPTO_SECRETKEYBASE64=pvONfhxMFVkqJo/my2+omhN94UqiK+pHWhTI6FJ4gjQ=
+Environment=SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/authenticationprovider
+Environment=SPRING_DATASOURCE_USERNAME=authenticationprovider
+Environment=SPRING_DATASOURCE_PASSWORD=authenticationprovider
+WorkingDirectory=%h/personal/persona/simpl-monorepo/simpl-repo/agent-service
+StandardOutput=journal
+StandardError=journal

@@ -3,8 +3,12 @@ Description=Auth env=local
 
 [Service]
 ExecStart=mvn -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local,local-authority
-Environment=SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER-URI=http://localhost:9010/auth/realms/participant
+Environment=SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://localhost:9010/auth/realms/authority
 Environment=CRYPTO_SECRETKEYBASE64=KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A=
+Environment=SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/authenticationprovider
+Environment=SPRING_DATASOURCE_USERNAME=authenticationprovider
+Environment=SPRING_DATASOURCE_PASSWORD=authenticationprovider
+Environment=VALIDATORS_MULTIPARTFILE_MAX_SIZE=1
 WorkingDirectory=%h/personal/persona/simpl-monorepo/simpl-repo/agent-service
 StandardOutput=journal
 StandardError=journal
