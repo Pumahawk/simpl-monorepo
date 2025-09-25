@@ -1,0 +1,17 @@
+[tools]
+java = "21"
+"github:Pumahawk/klog" = "0.1.0"
+mvnd = "1.0.3"
+jq = "1.8.1"
+
+[env]
+PROJECT_RELEASE_VERSION = "2.5.0-RC"
+
+[tasks.ksil]
+run = "klog --config ../script/klog-conf.yaml"
+
+[tasks.jqlog]
+run = "jq --unbuffered -r -R '. as $line | try (fromjson | \"\\(.timestamp) \\(.micro // \"\") \\(.level) \\(.message) \\(.\"error.stack_trace\" // \"\")\") catch $line'"
+
+[tasks.build]
+run = "mvnd clean install -fae"
