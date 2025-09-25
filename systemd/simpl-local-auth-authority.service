@@ -4,7 +4,12 @@ Description=Auth env=local
 [Service]
 ExecStart=mvn -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local,local-authority
 Environment=SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI=http://localhost:9010/auth/realms/authority
-Environment=CRYPTO_SECRETKEYBASE64=KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A=
+; iaa-dsdev-authority
+; Environment=Ym9CNlkrWENEUTVaQmxFcDkyaTBYOUc2N2lmSzF3YW5CdXl6azJ4a0V2TT0=
+; iaa-dstest-authority
+; Environment=N2gwTXJQOWZTaXNhTU1BRWwrakhldGkvaUpjZ0RVa1VvL2o4dVlIZlJmZz0=
+; iaa-dsstaging-authority
+Environment=WTJNbjN4enZCYXViU0FzYUtNUHVzc0UyNkhWT3dYYlI2ZHBLZDZWQVliMD0=
 Environment=SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/authenticationprovider
 Environment=SPRING_DATASOURCE_USERNAME=authenticationprovider
 Environment=SPRING_DATASOURCE_PASSWORD=authenticationprovider

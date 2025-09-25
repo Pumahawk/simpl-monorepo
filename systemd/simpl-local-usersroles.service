@@ -2,7 +2,7 @@
 Description=Simpl onboarding env=local
 
 [Service]
-ExecStart=mvn -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local,local-authority 
+ExecStart=mvn -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local,local-consumer 
 WorkingDirectory=%h/personal/persona/simpl-monorepo/simpl-repo/users-roles
 StandardOutput=journal
 StandardError=journal
