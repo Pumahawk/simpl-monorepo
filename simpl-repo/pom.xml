@@ -21,6 +21,8 @@
 	    <module>agent-service</module>
 	    <module>identity-provider</module>
 	    <module>echo-backend</module>
+	    <module>keycloak-authenticator</module>
+	    <module>test-automation</module>
     </modules>
 
 </project>
