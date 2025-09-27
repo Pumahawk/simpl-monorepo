@@ -2,8 +2,7 @@
 Description=Tier1 env=local
 
 [Service]
-ExecStart=mvn -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local,authority,local-authority
+ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" exec -- mvnd -f simpl-repo/simpl-cloud-gateway -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local,authority,local-authority
 #Environment=GATEWAY_URL=https://t1.iaa-dsdev-authority.dev.simpl-europe.eu
-WorkingDirectory=%h/personal/persona/simpl-monorepo/simpl-repo/simpl-cloud-gateway
 StanrdardOutput=journal
 StanrdardError=journal

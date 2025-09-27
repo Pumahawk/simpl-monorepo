@@ -2,8 +2,7 @@
 Description=Tier1 env=local
 
 [Service]
-ExecStart=mvn -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local
-WorkingDirectory=%h/personal/persona/simpl-monorepo/simpl-repo/security-attributes-provider
+ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" exec -- mvnd -f simpl-repo/security-attributes-provider -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local
 StandardOutput=journal
 StandardError=journal
 Environment=SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/securityattributesprovider
