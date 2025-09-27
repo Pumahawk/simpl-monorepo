@@ -23,6 +23,9 @@ run = "mise r dockerc:stop db"
 [tasks."db:prune"]
 run = "mise r dockerc down db -v"
 
+[tasks."db:connect"]
+run = "mise run dockerc exec db psql --host localhost -U admin"
+
 [env]
 PROJECT_RELEASE_VERSION = "2.5.0-RC"
 
