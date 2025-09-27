@@ -2,10 +2,7 @@
 Description=Simpl onboarding env=local
 
 [Service]
-ExecStart=mvn -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local,local-consumer 
-WorkingDirectory=%h/personal/persona/simpl-monorepo/simpl-repo/users-roles
+ExecStart=mise run run:users-roles-consumer
+WorkingDirectory=%h/personal/persona/simpl-monorepo
 StandardOutput=journal
 StandardError=journal
-Environment=SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/usersroles
-Environment=SPRING_DATASOURCE_USERNAME=usersroles
-Environment=SPRING_DATASOURCE_PASSWORD=usersroles

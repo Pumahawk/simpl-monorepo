@@ -24,3 +24,7 @@ SIMPL_DB_PORT_FORWARD = "5432"
 MICRO_ONBOARDING_DB_URL = "jdbc:postgresql://localhost:5432/onboarding"
 MICRO_ONBOARDING_DB_USERNAME = "onboarding"
 MICRO_ONBOARDING_DB_PASSWORD = "onboarding"
+
+MICRO_USERSROLES_DB_URL = "jdbc:postgresql://localhost:5432/usersroles"
+MICRO_USERSROLES_DB_USERNAME = "usersroles"
+MICRO_USERSROLES_DB_PASSWORD = "usersroles"
