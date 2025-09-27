@@ -7,3 +7,8 @@ jq = "1.8.1"
 [env]
 PROJECT_RELEASE_VERSION = "2.5.0-RC"
 
+# Microservices
+
+MICRO_ONBOARDING_DB_URL = "jdbc:postgresql://localhost:5432/onboarding"
+MICRO_ONBOARDING_DB_USERNAME = "onboarding"
+MICRO_ONBOARDING_DB_PASSWORD = "onboarding"
