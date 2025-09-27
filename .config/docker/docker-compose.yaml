@@ -9,7 +9,7 @@ services:
       - "${SIMPL_DB_PORT_FORWARD:-5432}:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
-      - ./.config/db/init:/docker-entrypoint-initdb.d
+      - ./db/init:/docker-entrypoint-initdb.d
     restart: unless-stopped
 
 volumes:
