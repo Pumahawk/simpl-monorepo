@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+klog --config script/klog-conf.yaml "$@"
