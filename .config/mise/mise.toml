@@ -14,6 +14,15 @@ run = "mise r dockerc up -d"
 [tasks."dockerc:stop"]
 run = "mise r dockerc stop"
 
+[tasks."db:up"]
+run = "mise r dockerc:up db"
+
+[tasks."db:stop"]
+run = "mise r dockerc:stop db"
+
+[tasks."db:prune"]
+run = "mise r dockerc down db -v"
+
 [env]
 PROJECT_RELEASE_VERSION = "2.5.0-RC"
 
