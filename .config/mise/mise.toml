@@ -5,14 +5,14 @@ mvnd = "1.0.3"
 jq = "1.8.1"
 docker-compose = "2.39.4"
 
-[tasks.micro]
+[tasks.dockerc]
 run = "docker-cli-plugin-docker-compose -f .config/docker/docker-compose.yaml -p simpl-dev"
 
-[tasks."micro:up"]
-run = "mise r micro up -d"
+[tasks."dockerc:up"]
+run = "mise r dockerc up -d"
 
-[tasks."micro:stop"]
-run = "mise r micro stop"
+[tasks."dockerc:stop"]
+run = "mise r dockerc stop"
 
 [env]
 PROJECT_RELEASE_VERSION = "2.5.0-RC"
