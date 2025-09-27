@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: simpl_database
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "${SIMPL_DB_PORT_FORWARD:-5432}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./.config/db/init:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+
+volumes:
+  pg_data:

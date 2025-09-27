@@ -3,12 +3,24 @@ java = "21"
 "github:Pumahawk/klog" = "0.1.0"
 mvnd = "1.0.3"
 jq = "1.8.1"
+docker-compose = "2.39.4"
+
+[tasks.micro]
+run = "docker-cli-plugin-docker-compose -f .config/docker/docker-compose.yaml -p simpl-dev"
+
+[tasks."micro:up"]
+run = "mise r micro up -d"
+
+[tasks."micro:stop"]
+run = "mise r micro stop"
 
 [env]
 PROJECT_RELEASE_VERSION = "2.5.0-RC"
 
-# Microservices
+#Database
+SIMPL_DB_PORT_FORWARD = "5432"
 
+# Microservices
 MICRO_ONBOARDING_DB_URL = "jdbc:postgresql://localhost:5432/onboarding"
 MICRO_ONBOARDING_DB_USERNAME = "onboarding"
 MICRO_ONBOARDING_DB_PASSWORD = "onboarding"
