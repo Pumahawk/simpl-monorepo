@@ -2,6 +2,6 @@
 Description=Simpl onboarding env=local
 
 [Service]
-ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run run:users-roles-consumer
+ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run run:users-roles
 StandardOutput=journal
 StandardError=journal
