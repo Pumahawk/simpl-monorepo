@@ -5,6 +5,9 @@ mvnd = "1.0.3"
 jq = "1.8.1"
 docker-compose = "2.39.4"
 
+[tasks.fmt]
+run = "mvnd -f simpl-repo spotless:apply"
+
 [tasks."build:no-test"]
 run = "mise run build -Dmaven.test.skip"
 
