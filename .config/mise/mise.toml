@@ -53,3 +53,13 @@ MICRO_AUTH_SECKEY = "WTJNbjN4enZCYXViU0FzYUtNUHVzc0UyNkhWT3dYYlI2ZHBLZDZWQVliMD0
 MICRO_AUTH_DB_URL = "jdbc:postgresql://localhost:5432/authenticationprovider"
 MICRO_AUTH_DB_USERNAME = "authenticationprovider"
 MICRO_AUTH_DB_PASSWORD = "authenticationprovider"
+
+MICRO_IDENTITY_DB_URL = "jdbc:postgresql://localhost:5432/identityprovider"
+MICRO_IDENTITY_DB_USERNAME = "identityprovider"
+MICRO_IDENTITY_DB_PASSWORD = "identityprovider"
+MICRO_IDENTITY_EJBCA_KEYSTORE_LOCATION = "file:/home/lgandino/projects/simpl-certs/identity-provider/keystore.p12"
+MICRO_IDENTITY_EJBCA_KEYSTORE_PASSWORD = "123-stella"
+MICRO_IDENTITY_EJBCA_KEYSTORE_TYPE = "PKCS12"
+MICRO_IDENTITY_EJBCA_TRUSTSTORE_LOCATION = "file:/home/lgandino/projects/simpl-certs/identity-provider/truststore.jks"
+MICRO_IDENTITY_EJBCA_TRUSTSTORE_PASSWORD = "changeit"
+MICRO_IDENTITY_EJBCA_TRUSTSTORE_TYPE = "JKS"

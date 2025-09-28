@@ -3,15 +3,6 @@ Description=identity provider env=local
 
 [Service]
 # DEBUG: -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
-ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" exec -- mvnd -f simpl-repo/identity-provider -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local,local-authority
-Environment=SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/identityprovider
-Environment=SPRING_DATASOURCE_USERNAME=identityprovider
-Environment=SPRING_DATASOURCE_PASSWORD=identityprovider
+ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run run:identity-provider
 StandardOutput=journal
 StandardError=journal
-Environment=SPRING_SSL_BUNDLE_JKS_EJBCA_KEYSTORE_LOCATION=file:/home/lgandino/projects/simpl-certs/identity-provider/keystore.p12
-Environment=SPRING_SSL_BUNDLE_JKS_EJBCA_KEYSTORE_PASSWORD=123-stella
-Environment=SPRING_SSL_BUNDLE_JKS_EJBCA_KEYSTORE_TYPE=PKCS12
-Environment=SPRING_SSL_BUNDLE_JKS_EJBCA_TRUSTSTORE_LOCATION=file:/home/lgandino/projects/simpl-certs/identity-provider/truststore.jks
-Environment=SPRING_SSL_BUNDLE_JKS_EJBCA_TRUSTSTORE_PASSWORD=changeit
-Environment=SPRING_SSL_BUNDLE_JKS_EJBCA_TRUSTSTORE_TYPE=JKS
