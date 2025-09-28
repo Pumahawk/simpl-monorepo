@@ -43,3 +43,7 @@ MICRO_ONBOARDING_DB_PASSWORD = "onboarding"
 MICRO_USERSROLES_DB_URL = "jdbc:postgresql://localhost:5432/usersroles"
 MICRO_USERSROLES_DB_USERNAME = "usersroles"
 MICRO_USERSROLES_DB_PASSWORD = "usersroles"
+
+MICRO_SAP_DB_URL = "jdbc:postgresql://localhost:5432/securityattributesprovider"
+MICRO_SAP_DB_USERNAME = "securityattributesprovider"
+MICRO_SAP_DB_PASSWORD = "securityattributesprovider"

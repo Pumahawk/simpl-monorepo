@@ -1,10 +1,7 @@
 [Unit]
-Description=Tier1 env=local
+Description=Security Attributes Provider env=local
 
 [Service]
-ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" exec -- mvnd -f simpl-repo/security-attributes-provider -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local
+ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run run:security-attributes-provider
 StandardOutput=journal
 StandardError=journal
-Environment=SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/securityattributesprovider
-Environment=SPRING_DATASOURCE_USERNAME=securityattributesprovider
-Environment=SPRING_DATASOURCE_PASSWORD=securityattributesprovider

@@ -6,4 +6,4 @@ export SPRING_DATASOURCE_URL=${MICRO_USERSROLES_DB_URL}
 export SPRING_DATASOURCE_USERNAME=${MICRO_USERSROLES_DB_USERNAME}
 export SPRING_DATASOURCE_PASSWORD=${MICRO_USERSROLES_DB_PASSWORD}
 
-mvn -f simpl-repo/users-roles/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local,local-consumer "$@"
+mvnd -f simpl-repo/users-roles/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local,local-consumer "$@"

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -e
+
+export SPRING_DATASOURCE_URL=${MICRO_SAP_DB_URL}
+export SPRING_DATASOURCE_USERNAME=${MICRO_SAP_DB_USERNAME}
+export SPRING_DATASOURCE_PASSWORD=${MICRO_SAP_DB_PASSWORD}
+
+mvnd -f simpl-repo/security-attributes-provider/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local "$@"
