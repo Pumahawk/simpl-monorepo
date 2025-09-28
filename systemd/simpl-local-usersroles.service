@@ -5,3 +5,4 @@ Description=Simpl onboarding env=local
 ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run run:users-roles
 StandardOutput=journal
 StandardError=journal
+Environment=MISE_ENV=consumer

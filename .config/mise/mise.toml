@@ -36,7 +36,7 @@ PROJECT_RELEASE_VERSION = "2.5.0-RC"
 SIMPL_DB_PORT_FORWARD = "5432"
 
 # Microservices
-MICRO_PROFILES = "local,local-authority"
+MICRO_PROFILES = "local,authority,local-authority"
 
 MICRO_ONBOARDING_DB_URL = "jdbc:postgresql://localhost:5432/onboarding"
 MICRO_ONBOARDING_DB_USERNAME = "onboarding"
@@ -66,4 +66,5 @@ MICRO_IDENTITY_EJBCA_TRUSTSTORE_LOCATION = "file:/home/lgandino/projects/simpl-c
 MICRO_IDENTITY_EJBCA_TRUSTSTORE_PASSWORD = "changeit"
 MICRO_IDENTITY_EJBCA_TRUSTSTORE_TYPE = "JKS"
 
-# MICRO_TIER1_GATEWAY_URL = ""
+# MICRO_TIER1_GATEWAY_URL = "http://localhost:9010"
+# MICRO_TIER1_REALM = "authority"

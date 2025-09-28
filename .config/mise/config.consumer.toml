@@ -1,0 +1,4 @@
+[env]
+# Microservices
+MICRO_PROFILES = "local,local-consumer"
+
