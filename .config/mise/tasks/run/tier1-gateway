@@ -4,4 +4,4 @@ set -e
 
 export GATEWAY_URL=${MICRO_TIER1_GATEWAY_URL}
 
-mvnd -f simpl-repo/simpl-cloud-gateway/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local,authority,local-authority "$@"
+mvnd -f simpl-repo/simpl-cloud-gateway/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles="${MICRO_PROFILES}" "$@"

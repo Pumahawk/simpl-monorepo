@@ -12,4 +12,4 @@ export SPRING_SSL_BUNDLE_JKS_EJBCA_TRUSTSTORE_LOCATION="${MICRO_IDENTITY_EJBCA_T
 export SPRING_SSL_BUNDLE_JKS_EJBCA_TRUSTSTORE_PASSWORD="${MICRO_IDENTITY_EJBCA_TRUSTSTORE_PASSWORD}"
 export SPRING_SSL_BUNDLE_JKS_EJBCA_TRUSTSTORE_TYPE="${MICRO_IDENTITY_EJBCA_TRUSTSTORE_TYPE}"
 
-mvnd -f simpl-repo/identity-provider/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local,local-authority "$@"
+mvnd -f simpl-repo/identity-provider/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles="${MICRO_PROFILES}" "$@"

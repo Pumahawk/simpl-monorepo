@@ -8,4 +8,4 @@ export SPRING_DATASOURCE_URL=${MICRO_AUTH_DB_URL}
 export SPRING_DATASOURCE_USERNAME=${MICRO_AUTH_DB_USERNAME}
 export SPRING_DATASOURCE_PASSWORD=${MICRO_AUTH_DB_PASSWORD}
 
-mvnd -f simpl-repo/agent-service/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=local,local-authority "$@"
+mvnd -f simpl-repo/agent-service/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles="${MICRO_PROFILES}" "$@"

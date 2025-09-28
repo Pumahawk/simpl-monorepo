@@ -36,6 +36,8 @@ PROJECT_RELEASE_VERSION = "2.5.0-RC"
 SIMPL_DB_PORT_FORWARD = "5432"
 
 # Microservices
+MICRO_PROFILES = "local,local-authority"
+
 MICRO_ONBOARDING_DB_URL = "jdbc:postgresql://localhost:5432/onboarding"
 MICRO_ONBOARDING_DB_USERNAME = "onboarding"
 MICRO_ONBOARDING_DB_PASSWORD = "onboarding"
