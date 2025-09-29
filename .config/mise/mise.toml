@@ -25,7 +25,7 @@ run = "mise r dockerc up -d"
 run = "mise r dockerc stop"
 
 [tasks."db"]
-run = "mise r dockerc ps db"
+run = "mise r dockerc ps db -a"
 
 [tasks."db:up"]
 run = "mise r dockerc:up db"
@@ -52,7 +52,7 @@ run = "kind delete cluster --name simpl"
 run = "docker container start simpl-control-plane"
 
 [tasks."cluster:status"]
-run = "docker container ls --filter name=simpl-control-plane"
+run = "docker container ls -a --filter name=simpl-control-plane"
 
 [tasks."cluster:stop"]
 run = "docker container stop simpl-control-plane"
