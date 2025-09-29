@@ -4,6 +4,10 @@ java = "21"
 mvnd = "1.0.3"
 jq = "1.8.1"
 docker-compose = "2.39.4"
+kind = "0.30.0"
+kubectl = "1.34.1"
+docker-cli = "28.4.0"
+helm = "3.19.0"
 
 [tasks.fmt]
 run = "mvnd -f simpl-repo spotless:apply"
@@ -35,8 +39,39 @@ run = "mise r dockerc down db -v"
 [tasks."db:connect"]
 run = "mise run dockerc exec db psql --host localhost -U admin"
 
+[tasks.cluster]
+run = "kubectl"
+
+[tasks."cluster:create"]
+run = "kind create cluster --name simpl"
+
+[tasks."cluster:destroy"]
+run = "kind delete cluster --name simpl"
+
+[tasks."cluster:start"]
+run = "docker container start simpl-control-plane"
+
+[tasks."cluster:status"]
+run = "docker container ls --filter name=simpl-control-plane"
+
+[tasks."cluster:stop"]
+run = "docker container stop simpl-control-plane"
+
+[tasks."cluster:connect"]
+run = "docker exec -it simpl-control-plane bash"
+
+[tasks."cluster:authority-install"]
+run = "helm install local-authority --create-namespace -n local-authority simpl-repo/charts/app-values/local/local-authority"
+
+[tasks."cluster:authority-uninstall"]
+run = "helm uninstall local-authority"
+
+[tasks.ksil]
+run = "klog --config script/klog-conf.yaml --kubeconfig \"{{env.KUBECONFIG}}\""
+
 [env]
 PROJECT_RELEASE_VERSION = "2.5.0-RC"
+KUBECONFIG = "./.config/.kube/config"
 
 #Database
 SIMPL_DB_PORT_FORWARD = "5432"
