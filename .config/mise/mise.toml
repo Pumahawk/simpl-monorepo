@@ -66,6 +66,12 @@ run = "helm install local-authority --create-namespace -n local-authority simpl-
 [tasks."cluster:authority-uninstall"]
 run = "helm uninstall local-authority"
 
+[tasks."cluster:install-zscaler-ca"]
+run = [
+  "docker cp .config/certs/zscaler-ca.pem simpl-control-plane:usr/local/share/ca-certificates/zscaler-ca.crt",
+  "docker exec simpl-control-plane update-ca-certificates",
+]
+
 [tasks.ksil]
 run = "klog --config script/klog-conf.yaml --kubeconfig \"{{env.KUBECONFIG}}\""
 
