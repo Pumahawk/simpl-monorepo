@@ -61,7 +61,15 @@ run = "docker container stop simpl-control-plane"
 run = "docker exec -it simpl-control-plane bash"
 
 [tasks."cluster:authority-install"]
-run = "helm install local-authority --create-namespace -n local-authority simpl-repo/charts/app-values/local/local-authority"
+run = """
+  helm upgrade \
+  -i \
+  --dependency-update \
+  --create-namespace \
+  -n local-authority \
+  local-authority \
+  ./simpl-repo/charts/app-values/local/local-authority
+"""
 
 [tasks."cluster:authority-uninstall"]
 run = "helm uninstall local-authority"
