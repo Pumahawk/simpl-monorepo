@@ -21,7 +21,7 @@ run = "mvnd clean install -fae -f simpl-repo/"
 run = "mvnd -f simpl-repo spotless:apply"
 
 [tasks."build:no-test"]
-run = "mise run build -Dmaven.test.skip"
+run = "mise run build -Dlicense.skipDownloadLicenses -Dmaven.test.skip"
 
 [tasks.dockerc]
 run = "docker-cli-plugin-docker-compose -f .config/docker/docker-compose.yaml -p simpl-dev"
