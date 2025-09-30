@@ -1,7 +1,0 @@
-[Unit]
-Description=Simpl onboarding env=local
-
-[Service]
-ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run run:onboarding
-StandardOutput=journal
-StandardError=journal

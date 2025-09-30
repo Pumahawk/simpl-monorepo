@@ -1,8 +1,0 @@
-[Unit]
-Description=identity provider env=local
-
-[Service]
-# DEBUG: -Dspring-boot.run.jvmArguments="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
-ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run run:identity-provider
-StandardOutput=journal
-StandardError=journal

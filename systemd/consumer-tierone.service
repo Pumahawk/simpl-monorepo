@@ -1,0 +1,7 @@
+[Unit]
+Description=consumer-tierone
+
+[Service]
+ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run micro:run:consumer-tierone
+StandardOutput=journal
+StandardError=journal

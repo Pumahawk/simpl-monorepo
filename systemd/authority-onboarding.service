@@ -1,0 +1,7 @@
+[Unit]
+Description=authority-onboarding
+
+[Service]
+ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run micro:run:authority-onboarding
+StandardOutput=journal
+StandardError=journal

@@ -1,7 +1,0 @@
-[Unit]
-Description=Security Attributes Provider env=local
-
-[Service]
-ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run run:security-attributes-provider
-StandardOutput=journal
-StandardError=journal

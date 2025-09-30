@@ -1,0 +1,7 @@
+[Unit]
+Description=authority-usersroles
+
+[Service]
+ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run micro:run:authority-usersroles
+StandardOutput=journal
+StandardError=journal

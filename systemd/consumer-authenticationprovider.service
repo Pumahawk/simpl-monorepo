@@ -1,0 +1,7 @@
+[Unit]
+Description=consumer-authenticationprovider
+
+[Service]
+ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run micro:run:consumer-authenticationprovider
+StandardOutput=journal
+StandardError=journal

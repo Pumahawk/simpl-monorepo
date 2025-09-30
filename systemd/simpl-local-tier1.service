@@ -1,7 +1,0 @@
-[Unit]
-Description=Tier1 env=local
-
-[Service]
-ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run run:tier1-gateway
-StanrdardOutput=journal
-StanrdardError=journal

@@ -1,0 +1,7 @@
+[Unit]
+Description=authority-tiertwo
+
+[Service]
+ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run micro:run:authority-tiertwo
+StandardOutput=journal
+StandardError=journal

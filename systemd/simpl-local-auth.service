@@ -1,7 +1,0 @@
-[Unit]
-Description=Auth env=local
-
-[Service]
-ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run run:authentication-provider
-StandardOutput=journal
-StandardError=journal
