@@ -91,98 +91,66 @@ run = [
 [tasks.ksil]
 run = "klog --config script/klog-conf.yaml --kubeconfig \"{{env.KUBECONFIG}}\""
 
-[tasks."run:onboarding".env]
-SPRING_DATASOURCE_URL = "{{env.MICRO_ONBOARDING_DB_URL}}"
-SPRING_DATASOURCE_USERNAME = "{{env.MICRO_ONBOARDING_DB_USERNAME}}"
-SPRING_DATASOURCE_PASSWORD = "{{env.MICRO_ONBOARDING_DB_PASSWORD}}"
+[tasks."micro:run:authority-authenticationprovider".env]
+SPRING_PROFILES_ACTIVE = "local-authority"
+CRYPTO_SECRETKEYBASE64 = "KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A"
+[tasks."micro:run:authority-authenticationprovider"]
+run = "mvnd -f simpl-repo -pl :authenticationprovider spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m -Djava.net.preferIPv4Stack=true\""
 
-[tasks."run:onboarding"]
-run = "mvnd -f simpl-repo/onboarding/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=\"{{env.MICRO_PROFILES}}\""
+[tasks."micro:run:consumer-authenticationprovider".env]
+SPRING_PROFILES_ACTIVE = "local-consumer"
+CRYPTO_SECRETKEYBASE64 = "KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A"
+[tasks."micro:run:consumer-authenticationprovider"]
+run = "mvnd -f simpl-repo -pl :authenticationprovider spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m -Djava.net.preferIPv4Stack=true\""
 
-[tasks."run:authentication-provider".env]
-SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI = "{{env.MICRO_AUTH_ISSUER_URI}}"
-CRYPTO_SECRETKEYBASE64 = "{{env.MICRO_AUTH_SECKEY}}"
-SPRING_DATASOURCE_URL = "{{env.MICRO_AUTH_DB_URL}}"
-SPRING_DATASOURCE_USERNAME = "{{env.MICRO_AUTH_DB_USERNAME}}"
-SPRING_DATASOURCE_PASSWORD = "{{env.MICRO_AUTH_DB_PASSWORD}}"
+[tasks."micro:run:authority-identityprovider".env]
+SPRING_PROFILES_ACTIVE = "local"
+[tasks."micro:run:authority-identityprovider"]
+run = "mvnd -f simpl-repo -pl :identity-provider spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
 
-[tasks."run:authentication-provider"]
-run = "mvnd -f simpl-repo/agent-service/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=\"{{env.MICRO_PROFILES}}\""
+[tasks."micro:run:authority-onboarding".env]
+SPRING_PROFILES_ACTIVE = "local"
+[tasks."micro:run:authority-onboarding"]
+run = "mvnd -f simpl-repo -pl :onboarding spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
 
-[tasks."run:identity-provider".env]
-SPRING_DATASOURCE_URL = "{{env.MICRO_IDENTITY_DB_URL}}"
-SPRING_DATASOURCE_USERNAME = "{{env.MICRO_IDENTITY_DB_USERNAME}}"
-SPRING_DATASOURCE_PASSWORD = "{{env.MICRO_IDENTITY_DB_PASSWORD}}"
-SPRING_SSL_BUNDLE_JKS_EJBCA_KEYSTORE_LOCATION = "{{env.MICRO_IDENTITY_EJBCA_KEYSTORE_LOCATION}}"
-SPRING_SSL_BUNDLE_JKS_EJBCA_KEYSTORE_PASSWORD = "{{env.MICRO_IDENTITY_EJBCA_KEYSTORE_PASSWORD}}"
-SPRING_SSL_BUNDLE_JKS_EJBCA_KEYSTORE_TYPE = "{{env.MICRO_IDENTITY_EJBCA_KEYSTORE_TYPE}}"
-SPRING_SSL_BUNDLE_JKS_EJBCA_TRUSTSTORE_LOCATION = "{{env.MICRO_IDENTITY_EJBCA_TRUSTSTORE_LOCATION}}"
-SPRING_SSL_BUNDLE_JKS_EJBCA_TRUSTSTORE_PASSWORD = "{{env.MICRO_IDENTITY_EJBCA_TRUSTSTORE_PASSWORD}}"
-SPRING_SSL_BUNDLE_JKS_EJBCA_TRUSTSTORE_TYPE = "{{env.MICRO_IDENTITY_EJBCA_TRUSTSTORE_TYPE}}"
+[tasks."micro:run:authority-securityattributesprovider".env]
+SPRING_PROFILES_ACTIVE = "local"
+[tasks."micro:run:authority-securityattributesprovider"]
+run = "mvnd -f simpl-repo -pl :security-attributes-provider spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
 
-[tasks."run:identity-provider"]
-run = "mvnd -f simpl-repo/identity-provider/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=\"{{env.MICRO_PROFILES}}\""
+[tasks."micro:run:authority-tierone".env]
+SPRING_PROFILES_ACTIVE = "local-authority"
+[tasks."micro:run:authority-tierone"]
+run = "mvnd -f simpl-repo -pl :tier1-gateway spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m -Dio.netty.resolver.noPreferNative=true\""
 
-[tasks."run:security-attributes-provider".env]
-SPRING_DATASOURCE_URL = "{{env.MICRO_SAP_DB_URL}}"
-SPRING_DATASOURCE_USERNAME = "{{env.MICRO_SAP_DB_USERNAME}}"
-SPRING_DATASOURCE_PASSWORD = "{{env.MICRO_SAP_DB_PASSWORD}}"
+[tasks."micro:run:consumer-tierone".env]
+SPRING_PROFILES_ACTIVE = "local-consumer"
+[tasks."micro:run:consumer-tierone"]
+run = "mvnd -f simpl-repo -pl :tier1-gateway spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
 
-[tasks."run:security-attributes-provider"]
-run = "mvnd -f simpl-repo/security-attributes-provider/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=\"{{env.MICRO_PROFILES}}\""
+[tasks."micro:run:authority-tiertwo".env]
+SPRING_PROFILES_ACTIVE = "local-authority"
+[tasks."micro:run:authority-tiertwo"]
+run = "mvnd -f simpl-repo -pl :tier2-gateway spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
 
-[tasks."run:tier1-gateway".env]
-GATEWAY_URL = "{{env.MICRO_TIER1_GATEWAY_URL}}"
-KEYCLOAK_APP_REALM = "{{env.MICRO_TIER1_REALM}}"
+[tasks."micro:run:consumer-tiertwo".env]
+SPRING_PROFILES_ACTIVE = "local-consumer"
+[tasks."micro:run:consumer-tiertwo"]
+run = "mvnd -f simpl-repo -pl :tier2-gateway spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
 
-[tasks."run:tier1-gateway"]
-run = "mvnd -f simpl-repo/simpl-cloud-gateway/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=\"{{env.MICRO_PROFILES}}\""
+[tasks."micro:run:authority-usersroles".env]
+SPRING_PROFILES_ACTIVE = "local-authority"
+[tasks."micro:run:authority-usersroles"]
+run = "mvnd -f simpl-repo -pl :usersroles spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
 
-[tasks."run:users-roles".env]
-SPRING_DATASOURCE_URL = "{{env.MICRO_USERSROLES_DB_URL}}"
-SPRING_DATASOURCE_USERNAME = "{{env.MICRO_USERSROLES_DB_USERNAME}}"
-SPRING_DATASOURCE_PASSWORD = "{{env.MICRO_USERSROLES_DB_PASSWORD}}"
-
-[tasks."run:users-roles"]
-run = "mvnd -f simpl-repo/users-roles/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=\"{{env.MICRO_PROFILES}}\""
+[tasks."micro:run:consumer-usersroles".env]
+SPRING_PROFILES_ACTIVE = "local-consumer"
+[tasks."micro:run:consumer-usersroles"]
+run = "mvnd -f simpl-repo -pl :usersroles spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
 
 [env]
 PROJECT_RELEASE_VERSION = "2.5.0-RC"
 KUBECONFIG = "./.config/.kube/config"
 
 #Database
-SIMPL_DB_PORT_FORWARD = "5432"
-
-# Microservices
-MICRO_PROFILES = "local,authority,local-authority"
-
-MICRO_ONBOARDING_DB_URL = "jdbc:postgresql://localhost:5432/onboarding"
-MICRO_ONBOARDING_DB_USERNAME = "onboarding"
-MICRO_ONBOARDING_DB_PASSWORD = "onboarding"
-
-MICRO_USERSROLES_DB_URL = "jdbc:postgresql://localhost:5432/usersroles"
-MICRO_USERSROLES_DB_USERNAME = "usersroles"
-MICRO_USERSROLES_DB_PASSWORD = "usersroles"
-
-MICRO_SAP_DB_URL = "jdbc:postgresql://localhost:5432/securityattributesprovider"
-MICRO_SAP_DB_USERNAME = "securityattributesprovider"
-MICRO_SAP_DB_PASSWORD = "securityattributesprovider"
-
-MICRO_AUTH_ISSUER_URI = "http://localhost:9010/auth/realms/authority"
-MICRO_AUTH_SECKEY = "WTJNbjN4enZCYXViU0FzYUtNUHVzc0UyNkhWT3dYYlI2ZHBLZDZWQVliMD0="
-MICRO_AUTH_DB_URL = "jdbc:postgresql://localhost:5432/authenticationprovider"
-MICRO_AUTH_DB_USERNAME = "authenticationprovider"
-MICRO_AUTH_DB_PASSWORD = "authenticationprovider"
-
-MICRO_IDENTITY_DB_URL = "jdbc:postgresql://localhost:5432/identityprovider"
-MICRO_IDENTITY_DB_USERNAME = "identityprovider"
-MICRO_IDENTITY_DB_PASSWORD = "identityprovider"
-MICRO_IDENTITY_EJBCA_KEYSTORE_LOCATION = "file:/home/lgandino/projects/simpl-certs/identity-provider/keystore.p12"
-MICRO_IDENTITY_EJBCA_KEYSTORE_PASSWORD = "123-stella"
-MICRO_IDENTITY_EJBCA_KEYSTORE_TYPE = "PKCS12"
-MICRO_IDENTITY_EJBCA_TRUSTSTORE_LOCATION = "file:/home/lgandino/projects/simpl-certs/identity-provider/truststore.jks"
-MICRO_IDENTITY_EJBCA_TRUSTSTORE_PASSWORD = "changeit"
-MICRO_IDENTITY_EJBCA_TRUSTSTORE_TYPE = "JKS"
-
-# MICRO_TIER1_GATEWAY_URL = "http://localhost:9010"
-# MICRO_TIER1_REALM = "authority"
+SIMPL_DB_PORT_FORWARD = "55432"
