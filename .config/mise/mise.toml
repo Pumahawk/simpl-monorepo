@@ -9,6 +9,14 @@ kubectl = "1.34.1"
 docker-cli = "28.4.0"
 helm = "3.19.0"
 
+[tasks.jqlog]
+run = """
+jq --unbuffered -r -R '. as $line | try (fromjson | "\\(.timestamp) \\(.micro // "") \\(.level) \\(.message) \\(."error.stack_trace" // "")") catch $line'
+"""
+
+[tasks.build]
+run = "mvnd clean install -fae -f simpl-repo/"
+
 [tasks.fmt]
 run = "mvnd -f simpl-repo spotless:apply"
 
@@ -82,6 +90,61 @@ run = [
 
 [tasks.ksil]
 run = "klog --config script/klog-conf.yaml --kubeconfig \"{{env.KUBECONFIG}}\""
+
+[tasks."run:onboarding".env]
+SPRING_DATASOURCE_URL = "{{env.MICRO_ONBOARDING_DB_URL}}"
+SPRING_DATASOURCE_USERNAME = "{{env.MICRO_ONBOARDING_DB_USERNAME}}"
+SPRING_DATASOURCE_PASSWORD = "{{env.MICRO_ONBOARDING_DB_PASSWORD}}"
+
+[tasks."run:onboarding"]
+run = "mvnd -f simpl-repo/onboarding/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=\"{{env.MICRO_PROFILES}}\""
+
+[tasks."run:authentication-provider".env]
+SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI = "{{env.MICRO_AUTH_ISSUER_URI}}"
+CRYPTO_SECRETKEYBASE64 = "{{env.MICRO_AUTH_SECKEY}}"
+SPRING_DATASOURCE_URL = "{{env.MICRO_AUTH_DB_URL}}"
+SPRING_DATASOURCE_USERNAME = "{{env.MICRO_AUTH_DB_USERNAME}}"
+SPRING_DATASOURCE_PASSWORD = "{{env.MICRO_AUTH_DB_PASSWORD}}"
+
+[tasks."run:authentication-provider"]
+run = "mvnd -f simpl-repo/agent-service/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=\"{{env.MICRO_PROFILES}}\""
+
+[tasks."run:identity-provider".env]
+SPRING_DATASOURCE_URL = "{{env.MICRO_IDENTITY_DB_URL}}"
+SPRING_DATASOURCE_USERNAME = "{{env.MICRO_IDENTITY_DB_USERNAME}}"
+SPRING_DATASOURCE_PASSWORD = "{{env.MICRO_IDENTITY_DB_PASSWORD}}"
+SPRING_SSL_BUNDLE_JKS_EJBCA_KEYSTORE_LOCATION = "{{env.MICRO_IDENTITY_EJBCA_KEYSTORE_LOCATION}}"
+SPRING_SSL_BUNDLE_JKS_EJBCA_KEYSTORE_PASSWORD = "{{env.MICRO_IDENTITY_EJBCA_KEYSTORE_PASSWORD}}"
+SPRING_SSL_BUNDLE_JKS_EJBCA_KEYSTORE_TYPE = "{{env.MICRO_IDENTITY_EJBCA_KEYSTORE_TYPE}}"
+SPRING_SSL_BUNDLE_JKS_EJBCA_TRUSTSTORE_LOCATION = "{{env.MICRO_IDENTITY_EJBCA_TRUSTSTORE_LOCATION}}"
+SPRING_SSL_BUNDLE_JKS_EJBCA_TRUSTSTORE_PASSWORD = "{{env.MICRO_IDENTITY_EJBCA_TRUSTSTORE_PASSWORD}}"
+SPRING_SSL_BUNDLE_JKS_EJBCA_TRUSTSTORE_TYPE = "{{env.MICRO_IDENTITY_EJBCA_TRUSTSTORE_TYPE}}"
+
+[tasks."run:identity-provider"]
+run = "mvnd -f simpl-repo/identity-provider/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=\"{{env.MICRO_PROFILES}}\""
+
+[tasks."run:security-attributes-provider".env]
+SPRING_DATASOURCE_URL = "{{env.MICRO_SAP_DB_URL}}"
+SPRING_DATASOURCE_USERNAME = "{{env.MICRO_SAP_DB_USERNAME}}"
+SPRING_DATASOURCE_PASSWORD = "{{env.MICRO_SAP_DB_PASSWORD}}"
+
+[tasks."run:security-attributes-provider"]
+run = "mvnd -f simpl-repo/security-attributes-provider/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=\"{{env.MICRO_PROFILES}}\""
+
+[tasks."run:tier1-gateway".env]
+GATEWAY_URL = "{{env.MICRO_TIER1_GATEWAY_URL}}"
+KEYCLOAK_APP_REALM = "{{env.MICRO_TIER1_REALM}}"
+
+[tasks."run:tier1-gateway"]
+run = "mvnd -f simpl-repo/simpl-cloud-gateway/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=\"{{env.MICRO_PROFILES}}\""
+
+[tasks."run:users-roles".env]
+SPRING_DATASOURCE_URL = "{{env.MICRO_USERSROLES_DB_URL}}"
+SPRING_DATASOURCE_USERNAME = "{{env.MICRO_USERSROLES_DB_USERNAME}}"
+SPRING_DATASOURCE_PASSWORD = "{{env.MICRO_USERSROLES_DB_PASSWORD}}"
+
+[tasks."run:users-roles"]
+run = "mvnd -f simpl-repo/users-roles/ -Dmaven.test.skip spring-boot:run -Dspring-boot.run.profiles=\"{{env.MICRO_PROFILES}}\""
 
 [env]
 PROJECT_RELEASE_VERSION = "2.5.0-RC"

@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-mvnd clean install -fae -f simpl-repo/ "$@"
