@@ -1,0 +1,14 @@
+services:
+
+  redpanda-forward:
+    image: alpine/socat
+    networks:
+      - kind
+    ports:
+      - "30888:30888"
+    command: tcp-listen:30888,fork,reuseaddr tcp:simpl-control-plane:30888
+    restart: unless-stopped
+
+networks:
+  kind:
+    external: true

@@ -16,44 +16,26 @@ run = """
 jq --unbuffered -r -R '. as $line | try (fromjson | "\\(.timestamp) \\(.micro // "") \\(.level) \\(.message) \\(."error.stack_trace" // "")") catch $line'
 """
 
-[tasks."code.build"]
-run = "mvnd clean install -fae -f simpl-repo/"
-
 [tasks."code:fmt"]
 run = "mvnd -f simpl-repo spotless:apply"
+
+[tasks."code:build"]
+run = "mvnd clean install -fae -f simpl-repo/"
 
 [tasks."code:build:no-test"]
 run = "mise run build -Dlicense.skipDownloadLicenses -Dmaven.test.skip"
 
-[tasks."code:cucumber:run-by-tag"]
+[tasks."code:test-automation:run-by-tag"]
 run = "mvnd -f simpl-repo/test-automation resources:resources resources:testResources compiler:compile compiler:testCompile surefire:test -Dcucumber.filter.tags={{arg(name=\"tags\")}}"
 
-[tasks.dockerc]
-run = "docker-cli-plugin-docker-compose -f .config/docker/docker-compose.yaml -p simpl-dev"
+[tasks."cluster:forward-node-compose"]
+run = "docker-cli-plugin-docker-compose -f .config/docker/forward-node/docker-compose.yaml -p simpl-portforward"
 
-[tasks."dockerc:up"]
-run = "mise r dockerc up -d"
+[tasks."cluster:forward-node-up"]
+run = "mise r cluster:forward-node-compose up -d"
 
-[tasks."dockerc:stop"]
-run = "mise r dockerc stop"
-
-[tasks."db:status"]
-run = "mise r dockerc ps db -a"
-
-[tasks."db:start"]
-run = "mise r dockerc:up db"
-
-[tasks."db:stop"]
-run = "mise r dockerc:stop db"
-
-[tasks."db:prune"]
-run = "mise r dockerc down db -v"
-
-[tasks."db:connect"]
-run = "mise run dockerc exec db psql --host localhost -U admin"
-
-[tasks.cluster]
-run = "kubectl"
+[tasks."cluster:forward-node-down"]
+run = "mise r cluster:forward-node-compose down -v"
 
 [tasks."cluster:create"]
 run = "kind create cluster --name simpl"
@@ -70,7 +52,7 @@ run = "docker container ls -a --filter name=simpl-control-plane"
 [tasks."cluster:stop"]
 run = "docker container stop simpl-control-plane"
 
-[tasks."cluster:connect"]
+[tasks."cluster:bash"]
 run = "docker exec -it simpl-control-plane bash"
 
 [tasks."cluster:authority-install-or-upgrade"]
