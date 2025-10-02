@@ -148,6 +148,9 @@ SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-usersroles"]
 run = "mvnd -f simpl-repo -pl :usersroles spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
 
+[tasks."cucumber:run"]
+run = "mvnd -f simpl-repo/test-automation resources:resources resources:testResources compiler:compile compiler:testCompile surefire:test -Dcucumber.filter.tags={{arg(name=\"tags\")}}"
+
 [env]
 PROJECT_RELEASE_VERSION = "2.5.0-RC"
 KUBECONFIG = "./.config/.kube/config"
