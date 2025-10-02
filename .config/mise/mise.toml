@@ -1,6 +1,5 @@
 [tools]
 java = "21"
-"github:Pumahawk/klog" = "0.1.0"
 mvnd = "1.0.3"
 jq = "1.8.1"
 docker-compose = "2.39.4"
@@ -77,9 +76,6 @@ run = [
   "docker cp .config/certs/zscaler-ca.pem simpl-control-plane:usr/local/share/ca-certificates/zscaler-ca.crt",
   "docker exec simpl-control-plane update-ca-certificates",
 ]
-
-[tasks.ksil]
-run = "klog --config script/klog-conf.yaml --kubeconfig \"{{env.KUBECONFIG}}\""
 
 [tasks."micro:run:authority-authenticationprovider".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
