@@ -10,32 +10,32 @@ helm = "3.19.0"
 kubectx = "0.9.5"
 kubens = "0.9.5"
 
-[tasks."project:initialization"]
+[tasks."initialization:project"]
 description = "Initializate all projects components"
 run = [
-  { task = "code:initialization" },
-  { tasks = [ "code:build:initialization", "cluster:initialization" ] },
+  { task = "initialization:code" },
+  { tasks = [ "initialization:build:code", "initialization:cluster" ] },
 ]
 
-[tasks."code:build:initialization"]
+[tasks."initialization:build:code"]
 run = [
   { task = "code:build:no-test" },
 ]
 
-[tasks."code:initialization"]
+[tasks."initialization:code"]
 run = [
   { task = "git:init" },
   { task = "git:update-all" },
 ]
 
-[tasks."cluster:initialization"]
+[tasks."initialization:cluster"]
 run = [
   { task = "cluster:forward-node-up" },
   { task = "cluster:create" },
   { task = "cluster:authority-install-or-upgrade" },
 ]
 
-[tasks."zscaler-initialization"]
+[tasks."initialization:zscaler"]
 run = [
   { tasks = [ "zscaler:install-jdk", "zscaler:install-clean" ] }
 ]
