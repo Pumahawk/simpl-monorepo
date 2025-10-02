@@ -23,7 +23,7 @@ run = "mvnd -f simpl-repo spotless:apply"
 run = "mvnd clean install -fae -f simpl-repo/"
 
 [tasks."code:build:no-test"]
-run = "mise run build -Dlicense.skipDownloadLicenses -Dmaven.test.skip"
+run = "mise run code:build -Dlicense.skipDownloadLicenses -Dmaven.test.skip"
 
 [tasks."code:test-automation:run-by-tag"]
 run = "mvnd -f simpl-repo/test-automation resources:resources resources:testResources compiler:compile compiler:testCompile surefire:test -Dcucumber.filter.tags={{arg(name=\"tags\")}}"
