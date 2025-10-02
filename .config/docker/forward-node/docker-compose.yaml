@@ -1,12 +1,45 @@
 services:
 
-  redpanda-forward:
+  port-forward:
     image: alpine/socat
     networks:
       - kind
     ports:
       - "30888:30888"
-    command: tcp-listen:30888,fork,reuseaddr tcp:simpl-control-plane:30888
+      - "30443:30443"
+      - "30432:30432"
+      - "30379:30379"
+      - "30205:30205"
+      - "30201:30201"
+      - "30200:30200"
+      - "30105:30105"
+      - "30104:30104"
+      - "30103:30103"
+      - "30102:30102"
+      - "30101:30101"
+      - "30090:30090"
+    entrypoint: /bin/sh
+    command: |
+      -c '
+      log() { echo "[`date "+%Y-%m-%d %H:%M:%S"`] [socat-forward] $1"; }
+      log "Starting port-forward 30090"; socat -v -d tcp-listen:30090,fork,reuseaddr tcp:simpl-control-plane:30090 2>&1 | cut -c -100 &
+      log "Starting port-forward 30101"; socat -v -d tcp-listen:30101,fork,reuseaddr tcp:simpl-control-plane:30101 2>&1 | cut -c -100 &
+      log "Starting port-forward 30102"; socat -v -d tcp-listen:30102,fork,reuseaddr tcp:simpl-control-plane:30102 2>&1 | cut -c -100 &
+      log "Starting port-forward 30103"; socat -v -d tcp-listen:30103,fork,reuseaddr tcp:simpl-control-plane:30103 2>&1 | cut -c -100 &
+      log "Starting port-forward 30104"; socat -v -d tcp-listen:30104,fork,reuseaddr tcp:simpl-control-plane:30104 2>&1 | cut -c -100 &
+      log "Starting port-forward 30105"; socat -v -d tcp-listen:30105,fork,reuseaddr tcp:simpl-control-plane:30105 2>&1 | cut -c -100 &
+      log "Starting port-forward 30200"; socat -v -d tcp-listen:30200,fork,reuseaddr tcp:simpl-control-plane:30200 2>&1 | cut -c -100 &
+      log "Starting port-forward 30201"; socat -v -d tcp-listen:30201,fork,reuseaddr tcp:simpl-control-plane:30201 2>&1 | cut -c -100 &
+      log "Starting port-forward 30205"; socat -v -d tcp-listen:30205,fork,reuseaddr tcp:simpl-control-plane:30205 2>&1 | cut -c -100 &
+      log "Starting port-forward 30379"; socat -v -d tcp-listen:30379,fork,reuseaddr tcp:simpl-control-plane:30379 2>&1 | cut -c -100 &
+      log "Starting port-forward 30432"; socat -v -d tcp-listen:30432,fork,reuseaddr tcp:simpl-control-plane:30432 2>&1 | cut -c -100 &
+      log "Starting port-forward 30443"; socat -v -d tcp-listen:30443,fork,reuseaddr tcp:simpl-control-plane:30443 2>&1 | cut -c -100 &
+      log "Starting port-forward 30888"; socat -v -d tcp-listen:30888,fork,reuseaddr tcp:simpl-control-plane:30888 2>&1 | cut -c -100 &
+      log "Socat port fotward running"
+      wait -n
+      log "A connection was interrupted. Socat close"
+      kill $(jobs -p)
+      '
     restart: unless-stopped
 
 networks:
