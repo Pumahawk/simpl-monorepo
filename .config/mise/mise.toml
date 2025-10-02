@@ -10,6 +10,36 @@ helm = "3.19.0"
 kubectx = "0.9.5"
 kubens = "0.9.5"
 
+[tasks."project:initialization"]
+description = "Initializate all projects components"
+run = [
+  { task = "code:initialization" },
+  { tasks = [ "code:build:initialization", "cluster:initialization" ] },
+]
+
+[tasks."code:build:initialization"]
+run = [
+  { task = "code:build:no-test" },
+]
+
+[tasks."code:initialization"]
+run = [
+  { task = "git:init" },
+  { task = "git:update-all" },
+]
+
+[tasks."cluster:initialization"]
+run = [
+  { task = "cluster:forward-node-up" },
+  { task = "cluster:create" },
+  { task = "cluster:authority-install-or-upgrade" },
+]
+
+[tasks."zscaler-initialization"]
+run = [
+  { tasks = [ "zscaler:install-jdk", "zscaler:install-clean" ] }
+]
+
 [tasks.jqlog]
 run = """
 jq --unbuffered -r -R '. as $line | try (fromjson | "\\(.timestamp) \\(.micro // "") \\(.level) \\(.message) \\(."error.stack_trace" // "")") catch $line'
@@ -22,7 +52,7 @@ run = "mvnd -f simpl-repo spotless:apply"
 run = "mvnd clean install -fae -f simpl-repo/"
 
 [tasks."code:build:no-test"]
-run = "mise run code:build -Dlicense.skipDownloadLicenses -Dmaven.test.skip"
+run = "mise run code:build --fail-never -Dlicense.skipDownloadLicenses -Dmaven.test.skip"
 
 [tasks."code:test-automation:run-by-tag"]
 run = "mvnd -f simpl-repo/test-automation resources:resources resources:testResources compiler:compile compiler:testCompile surefire:test -Dcucumber.filter.tags={{arg(name=\"tags\")}}"
@@ -76,6 +106,12 @@ run = [
   "docker cp .config/certs/zscaler-ca.pem simpl-control-plane:usr/local/share/ca-certificates/zscaler-ca.crt",
   "docker exec simpl-control-plane update-ca-certificates",
 ]
+
+[tasks."git:init"]
+run = "git submodule init"
+
+[tasks."git:update-all"]
+run = "git submodule update --remote --recursive"
 
 [tasks."micro:run:authority-authenticationprovider".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
@@ -138,7 +174,7 @@ run = "mvnd -f simpl-repo -pl :usersroles spring-boot:run -Dspring-boot.run.jvmA
 run = "keytool -importcert -trustcacerts -alias zscaler-ca -file .config/certs/zscaler-ca.pem -keystore {{env.JAVA_HOME}}/lib/security/cacerts -storepass changeit -noprompt"
 
 [tasks."zscaler:remove-jdk"]
-run = "keytool -delete -alias zscaler-ca -keystore {{.envJAVA_HOME}}/lib/security/cacerts -storepass changeit"
+run = "keytool -delete -alias zscaler-ca -keystore {{env.JAVA_HOME}}/lib/security/cacerts -storepass changeit"
 
 [env]
 PROJECT_RELEASE_VERSION = "2.5.0-RC"
