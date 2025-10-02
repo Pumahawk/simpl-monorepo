@@ -1,4 +1,5 @@
 services:
+
   db:
     image: postgres:16
     container_name: simpl_database
@@ -11,6 +12,36 @@ services:
       - pg_data:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d
     restart: unless-stopped
+    networks:
+      default:
+        aliases:
+          - postgresql.simpl.docker.local
+          - postgres-simpl-custom.local
+
+  ejbca-volume-init:
+    image: alpine
+    command: ["sh", "-c", "chmod a+w /data"]
+    volumes:
+      - ejbca-secret:/data
+    restart: "no"
+
+  ejbca-init:
+    build: ./ejbca/image
+    depends_on:
+      - ejbca-volume-init
+    command: ["./entrypoint.sh"]
+    environment:
+      HTTPSERVER_HOSTNAME: localhost
+      MANAGEMENT_END_ENTITY_USERNAME: SuperAdmin
+      MANAGEMENT_END_ENTITY_PASSWORD: 123-stella
+      DATABASE_JDBC_URL: jdbc:postgresql://postgresql.simpl.docker.local:5432/ejbca
+      DATABASE_USER: ejbca
+      DATABASE_PASSWORD: ejbca2123
+      T1_GATEWAY: localhost:8100
+    restart: "no"
+    volumes:
+      - ejbca-secret:/output/secret/
 
 volumes:
   pg_data:
+  ejbca-secret:
