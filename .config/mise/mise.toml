@@ -16,14 +16,17 @@ run = """
 jq --unbuffered -r -R '. as $line | try (fromjson | "\\(.timestamp) \\(.micro // "") \\(.level) \\(.message) \\(."error.stack_trace" // "")") catch $line'
 """
 
-[tasks.build]
+[tasks."code.build"]
 run = "mvnd clean install -fae -f simpl-repo/"
 
-[tasks.fmt]
+[tasks."code:fmt"]
 run = "mvnd -f simpl-repo spotless:apply"
 
-[tasks."build:no-test"]
+[tasks."code:build:no-test"]
 run = "mise run build -Dlicense.skipDownloadLicenses -Dmaven.test.skip"
+
+[tasks."code:cucumber:run-by-tag"]
+run = "mvnd -f simpl-repo/test-automation resources:resources resources:testResources compiler:compile compiler:testCompile surefire:test -Dcucumber.filter.tags={{arg(name=\"tags\")}}"
 
 [tasks.dockerc]
 run = "docker-cli-plugin-docker-compose -f .config/docker/docker-compose.yaml -p simpl-dev"
@@ -34,10 +37,10 @@ run = "mise r dockerc up -d"
 [tasks."dockerc:stop"]
 run = "mise r dockerc stop"
 
-[tasks."db"]
+[tasks."db:status"]
 run = "mise r dockerc ps db -a"
 
-[tasks."db:up"]
+[tasks."db:start"]
 run = "mise r dockerc:up db"
 
 [tasks."db:stop"]
@@ -70,8 +73,9 @@ run = "docker container stop simpl-control-plane"
 [tasks."cluster:connect"]
 run = "docker exec -it simpl-control-plane bash"
 
-[tasks."cluster:authority-install"]
-run = """
+[tasks."cluster:authority-install-or-upgrade"]
+run = [
+  """
   helm upgrade \
   -i \
   --dependency-update \
@@ -79,12 +83,14 @@ run = """
   -n local-authority \
   local-authority \
   ./simpl-repo/charts/app-values/local/local-authority
-"""
+  """,
+ "kubens local-authority"
+]
 
 [tasks."cluster:authority-uninstall"]
 run = "helm uninstall local-authority"
 
-[tasks."cluster:install-zscaler-ca"]
+[tasks."zscaler:install-cluster"]
 run = [
   "docker cp .config/certs/zscaler-ca.pem simpl-control-plane:usr/local/share/ca-certificates/zscaler-ca.crt",
   "docker exec simpl-control-plane update-ca-certificates",
@@ -150,13 +156,10 @@ SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-usersroles"]
 run = "mvnd -f simpl-repo -pl :usersroles spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
 
-[tasks."cucumber:run"]
-run = "mvnd -f simpl-repo/test-automation resources:resources resources:testResources compiler:compile compiler:testCompile surefire:test -Dcucumber.filter.tags={{arg(name=\"tags\")}}"
-
-[tasks."jre:certs:zscaler-install"]
+[tasks."zscaler:install-jdk"]
 run = "keytool -importcert -trustcacerts -alias zscaler-ca -file .config/certs/zscaler-ca.pem -keystore {{env.JAVA_HOME}}/lib/security/cacerts -storepass changeit -noprompt"
 
-[tasks."jre:certs:zscaler-remove"]
+[tasks."zscaler:remove-jdk"]
 run = "keytool -delete -alias zscaler-ca -keystore {{.envJAVA_HOME}}/lib/security/cacerts -storepass changeit"
 
 [env]
