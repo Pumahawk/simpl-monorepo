@@ -151,6 +151,12 @@ run = "mvnd -f simpl-repo -pl :usersroles spring-boot:run -Dspring-boot.run.jvmA
 [tasks."cucumber:run"]
 run = "mvnd -f simpl-repo/test-automation resources:resources resources:testResources compiler:compile compiler:testCompile surefire:test -Dcucumber.filter.tags={{arg(name=\"tags\")}}"
 
+[tasks."jre:certs:zscaler-install"]
+run = "keytool -importcert -trustcacerts -alias zscaler-ca -file .config/certs/zscaler-ca.pem -keystore {{env.JAVA_HOME}}/lib/security/cacerts -storepass changeit -noprompt"
+
+[tasks."jre:certs:zscaler-remove"]
+run = "keytool -delete -alias zscaler-ca -keystore {{.envJAVA_HOME}}/lib/security/cacerts -storepass changeit"
+
 [env]
 PROJECT_RELEASE_VERSION = "2.5.0-RC"
 KUBECONFIG = "./.config/.kube/config"
