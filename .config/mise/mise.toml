@@ -3,18 +3,24 @@ java = "21"
 mvnd = "1.0.3"
 jq = "1.8.1"
 docker-compose = "2.39.4"
-kind = "0.30.0"
 kubectl = "1.34.1"
 docker-cli = "28.4.0"
 helm = "3.19.0"
 kubectx = "0.9.5"
 kubens = "0.9.5"
+minikube = "1.37.0"
 
 [tasks."initialization:project"]
 description = "Initializate all projects components"
 run = [
   { task = "initialization:code" },
-  { tasks = [ "initialization:build:code", "initialization:cluster" ] },
+  { task = "initialization:cluster" },
+  { task = "initialization:build:code" },
+]
+
+[tasks."destruction:all"]
+run = [
+  { tasks = [ "cluster:destroy", "cluster:forward-node-down", "zscaler:remove-jdk" ] },
 ]
 
 [tasks."initialization:build:code"]
@@ -30,14 +36,14 @@ run = [
 
 [tasks."initialization:cluster"]
 run = [
-  { task = "cluster:forward-node-up" },
   { task = "cluster:create" },
+  { task = "cluster:forward-node-up" },
   { task = "cluster:authority-install-or-upgrade" },
 ]
 
 [tasks."initialization:zscaler"]
 run = [
-  { tasks = [ "zscaler:install-jdk", "zscaler:install-clean" ] }
+  { tasks = [ "zscaler:install-jdk", "zscaler:install-cluster" ] }
 ]
 
 [tasks.jqlog]
@@ -49,7 +55,7 @@ jq --unbuffered -r -R '. as $line | try (fromjson | "\\(.timestamp) \\(.micro //
 run = "mvnd -f simpl-repo spotless:apply"
 
 [tasks."code:build"]
-run = "mvnd clean install -fae -f simpl-repo/"
+run = "mvnd -Dmvnd.connectTimeout=100000 clean install -fae -f simpl-repo/"
 
 [tasks."code:build:no-test"]
 run = "mise run code:build --fail-never -Dlicense.skipDownloadLicenses -Dmaven.test.skip"
@@ -67,10 +73,10 @@ run = "mise r cluster:forward-node-compose up -d"
 run = "mise r cluster:forward-node-compose down -v"
 
 [tasks."cluster:create"]
-run = "kind create cluster --name simpl"
+run = "minikube start --network=simpl-network --driver=docker --profile=simpl-control-plane"
 
 [tasks."cluster:destroy"]
-run = "kind delete cluster --name simpl"
+run = "minikube delete --profile=simpl-control-plane"
 
 [tasks."cluster:start"]
 run = "docker container start simpl-control-plane"
@@ -117,58 +123,58 @@ run = "git submodule update --remote --recursive"
 SPRING_PROFILES_ACTIVE = "local-authority"
 CRYPTO_SECRETKEYBASE64 = "KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A"
 [tasks."micro:run:authority-authenticationprovider"]
-run = "mvnd -f simpl-repo -pl :authenticationprovider spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m -Djava.net.preferIPv4Stack=true\""
+run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :authenticationprovider spring-boot:run"
 
 [tasks."micro:run:consumer-authenticationprovider".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
 CRYPTO_SECRETKEYBASE64 = "KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A"
 [tasks."micro:run:consumer-authenticationprovider"]
-run = "mvnd -f simpl-repo -pl :authenticationprovider spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m -Djava.net.preferIPv4Stack=true\""
+run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :authenticationprovider spring-boot:run"
 
 [tasks."micro:run:authority-identityprovider".env]
 SPRING_PROFILES_ACTIVE = "local"
 [tasks."micro:run:authority-identityprovider"]
-run = "mvnd -f simpl-repo -pl :identity-provider spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
+run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :identity-provider spring-boot:run"
 
 [tasks."micro:run:authority-onboarding".env]
 SPRING_PROFILES_ACTIVE = "local"
 [tasks."micro:run:authority-onboarding"]
-run = "mvnd -f simpl-repo -pl :onboarding spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
+run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :onboarding spring-boot:run"
 
 [tasks."micro:run:authority-securityattributesprovider".env]
 SPRING_PROFILES_ACTIVE = "local"
 [tasks."micro:run:authority-securityattributesprovider"]
-run = "mvnd -f simpl-repo -pl :security-attributes-provider spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
+run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :security-attributes-provider spring-boot:run"
 
 [tasks."micro:run:authority-tierone".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
 [tasks."micro:run:authority-tierone"]
-run = "mvnd -f simpl-repo -pl :tier1-gateway spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m -Dio.netty.resolver.noPreferNative=true\""
+run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :tier1-gateway spring-boot:run"
 
 [tasks."micro:run:consumer-tierone".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-tierone"]
-run = "mvnd -f simpl-repo -pl :tier1-gateway spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
+run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :tier1-gateway spring-boot:run"
 
 [tasks."micro:run:authority-tiertwo".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
 [tasks."micro:run:authority-tiertwo"]
-run = "mvnd -f simpl-repo -pl :tier2-gateway spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
+run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :tier2-gateway spring-boot:run"
 
 [tasks."micro:run:consumer-tiertwo".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-tiertwo"]
-run = "mvnd -f simpl-repo -pl :tier2-gateway spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
+run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :tier2-gateway spring-boot:run"
 
 [tasks."micro:run:authority-usersroles".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
 [tasks."micro:run:authority-usersroles"]
-run = "mvnd -f simpl-repo -pl :usersroles spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
+run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :usersroles spring-boot:run"
 
 [tasks."micro:run:consumer-usersroles".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-usersroles"]
-run = "mvnd -f simpl-repo -pl :usersroles spring-boot:run -Dspring-boot.run.jvmArguments=\"-Xms32m -Xmx64m\""
+run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :usersroles spring-boot:run"
 
 [tasks."zscaler:install-jdk"]
 run = "keytool -importcert -trustcacerts -alias zscaler-ca -file .config/certs/zscaler-ca.pem -keystore {{env.JAVA_HOME}}/lib/security/cacerts -storepass changeit -noprompt"

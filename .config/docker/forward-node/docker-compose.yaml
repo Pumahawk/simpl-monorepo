@@ -3,7 +3,7 @@ services:
   port-forward:
     image: alpine/socat
     networks:
-      - kind
+      - "simpl-network"
     ports:
       - "30888:30888"
       - "30443:30443"
@@ -43,5 +43,5 @@ services:
     restart: unless-stopped
 
 networks:
-  kind:
+  simpl-network:
     external: true
