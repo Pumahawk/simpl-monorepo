@@ -99,3 +99,70 @@ mise run cluster:start
 mise run destruction:all
 ```
 
+## Task Descriptions
+
+### Project Initialization
+- **`initialization:project`**  
+  Initializes the entire project environment by executing the following subtasks:
+  - `initialization:code` – initializes git submodules and updates all projects.
+  - `initialization:cluster` – creates the Minikube cluster, configures port forwarding, and installs or upgrades the authority chart.
+  - `initialization:build:code` – builds all microservices without running tests.
+
+- **`initialization:code`**  
+  Sets up the project source code:
+  - `git:init` – initializes git submodules.
+  - `git:update-all` – updates all submodules recursively to the latest remote commits.
+
+- **`initialization:cluster`**  
+  Sets up the local Kubernetes environment:
+  - `cluster:create` – starts Minikube with a dedicated Docker network and profile.
+  - `cluster:forward-node-up` – sets up port forwarding for local access.
+  - `cluster:authority-install-or-upgrade` – installs or upgrades the local authority Helm chart and switches namespace.
+
+- **`initialization:build:code`**  
+  Builds all projects without executing tests using Maven (`mvnd`).
+
+- **`initialization:zscaler`**  
+  Configures the environment for Z-Scaler certificates:
+  - `zscaler:install-jdk` – imports Z-Scaler CA into Java keystore.
+  - `zscaler:install-cluster` – installs Z-Scaler certificates inside the Minikube cluster.
+
+### Project Destruction
+- **`destruction:all`**  
+  Completely removes the development environment:
+  - `cluster:destroy` – deletes the Minikube cluster.
+  - `cluster:forward-node-down` – shuts down all port forwards.
+  - `zscaler:remove-jdk` – removes the Z-Scaler CA from the Java keystore.
+
+### Cluster Management
+- **`cluster:start`** – starts the Minikube cluster and sets up port forwarding.
+- **`cluster:stop`** – stops the Minikube cluster and disables port forwarding.
+- **`cluster:status`** – shows the status of the Minikube cluster.
+- **`cluster:bash`** – opens a shell inside the Minikube control plane container.
+- **`cluster:forward-node-compose`** – runs the Docker Compose file for port forwarding.
+- **`cluster:forward-node-up`** – starts port forwarding services.
+- **`cluster:forward-node-down`** – stops port forwarding services.
+- **`cluster:authority-install-or-upgrade`** – installs or upgrades the Helm chart for the authority.
+- **`cluster:authority-uninstall`** – uninstalls the authority Helm chart.
+
+### Microservices Execution
+Each microservice can be started individually using `micro:run:<service>` tasks. The tasks configure Spring profiles and secrets appropriately:
+
+- **Authority Services:** `authenticationprovider`, `identityprovider`, `onboarding`, `securityattributesprovider`, `tierone`, `tiertwo`, `usersroles`
+- **Consumer Services:** `authenticationprovider`, `tierone`, `tiertwo`, `usersroles`
+
+All services are executed using Maven’s `spring-boot:run` plugin with `mvnd` for optimized builds.
+
+### Code Management
+- **`code:fmt`** – formats the code using Spotless.
+- **`code:build`** – builds all projects with Maven, including tests.
+- **`code:build:no-test`** – builds all projects but skips tests and license downloads.
+- **`code:test-automation:run-by-tag`** – runs automation tests filtered by Cucumber tags.
+
+### Logging
+- **`jqlog`** – formats JSON log output to a readable line-by-line format using `jq`.
+
+### Z-Scaler Integration
+- **`zscaler:install-jdk`** – imports Z-Scaler CA into the Java keystore.
+- **`zscaler:remove-jdk`** – removes the Z-Scaler CA from the Java keystore.
+
