@@ -34,13 +34,6 @@ The system is built as a collection of **microservices** developed in **Java** u
 
 The monorepo provides automation for managing both the internal microservices and the required third-party services, ensuring a consistent and reproducible development environment.
 
-## Requirements
-
-Before setting up the development environment, make sure the following are installed and properly configured:
-
-- **[mise](https://mise.jdx.dev/)** – used as the package manager to automatically install and manage the required development tools.  
-- **Docker** – must be installed and running, as it is required for containerized services and the local Minikube cluster.
-
 ## Architecture
 
 The development environment combines **locally executed microservices** with a **Kubernetes-based cluster** for third-party dependencies.  
@@ -63,6 +56,22 @@ The development environment combines **locally executed microservices** with a *
 
 - **Service integration**  
   When launched with the provided pre-configurations, each microservice automatically connects to its dependencies within the cluster, ensuring a consistent and reproducible setup.
+
+## Requirements
+
+Before setting up the development environment, make sure the following are installed and properly configured:
+
+- **[Git](https://git-scm.com/)** – used to clone the repository and manage submodules. Git is required for:
+  - Cloning the monorepo
+  - Initializing submodules (`git submodule init`)
+  - Updating all submodules recursively (`git submodule update --remote --recursive`)
+
+- **[mise](https://mise.jdx.dev/)** – a package manager that automatically installs and manages all development tools and scripts needed to build, run, and manage the microservices and cluster.
+
+- **Docker** – must be installed and running. Docker is required to:
+  - Run Minikube inside a Docker container
+  - Execute containerized services (databases, Keycloak, EJBCA, etc.)
+  - Handle port forwarding between the host and the cluster
 
 ## Getting Started
 
