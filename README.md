@@ -1,10 +1,18 @@
 # Table of contents
 - [SIMPL - Monorepo Development Environment](#simpl---monorepo-development-environment)
   - [Project Overview](#project-overview)
-  - [Requirements](#requirements)
   - [Architecture](#architecture)
+  - [Requirements](#requirements)
   - [Getting Started](#getting-started)
     - [Useful Commands](#useful-commands)
+  - [Task Descriptions](#task-descriptions)
+    - [Project Initialization](#project-initialization)
+    - [Project Destruction](#project-destruction)
+    - [Cluster Management](#cluster-management)
+    - [Microservices Execution](#microservices-execution)
+    - [Code Management](#code-management)
+    - [Logging](#logging)
+    - [Z-Scaler Integration](#z-scaler-integration)
 
 # SIMPL - Monorepo Development Environment
 
@@ -68,7 +76,7 @@ Before setting up the development environment, make sure the following are insta
 
 - **[mise](https://mise.jdx.dev/)** – a package manager that automatically installs and manages all development tools and scripts needed to build, run, and manage the microservices and cluster.
 
-- **Docker** – must be installed and running. Docker is required to:
+- **[Docker](https://www.docker.com/)** – must be installed and running. Docker is required to:
   - Run Minikube inside a Docker container
   - Execute containerized services (databases, Keycloak, EJBCA, etc.)
   - Handle port forwarding between the host and the cluster
