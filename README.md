@@ -1,74 +1,101 @@
 # Table of contents
-- [Description](#description)
-  - [Project structure](#project-structure)
-- [Clone repository](#clone-repository)
-  - [Init submodules after clone](#init-submodules-after-clone)
-  - [Update all submodules](#update-all-submodules)
-- [Simple Code](#simple-code)
-  - [Build project](#build-project)
-    - [Build arguments](#build-arguments)
-    - [Build optimazed](#build-optimazed)
-    - [Examples](#examples)
-- [Helm Charts](#helm-charts)
-- [Skaffold Support](#skaffold-support)
-- [Clone project](#clone-project)
+- [SIMPL - Monorepo Development Environment](#simpl---monorepo-development-environment)
+  - [Project Overview](#project-overview)
+  - [Requirements](#requirements)
+  - [Architecture](#architecture)
+  - [Getting Started](#getting-started)
+    - [Useful Commands](#useful-commands)
 
-# Description
+# SIMPL - Monorepo Development Environment
 
-This repository is designed to support the development of simple projects.
+This repository provides a unified setup for initializing and managing the development environment of a project composed of multiple microservices.  
 
-# Clone repository
+The goal of this monorepo is to **automate the entire workflow**, including:
+- Downloading all related projects
+- Keeping dependencies up to date
+- Building services
+- Initializing the local development cluster
 
-To clone the project along with all submodule dependencies, use:
+To achieve this, the monorepo leverages **[mise](https://mise.jdx.dev/)**, a package manager that:
+- Automatically installs the required development tools
+- Provides custom scripts created by developers to streamline repetitive or complex tasks
 
-`git clone --recurse-submodules https://github.com/Pumahawk/simpl-monorepo.git`
+## Project Overview
 
-## Initializing Submodules After Cloning
+The system is built as a collection of **microservices** developed in **Java** using the **Spring Boot** framework.  
 
-To ensure all submodules are properly initialized after cloning, use the following commands:
+- **Build & Execution**:  
+  Each microservice is built with **Maven** and can be run using the `spring-boot-maven-plugin`.
+
+- **Third-Party Dependencies**:  
+  The project relies on several external services that are deployed locally on a **Minikube cluster**, including:
+  - **[EJBCA](https://www.ejbca.org/)** (certificate authority)
+  - **[Keycloak](https://www.keycloak.org/)** (identity and access management)
+
+The monorepo provides automation for managing both the internal microservices and the required third-party services, ensuring a consistent and reproducible development environment.
+
+## Requirements
+
+Before setting up the development environment, make sure the following are installed and properly configured:
+
+- **[mise](https://mise.jdx.dev/)** – used as the package manager to automatically install and manage the required development tools.  
+- **Docker** – must be installed and running, as it is required for containerized services and the local Minikube cluster.
+
+## Architecture
+
+The development environment combines **locally executed microservices** with a **Kubernetes-based cluster** for third-party dependencies.  
+
+- **Microservices execution**  
+  Each service is executed directly on the host machine using the developer’s preferred toolchain, such as:
+  - **IntelliJ IDEA** (for development and debugging)  
+  - **Maven** (for building and running via `spring-boot-maven-plugin`)  
+  - **mise** (for installing and managing development tools)  
+
+- **Kubernetes cluster**  
+  A **Minikube node** is configured to run inside Docker, providing a lightweight local Kubernetes environment.  
+
+- **Third-party services**  
+  Dependencies required for development are deployed into the Kubernetes cluster using **Helm charts**, including:
+  - Database  
+  - **EJBCA** (certificate authority)  
+  - **Redpanda** (streaming platform)  
+  - **Keycloak** (identity and access management)  
+
+- **Service integration**  
+  When launched with the provided pre-configurations, each microservice automatically connects to its dependencies within the cluster, ensuring a consistent and reproducible setup.
+
+## Getting Started
+
+Once the required dependencies are installed, you can set up the monorepo and initialize the development environment.
 
 ```bash
-# Clone repository
+# Clone the repository
 git clone https://github.com/Pumahawk/simpl-monorepo.git
 
-#Align submodules
-git submodule init
-git submodule update
+# Move into the project directory
+cd simpl-monorepo
+
+# Initialize the project
+mise run initialization:project
 ```
 
-## Updating All Submodules
+> **Important:**  
+> If your environment requires Z-Scaler certificates, it is recommended to run:
+> 
+>    ```mise run initialization:zscaler```
+> 
+> Upon successful execution, the cluster will be available with all necessary port forwards active.
 
-- Align submodule commits: `git submodule update`
-- Update each submodule to the latest commit from the original develop branch: `git submodule update --remote`
-
-# Building the Simpl Code
-
-## Building the Project
-
-Use mise
-
-```
-mise install
-mise run build
-```
-
-# Helm Charts
-
-Custom Helm charts for deployment.
-
-- simpl-participant - Helm chart for Simpl Participant.
-
-## Simpl Participant Chart
-
-To deploy a complete configuration for the participant, use:
+### Useful Commands
 
 ```bash
-helm install simpl-participant helm/simpl-participant -f helm/custom-simpl-participant.yaml
+# Stop Kubernetes cluster
+mise run cluster:stop
+
+# Start Kubernetes cluster
+mise run cluster:start
+
+# Destroy the cluster (if needed)
+mise run destruction:all
 ```
-
-> Note: The file **helm/custom-simpl-participant.yaml** is provided as an example of customizable
-> properties. Make sure to update the file with your personal host domain.
-
-> Additionally, ensure the host domain and JDBC URL for the database connection reflect your
-> specific Helm Release name and Kubernetes Namespace.
 
