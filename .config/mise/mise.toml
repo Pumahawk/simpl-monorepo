@@ -31,14 +31,14 @@ run = [
 ]
 
 [tasks."initialization:code"]
-description = "initializes git submodules and updates all projects."
+description = "Initializes git submodules and updates all projects."
 run = [
   { task = "git:init" },
   { task = "git:update-all" },
 ]
 
 [tasks."initialization:cluster"]
-description = "creates the Minikube cluster, configures port forwarding, and installs or upgrades the authority chart."
+description = "Creates the Minikube cluster, configures port forwarding, and installs or upgrades the authority chart."
 run = [
   { task = "cluster:create" },
   { task = "cluster:forward-node-up" },
@@ -52,71 +52,71 @@ run = [
 ]
 
 [tasks."jqlog"]
-description = "formats JSON log output to a readable line-by-line format using `jq`."
+description = "Formats JSON log output to a readable line-by-line format using `jq`."
 run = """
 jq --unbuffered -r -R '. as $line | try (fromjson | "\\(.timestamp) \\(.micro // "") \\(.level) \\(.message) \\(."error.stack_trace" // "")") catch $line'
 """
 
 [tasks."code:fmt"]
-description = "formats the code using Spotless."
+description = "Formats the code using Spotless."
 run = "mvnd -f simpl-repo spotless:apply"
 
 [tasks."code:build"]
-description = "builds all projects with Maven, including tests."
+description = "Builds all projects with Maven, including tests."
 run = "mvnd -Dmvnd.connectTimeout=100000 clean install -fae -f simpl-repo/"
 
 [tasks."code:build:no-test"]
-description = "builds all projects but skips tests and license downloads."
+description = "Builds all projects but skips tests and license downloads."
 run = "mise run code:build --fail-never -Dlicense.skipDownloadLicenses -Dmaven.test.skip"
 
 [tasks."code:test-automation:run-by-tag"]
-description = "runs automation tests filtered by Cucumber tags."
+description = "Runs automation tests filtered by Cucumber tags."
 run = "mvnd -f simpl-repo/test-automation resources:resources resources:testResources compiler:compile compiler:testCompile surefire:test -Dcucumber.filter.tags={{arg(name=\"tags\")}}"
 
 [tasks."cluster:forward-node-compose"]
-description = "runs the Docker Compose file for port forwarding."
+description = "Runs the Docker Compose file for port forwarding."
 run = "docker-cli-plugin-docker-compose -f .config/docker/forward-node/docker-compose.yaml -p simpl-portforward"
 
 [tasks."cluster:forward-node-up"]
-description = "starts port forwarding services."
+description = "Starts port forwarding services."
 run = "mise r cluster:forward-node-compose up -d"
 
 [tasks."cluster:forward-node-down"]
-description = "shuts down all port forwards."
+description = "Shuts down all port forwards."
 run = "mise r cluster:forward-node-compose down -v"
 
 [tasks."cluster:create"]
-description = "starts Minikube with a dedicated Docker network and profile."
+description = "Starts Minikube with a dedicated Docker network and profile."
 run = "minikube start --network=simpl-network --driver=docker --profile=simpl-control-plane"
 
 [tasks."cluster:destroy"]
-description = "deletes the Minikube cluster."
+description = "Deletes the Minikube cluster."
 run = "minikube delete --profile=simpl-control-plane"
 
 [tasks."cluster:start"]
-description = "starts the Minikube cluster and sets up port forwarding."
+description = "Starts the Minikube cluster and sets up port forwarding."
 run = [
   "minikube start --network=simpl-network --driver=docker --profile=simpl-control-plane",
   { task = "cluster:forward-node-up" },
 ]
 
 [tasks."cluster:status"]
-description = "shows the status of the Minikube cluster."
+description = "Shows the status of the Minikube cluster."
 run = "minikube status --profile=simpl-control-plane"
 
 [tasks."cluster:stop"]
-description = "stops the Minikube cluster and disables port forwarding."
+description = "Stops the Minikube cluster and disables port forwarding."
 run = [
   { task = "cluster:forward-node-down" },
   "minikube stop --profile=simpl-control-plane"
 ]
 
 [tasks."cluster:bash"]
-description = "opens a shell inside the Minikube control plane container."
+description = "Opens a shell inside the Minikube control plane container."
 run = "docker exec -it simpl-control-plane bash"
 
 [tasks."cluster:authority-install-or-upgrade"]
-description = "installs or upgrades the local authority Helm chart and switches namespace."
+description = "Installs or upgrades the local authority Helm chart and switches namespace."
 run = [
   """
   helm upgrade \
@@ -131,22 +131,22 @@ run = [
 ]
 
 [tasks."cluster:authority-uninstall"]
-description = "uninstalls the authority Helm chart."
+description = "Uninstalls the authority Helm chart."
 run = "helm uninstall local-authority"
 
 [tasks."zscaler:install-cluster"]
-description = "installs Z-Scaler certificates inside the Minikube cluster."
+description = "Installs Z-Scaler certificates inside the Minikube cluster."
 run = [
   "docker cp .config/certs/zscaler-ca.pem simpl-control-plane:usr/local/share/ca-certificates/zscaler-ca.crt",
   "docker exec simpl-control-plane update-ca-certificates",
 ]
 
 [tasks."git:init"]
-description = "initializes git submodules."
+description = "Initializes git submodules."
 run = "git submodule init"
 
 [tasks."git:update-all"]
-description = "updates all submodules recursively to the latest remote commits."
+description = "Updates all submodules recursively to the latest remote commits."
 run = "git submodule update --remote --recursive"
 
 [tasks."micro:run:authority-authenticationprovider".env]
@@ -207,11 +207,11 @@ SPRING_PROFILES_ACTIVE = "local-consumer"
 run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :usersroles spring-boot:run"
 
 [tasks."zscaler:install-jdk"]
-description = "imports Z-Scaler CA into the Java keystore."
+description = "Imports Z-Scaler CA into the Java keystore."
 run = "keytool -importcert -trustcacerts -alias zscaler-ca -file .config/certs/zscaler-ca.pem -keystore {{env.JAVA_HOME}}/lib/security/cacerts -storepass changeit -noprompt"
 
 [tasks."zscaler:remove-jdk"]
-description = "removes the Z-Scaler CA from the Java keystore."
+description = "Removes the Z-Scaler CA from the Java keystore."
 run = "keytool -delete -alias zscaler-ca -keystore {{env.JAVA_HOME}}/lib/security/cacerts -storepass changeit"
 
 [env]
