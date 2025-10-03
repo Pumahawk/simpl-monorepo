@@ -79,15 +79,18 @@ run = "minikube start --network=simpl-network --driver=docker --profile=simpl-co
 run = "minikube delete --profile=simpl-control-plane"
 
 [tasks."cluster:start"]
-run = "docker container start simpl-control-plane"
+run = [
+  "minikube start --network=simpl-network --driver=docker --profile=simpl-control-plane",
+  { task = "cluster:forward-node-up" },
+]
 
 [tasks."cluster:status"]
-run = "docker container ls -a --filter name=simpl-control-plane"
+run = "minikube status --profile=simpl-control-plane"
 
 [tasks."cluster:stop"]
 run = [
   { task = "cluster:forward-node-down" },
-  "docker container stop simpl-control-plane"
+  "minikube stop --profile=simpl-control-plane"
 ]
 
 [tasks."cluster:bash"]
