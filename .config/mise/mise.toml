@@ -10,6 +10,11 @@ kubectx = "0.9.5"
 kubens = "0.9.5"
 minikube = "1.37.0"
 
+[vars]
+pathSimplRepo = "./simpl-repo"
+pathSimplBackend = "{{vars.pathSimplRepo}}/backend"
+pathHelmLocalAuthority = "{{vars.pathSimplRepo}}/docs/charts/app-values/local/local-authority"
+
 [tasks."initialization:project"]
 description = "Initializes the entire project environment by executing the following subtasks:"
 run = [
@@ -59,11 +64,11 @@ jq --unbuffered -r -R '. as $line | try (fromjson | "\\(.timestamp) \\(.micro //
 
 [tasks."code:fmt"]
 description = "Formats the code using Spotless."
-run = "mvnd -f simpl-repo spotless:apply"
+run = "mvnd -f {{vars.pathSimplBackend}} spotless:apply"
 
 [tasks."code:build"]
 description = "Builds all projects with Maven, including tests."
-run = "mvnd -Dmvnd.connectTimeout=100000 clean install -fae -f simpl-repo/"
+run = "mvnd -Dmvnd.connectTimeout=100000 clean install -fae -f {{vars.pathSimplBackend}}"
 
 [tasks."code:build:no-test"]
 description = "Builds all projects but skips tests and license downloads."
@@ -71,7 +76,7 @@ run = "mise run code:build --fail-never -Dlicense.skipDownloadLicenses -Dmaven.t
 
 [tasks."code:test-automation:run-by-tag"]
 description = "Runs automation tests filtered by Cucumber tags."
-run = "mvnd -f simpl-repo/test-automation resources:resources resources:testResources compiler:compile compiler:testCompile surefire:test -Dcucumber.filter.tags={{arg(name=\"tags\")}}"
+run = "mvnd -f {{vars.pathSimplBackend}}/tests/test-automation resources:resources resources:testResources compiler:compile compiler:testCompile surefire:test -Dcucumber.filter.tags={{arg(name=\"tags\")}}"
 
 [tasks."cluster:forward-node-compose"]
 description = "Runs the Docker Compose file for port forwarding."
@@ -125,7 +130,7 @@ run = [
   --create-namespace \
   -n local-authority \
   local-authority \
-  ./simpl-repo/charts/app-values/local/local-authority
+  {{vars.pathHelmLocalAuthority}}
   """,
  "kubens local-authority"
 ]
@@ -153,58 +158,58 @@ run = "git submodule update --remote --recursive"
 SPRING_PROFILES_ACTIVE = "local-authority"
 CRYPTO_SECRETKEYBASE64 = "KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A"
 [tasks."micro:run:authority-authenticationprovider"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :authenticationprovider spring-boot:run"
+run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :authenticationprovider spring-boot:run"
 
 [tasks."micro:run:consumer-authenticationprovider".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
 CRYPTO_SECRETKEYBASE64 = "KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A"
 [tasks."micro:run:consumer-authenticationprovider"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :authenticationprovider spring-boot:run"
+run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :authenticationprovider spring-boot:run"
 
 [tasks."micro:run:authority-identityprovider".env]
 SPRING_PROFILES_ACTIVE = "local"
 [tasks."micro:run:authority-identityprovider"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :identity-provider spring-boot:run"
+run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :identity-provider spring-boot:run"
 
 [tasks."micro:run:authority-onboarding".env]
 SPRING_PROFILES_ACTIVE = "local"
 [tasks."micro:run:authority-onboarding"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :onboarding spring-boot:run"
+run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :onboarding spring-boot:run"
 
 [tasks."micro:run:authority-securityattributesprovider".env]
 SPRING_PROFILES_ACTIVE = "local"
 [tasks."micro:run:authority-securityattributesprovider"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :security-attributes-provider spring-boot:run"
+run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :security-attributes-provider spring-boot:run"
 
 [tasks."micro:run:authority-tierone".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
 [tasks."micro:run:authority-tierone"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :tier1-gateway spring-boot:run"
+run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :tier1-gateway spring-boot:run"
 
 [tasks."micro:run:consumer-tierone".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-tierone"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :tier1-gateway spring-boot:run"
+run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :tier1-gateway spring-boot:run"
 
 [tasks."micro:run:authority-tiertwo".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
 [tasks."micro:run:authority-tiertwo"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :tier2-gateway spring-boot:run"
+run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :tier2-gateway spring-boot:run"
 
 [tasks."micro:run:consumer-tiertwo".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-tiertwo"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :tier2-gateway spring-boot:run"
+run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :tier2-gateway spring-boot:run"
 
 [tasks."micro:run:authority-usersroles".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
 [tasks."micro:run:authority-usersroles"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :usersroles spring-boot:run"
+run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :usersroles spring-boot:run"
 
 [tasks."micro:run:consumer-usersroles".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-usersroles"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f simpl-repo -pl :usersroles spring-boot:run"
+run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :usersroles spring-boot:run"
 
 [tasks."zscaler:install-jdk"]
 description = "Imports Z-Scaler CA into the Java keystore."
