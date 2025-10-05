@@ -22,19 +22,20 @@ services:
     command: |
       -c '
       log() { echo "[`date "+%Y-%m-%d %H:%M:%S"`] [socat-forward] $1"; }
-      log "Starting port-forward 30090"; socat -v -d tcp-listen:30090,fork,reuseaddr tcp:simpl-control-plane:30090 2>&1 | cut -c -100 &
-      log "Starting port-forward 30101"; socat -v -d tcp-listen:30101,fork,reuseaddr tcp:simpl-control-plane:30101 2>&1 | cut -c -100 &
-      log "Starting port-forward 30102"; socat -v -d tcp-listen:30102,fork,reuseaddr tcp:simpl-control-plane:30102 2>&1 | cut -c -100 &
-      log "Starting port-forward 30103"; socat -v -d tcp-listen:30103,fork,reuseaddr tcp:simpl-control-plane:30103 2>&1 | cut -c -100 &
-      log "Starting port-forward 30104"; socat -v -d tcp-listen:30104,fork,reuseaddr tcp:simpl-control-plane:30104 2>&1 | cut -c -100 &
-      log "Starting port-forward 30105"; socat -v -d tcp-listen:30105,fork,reuseaddr tcp:simpl-control-plane:30105 2>&1 | cut -c -100 &
-      log "Starting port-forward 30200"; socat -v -d tcp-listen:30200,fork,reuseaddr tcp:simpl-control-plane:30200 2>&1 | cut -c -100 &
-      log "Starting port-forward 30201"; socat -v -d tcp-listen:30201,fork,reuseaddr tcp:simpl-control-plane:30201 2>&1 | cut -c -100 &
-      log "Starting port-forward 30205"; socat -v -d tcp-listen:30205,fork,reuseaddr tcp:simpl-control-plane:30205 2>&1 | cut -c -100 &
-      log "Starting port-forward 30379"; socat -v -d tcp-listen:30379,fork,reuseaddr tcp:simpl-control-plane:30379 2>&1 | cut -c -100 &
-      log "Starting port-forward 30432"; socat -v -d tcp-listen:30432,fork,reuseaddr tcp:simpl-control-plane:30432 2>&1 | cut -c -100 &
-      log "Starting port-forward 30443"; socat -v -d tcp-listen:30443,fork,reuseaddr tcp:simpl-control-plane:30443 2>&1 | cut -c -100 &
-      log "Starting port-forward 30888"; socat -v -d tcp-listen:30888,fork,reuseaddr tcp:simpl-control-plane:30888 2>&1 | cut -c -100 &
+      portf() { log "Starting port-forward $1"; socat -v -d tcp-listen:$1,fork,reuseaddr tcp:simpl-control-plane:$1 2>&1 | cut -c -100; }
+      portf 30090 &
+      portf 30101 &
+      portf 30102 &
+      portf 30103 &
+      portf 30104 &
+      portf 30105 &
+      portf 30200 &
+      portf 30201 &
+      portf 30205 &
+      portf 30379 &
+      portf 30432 &
+      portf 30443 &
+      portf 30888 &
       log "Socat port fotward running"
       wait -n
       log "A connection was interrupted. Socat close"

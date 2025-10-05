@@ -1,0 +1,25 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>simpl-monorepo</groupId>
+  <artifactId>simpl-monorepo</artifactId>
+  <version>1.0.0</version>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>libs/simpl-http-client</module>
+    <module>libs/common</module>
+    <module>tests/test-automation</module>
+    <module>microservices/security-attributes-provider</module>
+    <module>microservices/tier2-gateway</module>
+    <module>microservices/authentication_provider</module>
+    <module>microservices/tier1-gateway</module>
+    <module>microservices/onboarding</module>
+    <module>microservices/identity-provider</module>
+    <module>microservices/users-roles</module>
+    <module>misc/echo-backend</module>
+    <module>misc/cli</module>
+    <module>misc/keycloak-authenticator</module>
+    <module>misc/tier2-proxy</module>
+  </modules>
+
+</project>
