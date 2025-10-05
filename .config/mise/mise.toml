@@ -58,6 +58,8 @@ run = [
 
 [tasks."jqlog"]
 description = "Formats JSON log output to a readable line-by-line format using `jq`."
+raw = true
+quiet = true
 run = """
 jq --unbuffered -r -R '. as $line | try (fromjson | "\\(.timestamp) \\(.micro // "") \\(.level) \\(.message) \\(."error.stack_trace" // "")") catch $line'
 """
