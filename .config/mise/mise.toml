@@ -15,6 +15,7 @@ yq = "4.47.2"
 pathSimplRepo = "./simpl-repo"
 pathSimplBackend = "{{vars.pathSimplRepo}}/backend"
 pathHelmLocalAuthority = "{{vars.pathSimplRepo}}/docs/charts/app-values/local/local-authority"
+zscaler_enabled = false
 
 [tasks."initialization:project"]
 description = "Initializes the entire project environment by executing the following subtasks:"
@@ -47,6 +48,7 @@ run = [
 description = "Creates the Minikube cluster, configures port forwarding, and installs or upgrades the authority chart."
 run = [
   { task = "cluster:create" },
+  { task = "initialization:zscaler" },
   { task = "cluster:forward-node-up" },
   { task = "cluster:authority-install-or-upgrade" },
   { task = "cluster:redpanda:up" },
@@ -242,10 +244,17 @@ run = "kubectl get -n local-authority pod"
 run = "kubectl get -n local-authority deployments"
 
 [tasks."zscaler:install-cluster"]
+shell = "bash -e -c"
 description = "Installs Z-Scaler certificates inside the Minikube cluster."
 run = [
-  "docker cp .config/certs/zscaler-ca.pem simpl-control-plane:usr/local/share/ca-certificates/zscaler-ca.crt",
-  "docker exec simpl-control-plane update-ca-certificates",
+"""
+  {% if vars.zscaler_enabled %}
+  docker cp .config/certs/zscaler-ca.pem simpl-control-plane:usr/local/share/ca-certificates/zscaler-ca.crt
+  docker exec simpl-control-plane update-ca-certificates
+  {% else %}
+  echo "Skip z-scaler cluster installation"
+  {% endif %}
+"""
 ]
 
 [tasks."git:init"]
@@ -314,12 +323,24 @@ SPRING_PROFILES_ACTIVE = "local-consumer"
 run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :usersroles spring-boot:run"
 
 [tasks."zscaler:install-jdk"]
+shell = "bash -e -c"
 description = "Imports Z-Scaler CA into the Java keystore."
-run = "keytool -importcert -trustcacerts -alias zscaler-ca -file .config/certs/zscaler-ca.pem -keystore {{env.JAVA_HOME}}/lib/security/cacerts -storepass changeit -noprompt"
+run = """
+  {% if vars.zscaler_enabled %}
+  keytool -importcert -trustcacerts -alias zscaler-ca -file .config/certs/zscaler-ca.pem -keystore '{{env.JAVA_HOME}}/lib/security/cacerts' -storepass changeit -noprompt || echo "Unable to install zcaler-ca"
+  {% else %}
+  echo "Skip z-scaler jdk configuration"
+  {% endif %}
+"""
 
 [tasks."zscaler:remove-jdk"]
+shell = "bash -e -c"
 description = "Removes the Z-Scaler CA from the Java keystore."
-run = "keytool -delete -alias zscaler-ca -keystore {{env.JAVA_HOME}}/lib/security/cacerts -storepass changeit"
+run = """
+if ! keytool -delete -alias zscaler-ca -keystore {{env.JAVA_HOME}}/lib/security/cacerts -storepass changeit; then
+  echo "Unable to remove zscaler-ca from jdk"
+fi
+"""
 
 [env]
 PROJECT_RELEASE_VERSION = "2.5.0-RC"
