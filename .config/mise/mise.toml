@@ -88,6 +88,7 @@ run = "kubectl"
 [tasks."code:test-automation:autoconfigure-client-secret"]
 shell = "bash -c"
 run = [
+"kubectl wait --for=jsonpath='{.status.availableReplicas}'=1 statefulset.apps/local-authority-keycloak --timeout=500s",
 """
 function getsecret() {
   local realm="$1"
@@ -113,9 +114,9 @@ secret_consumer="$(getsecret consumer)"
 out={{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
 echo "Output file: $out"
 echo "Secret authority: $secret_authority"
-echo "Secret participant: $secret_consumer"
-yq eval '.environments[].service-accounts[0].secret = "'$secret_authority'"' -i {{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
-yq eval '.environments[].service-accounts[1].secret = "'$secret_consumer'"' -i {{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
+echo "Secret consumer: $secret_consumer"
+yq eval '.environments[0].service-accounts[].secret = "'$secret_authority'"' -i {{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
+yq eval '.environments[1].service-accounts[].secret = "'$secret_consumer'"' -i {{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
 """,
 ]
 
@@ -203,6 +204,7 @@ run = [
   """,
  "kubens local-authority",
  { task = "cluster:kube-redpanda-scale-0" },
+ { task = "code:test-automation:autoconfigure-client-secret" },
 ]
 
 [tasks."cluster:kube-redpanda-scale-0"]
