@@ -67,19 +67,42 @@ The development environment combines **locally executed microservices** with a *
 
 ## Requirements
 
-Before setting up the development environment, make sure the following are installed and properly configured:
+Before setting up the development environment, ensure the following tools are installed and properly configured:
 
 - **[Git](https://git-scm.com/)** – used to clone the repository and manage submodules. Git is required for:
-  - Cloning the monorepo
-  - Initializing submodules (`git submodule init`)
+  - Cloning the monorepo  
+  - Initializing submodules (`git submodule init`)  
   - Updating all submodules recursively (`git submodule update --remote --recursive`)
 
 - **[mise](https://mise.jdx.dev/)** – a package manager that automatically installs and manages all development tools and scripts needed to build, run, and manage the microservices and cluster.
 
 - **[Docker](https://www.docker.com/)** – must be installed and running. Docker is required to:
-  - Run Minikube inside a Docker container
-  - Execute containerized services (databases, Keycloak, EJBCA, etc.)
+  - Run Minikube inside a Docker container  
+  - Execute containerized services (databases, Keycloak, EJBCA, etc.)  
   - Handle port forwarding between the host and the cluster
+
+---
+
+### 🪟 Windows Requirements
+
+When working on **Windows**, it is **strongly recommended** to use **mise inside Git Bash**, rather than PowerShell or CMD.
+
+This is required because:
+- Several development scripts rely on **Unix utilities** (e.g., `bash`, `jq`, `grep`, `sed`) for correct execution.  
+- `mise` integrates more reliably within a Unix-like shell environment, ensuring that all project tasks work as intended.  
+
+**Important:**
+- Make sure Git Bash is added to your system path and configured as the default terminal in your IDE (e.g., IntelliJ).  
+- When running commands such as `mise run initialization:project`, always do so from within a **Git Bash** shell session.  
+
+---
+
+> **Tip:**  
+> On Windows, you can verify your environment by running:
+> ```bash
+> echo $SHELL
+> ```
+> It should return a path containing `bash`.
 
 ## Getting Started
 
@@ -102,6 +125,30 @@ mise run initialization:project
 >    ```mise run initialization:zscaler```
 > 
 > Upon successful execution, the cluster will be available with all necessary port forwards active.
+
+---
+
+### 🧩 Environment Profiles
+
+The monorepo defines additional **mise environments** that can be activated using the `-E` flag.  
+These environments modify the behavior of tasks by enabling specific runtime configurations.
+
+Available environments:
+
+| Environment | Command Example | Description |
+|--------------|-----------------|--------------|
+| **zscaler** | `mise -E zscaler run initialization:project` | Enables Z-Scaler integration. This environment automatically installs the required Z-Scaler certificates both in the local JDK and inside the Kubernetes cluster. |
+| **wait** | `mise -E wait run initialization:project` | Increases internal timeouts for certain operations, such as Keycloak secret updates or long-running initialization tasks. Recommended when working on slower systems or virtualized environments. |
+
+**Usage Example:**
+
+```bash
+# Initialize the project with Z-Scaler certificates enabled
+mise -E zscaler run initialization:project
+
+# Initialize the project with extended wait times
+mise -E wait run initialization:project
+```
 
 ### Useful Commands
 
