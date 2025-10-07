@@ -89,26 +89,33 @@ run = "kubectl"
 shell = "bash -c"
 run = [
 """
-secret="$( (
-kubectl exec -n local-authority local-authority-keycloak-0 -i -- bash -b << EOF
-/opt/bitnami/keycloak/bin/kcadm.sh config credentials \
-       --config /tmp/kcadm.config \
-       --server http://localhost:8080 \
-       --realm master \
-       --client admin-cli \
-       --user admin \
-       --password admin
-
-/opt/bitnami/keycloak/bin/kcadm.sh get clients \
-       -r authority \
-       -q clientId=cli \
-       --config /tmp/kcadm.config
+function getsecret() {
+  local realm="$1"
+     (
+  kubectl exec -n local-authority local-authority-keycloak-0 -i -- bash -b << EOF
+  /opt/bitnami/keycloak/bin/kcadm.sh config credentials \
+         --config /tmp/kcadm.config \
+         --server http://localhost:8080 \
+         --realm master \
+         --client admin-cli \
+         --user admin \
+         --password admin
+  
+  /opt/bitnami/keycloak/bin/kcadm.sh get clients \
+         -r "$realm" \
+         -q clientId=cli \
+         --config /tmp/kcadm.config
 EOF
-) | jq -r .[].secret )"
+  ) | jq -r .[].secret 
+}
+secret_authority="$(getsecret authority)"
+secret_consumer="$(getsecret consumer)"
 out={{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
 echo "Output file: $out"
-echo "Secret: $secret"
-yq eval '.environments[].service-accounts[].secret = "'$secret'"' -i {{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
+echo "Secret authority: $secret_authority"
+echo "Secret participant: $secret_consumer"
+yq eval '.environments[].service-accounts[0].secret = "'$secret_authority'"' -i {{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
+yq eval '.environments[].service-accounts[1].secret = "'$secret_consumer'"' -i {{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
 """,
 ]
 
