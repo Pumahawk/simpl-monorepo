@@ -153,10 +153,10 @@ description = "Uninstalls the authority Helm chart."
 run = "helm uninstall local-authority"
 
 [tasks."cluster:pods"]
-run = "kubectl get pod"
+run = "kubectl get -n local-authority pod"
 
 [tasks."cluster:deployments"]
-run = "kubectl get deployments"
+run = "kubectl get -n local-authority deployments"
 
 [tasks."zscaler:install-cluster"]
 description = "Installs Z-Scaler certificates inside the Minikube cluster."
