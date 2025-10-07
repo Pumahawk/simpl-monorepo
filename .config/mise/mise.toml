@@ -16,7 +16,7 @@ pathSimplRepo = "./simpl-repo"
 pathSimplBackend = "{{vars.pathSimplRepo}}/backend"
 pathHelmLocalAuthority = "{{vars.pathSimplRepo}}/docs/charts/app-values/local/local-authority"
 zscaler_enabled = false
-keycloak_secrets_wait = "20s"
+keycloak_secrets_wait = "2"
 
 [tasks."initialization:project"]
 description = "Initializes the entire project environment by executing the following subtasks:"
@@ -89,16 +89,24 @@ run = "mvnd -f {{vars.pathSimplBackend}}/tests/test-automation resources:resourc
 run = "kubectl"
 
 [tasks."code:test-automation:autoconfigure-client-secret"]
-shell = "bash -euo pipefail -c"
+shell = "bash -c"
 run = [
 """
-time={{vars.keycloak_secrets_wait}}
-if ! kubectl wait --for=jsonpath='{.status.availableReplicas}'=1 statefulset.apps/local-authority-keycloak --timeout=$time; then
-  echo "Keycloak pod not ready."
-  echo "Skipping initialization of secrets for automation testing."
-  echo "Run manually: 'mise code:test-automation:autoconfigure-client-secret'"
-  exit 0
-fi
+echo "Wait Keycloak"
+function echokpod() {
+  kubectl get statefulset | grep --color=always -E -e $ -e keycloak
+  kubectl get pod | grep --color=always -E -e $ -e keycloak
+}
+
+function waitkpod() {
+    for (( i = 0; i < {{vars.keycloak_secrets_wait}}; i++ )); do
+      echokpod
+      if kubectl wait --for=jsonpath='{.status.availableReplicas}'=1 statefulset.apps/local-authority-keycloak --timeout=10s 2>/dev/null; then
+        return 0
+      fi
+    done
+    return 1
+}
 
 function getsecret() {
   local realm="$1"
@@ -111,8 +119,6 @@ function getsecret() {
          --config /tmp/kcadm.config
 EOF
   ) | jq -r .[].secret 
-
-
 }
 
 function keylogin() {
@@ -121,12 +127,19 @@ function keylogin() {
     /opt/bitnami/keycloak/bin/kcadm.sh config credentials \
            --config /tmp/kcadm.config \
            --server http://localhost:8080 \
+
            --realm master \
            --client admin-cli \
            --user admin \
            --password admin
 EOF
 }
+if ! waitkpod ; then
+    echo "Keycloak pod not ready."
+    echo "Skipping initialization of secrets for automation testing."
+    echo "Run manually: 'mise code:test-automation:autoconfigure-client-secret'"
+    exit 0
+fi
 
 keylogin
 secret_authority="$(getsecret authority)"
