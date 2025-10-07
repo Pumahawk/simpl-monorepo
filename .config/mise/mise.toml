@@ -88,8 +88,15 @@ run = "kubectl"
 [tasks."code:test-automation:autoconfigure-client-secret"]
 shell = "bash -euo pipefail -c"
 run = [
-"kubectl wait --for=jsonpath='{.status.availableReplicas}'=1 statefulset.apps/local-authority-keycloak --timeout=500s",
 """
+time=600s
+if ! kubectl wait --for=jsonpath='{.status.availableReplicas}'=1 statefulset.apps/local-authority-keycloak --timeout=$time; then
+  echo "Keycloak pod not ready."
+  echo "Skipping initialization of secrets for automation testing."
+  echo "Run manually: 'mise autoconfigure-client-secret'"
+  exit 0
+fi
+
 function getsecret() {
   local realm="$1"
      (
