@@ -122,6 +122,9 @@ run = [
 description = "Opens a shell inside the Minikube control plane container."
 run = "docker exec -it simpl-control-plane bash"
 
+[tasks."cluster:dashboard"]
+run = "minikube -p simpl-control-plane dashboard"
+
 [tasks."cluster:authority-install-or-upgrade"]
 description = "Installs or upgrades the local authority Helm chart and switches namespace."
 run = [
