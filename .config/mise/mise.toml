@@ -156,7 +156,11 @@ run = [
 
 [tasks."cluster:status"]
 description = "Shows the status of the Minikube cluster."
-run = "minikube status --profile=simpl-control-plane"
+run = [
+  "minikube status --profile=simpl-control-plane",
+  { task = "cluster:forward-node-compose ps" },
+  { task = "cluster:redpanda:compose ps" },
+]
 
 [tasks."cluster:stop"]
 description = "Stops the Minikube cluster and disables port forwarding."
