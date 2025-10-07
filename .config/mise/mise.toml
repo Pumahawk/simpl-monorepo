@@ -16,6 +16,7 @@ pathSimplRepo = "./simpl-repo"
 pathSimplBackend = "{{vars.pathSimplRepo}}/backend"
 pathHelmLocalAuthority = "{{vars.pathSimplRepo}}/docs/charts/app-values/local/local-authority"
 zscaler_enabled = false
+keycloak_secrets_wait = "20s"
 
 [tasks."initialization:project"]
 description = "Initializes the entire project environment by executing the following subtasks:"
@@ -91,11 +92,11 @@ run = "kubectl"
 shell = "bash -euo pipefail -c"
 run = [
 """
-time=600s
+time={{vars.keycloak_secrets_wait}}
 if ! kubectl wait --for=jsonpath='{.status.availableReplicas}'=1 statefulset.apps/local-authority-keycloak --timeout=$time; then
   echo "Keycloak pod not ready."
   echo "Skipping initialization of secrets for automation testing."
-  echo "Run manually: 'mise autoconfigure-client-secret'"
+  echo "Run manually: 'mise code:test-automation:autoconfigure-client-secret'"
   exit 0
 fi
 
