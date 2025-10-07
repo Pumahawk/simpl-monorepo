@@ -80,6 +80,9 @@ run = "mise run code:build --fail-never -Dlicense.skipDownloadLicenses -Dmaven.t
 description = "Runs automation tests filtered by Cucumber tags."
 run = "mvnd -f {{vars.pathSimplBackend}}/tests/test-automation resources:resources resources:testResources compiler:compile compiler:testCompile surefire:test -Dcucumber.filter.tags={{arg(name=\"tags\")}}"
 
+[tasks."cluster:k"]
+run = "kubectl"
+
 [tasks."cluster:forward-node-compose"]
 description = "Runs the Docker Compose file for port forwarding."
 run = "docker-cli-plugin-docker-compose -f .config/docker/forward-node/docker-compose.yaml -p simpl-portforward"
@@ -143,6 +146,12 @@ run = [
 [tasks."cluster:authority-uninstall"]
 description = "Uninstalls the authority Helm chart."
 run = "helm uninstall local-authority"
+
+[tasks."cluster:pods"]
+run = "kubectl get pod"
+
+[tasks."cluster:deployments"]
+run = "kubectl get deployments"
 
 [tasks."zscaler:install-cluster"]
 description = "Installs Z-Scaler certificates inside the Minikube cluster."
