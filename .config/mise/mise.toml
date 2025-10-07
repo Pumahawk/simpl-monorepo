@@ -86,32 +86,43 @@ run = "mvnd -f {{vars.pathSimplBackend}}/tests/test-automation resources:resourc
 run = "kubectl"
 
 [tasks."code:test-automation:autoconfigure-client-secret"]
-shell = "bash -c"
+shell = "bash -euo pipefail -c"
 run = [
 "kubectl wait --for=jsonpath='{.status.availableReplicas}'=1 statefulset.apps/local-authority-keycloak --timeout=500s",
 """
 function getsecret() {
   local realm="$1"
      (
+  >&2  echo "Retrieve secret $realm"
   kubectl exec -n local-authority local-authority-keycloak-0 -i -- bash -b << EOF
-  /opt/bitnami/keycloak/bin/kcadm.sh config credentials \
-         --config /tmp/kcadm.config \
-         --server http://localhost:8080 \
-         --realm master \
-         --client admin-cli \
-         --user admin \
-         --password admin
-  
   /opt/bitnami/keycloak/bin/kcadm.sh get clients \
          -r "$realm" \
          -q clientId=cli \
          --config /tmp/kcadm.config
 EOF
   ) | jq -r .[].secret 
+
+
 }
+
+function keylogin() {
+  kubectl exec -n local-authority local-authority-keycloak-0 -i -- bash -b << EOF
+    >&2 echo "Login to keycloak admin..."
+    /opt/bitnami/keycloak/bin/kcadm.sh config credentials \
+           --config /tmp/kcadm.config \
+           --server http://localhost:8080 \
+           --realm master \
+           --client admin-cli \
+           --user admin \
+           --password admin
+EOF
+}
+
+keylogin
 secret_authority="$(getsecret authority)"
 secret_consumer="$(getsecret consumer)"
 out={{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
+
 echo "Output file: $out"
 echo "Secret authority: $secret_authority"
 echo "Secret consumer: $secret_consumer"
