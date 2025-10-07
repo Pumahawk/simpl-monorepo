@@ -27,7 +27,7 @@ run = [
 [tasks."destruction:all"]
 description = "Completely removes the development environment:"
 run = [
-  { tasks = [ "cluster:destroy", "cluster:forward-node-down", "zscaler:remove-jdk" ] },
+  { tasks = [ "cluster:destroy", "cluster:forward-node-down", "cluster:redpanda:down", "zscaler:remove-jdk" ] },
 ]
 
 [tasks."initialization:build:code"]
@@ -49,6 +49,7 @@ run = [
   { task = "cluster:create" },
   { task = "cluster:forward-node-up" },
   { task = "cluster:authority-install-or-upgrade" },
+  { task = "cluster:redpanda:up" },
 ]
 
 [tasks."initialization:zscaler"]
@@ -119,27 +120,38 @@ run = "docker-cli-plugin-docker-compose -f .config/docker/forward-node/docker-co
 description = "Starts port forwarding services."
 run = "mise r cluster:forward-node-compose up -d"
 
+[tasks."cluster:redpanda:compose"]
+run = "docker-cli-plugin-docker-compose -p simpl-redpanda -f .config/docker/redpanda/docker-compose.yaml"
+
+[tasks."cluster:redpanda:up"]
+run = "docker-cli-plugin-docker-compose -p simpl-redpanda -f .config/docker/redpanda/docker-compose.yaml up -d"
+
+[tasks."cluster:redpanda:down"]
+run = "docker-cli-plugin-docker-compose -p simpl-redpanda -f .config/docker/redpanda/docker-compose.yaml down"
+
 [tasks."cluster:forward-node-down"]
 description = "Shuts down all port forwards."
 run = "mise r cluster:forward-node-compose down -v"
 
 [tasks."cluster:create"]
 description = "Starts Minikube with a dedicated Docker network and profile."
-run = "minikube start --network=simpl-network --driver=docker --profile=simpl-control-plane"
+run = "minikube start --namespace local-authority --network=simpl-network --driver=docker --profile=simpl-control-plane"
 
 [tasks."cluster:destroy"]
 description = "Deletes the Minikube cluster."
 run = [
   { task = "cluster:forward-node-down" },
   "minikube delete --profile=simpl-control-plane",
+  { task = "cluster:redpanda:down" },
 ]
 
 [tasks."cluster:start"]
 description = "Starts the Minikube cluster and sets up port forwarding."
 run = [
   { task = "cluster:forward-node-down" },
-  "minikube start --network=simpl-network --driver=docker --profile=simpl-control-plane",
+  "minikube start --namespace local-authority --network=simpl-network --driver=docker --profile=simpl-control-plane",
   { task = "cluster:forward-node-up" },
+  { task = "cluster:redpanda:up" },
 ]
 
 [tasks."cluster:status"]
@@ -150,7 +162,8 @@ run = "minikube status --profile=simpl-control-plane"
 description = "Stops the Minikube cluster and disables port forwarding."
 run = [
   { task = "cluster:forward-node-down" },
-  "minikube stop --profile=simpl-control-plane"
+  "minikube stop --profile=simpl-control-plane",
+  { task = "cluster:redpanda:down" },
 ]
 [tasks."cluster:restart"]
 run = [
@@ -177,7 +190,8 @@ run = [
   local-authority \
   {{vars.pathHelmLocalAuthority}}
   """,
- "kubens local-authority"
+ "kubens local-authority",
+ "kubectl -n local-authority scale --replica 0 deployment.apps/redpanda",
 ]
 
 [tasks."cluster:authority-uninstall"]
