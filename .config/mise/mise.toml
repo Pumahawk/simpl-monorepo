@@ -82,15 +82,31 @@ description = "Runs automation tests filtered by Cucumber tags."
 run = "mvnd -f {{vars.pathSimplBackend}}/tests/test-automation resources:resources resources:testResources compiler:compile compiler:testCompile surefire:test -Dcucumber.filter.tags={{arg(name=\"tags\")}}"
 
 [tasks."code:test-automation:autoconfigure-client-secret"]
+shell = "bash -c"
 run = [
-  "kubectl exec -n local-authority local-authority-keycloak-0 -- bash -c '/opt/bitnami/keycloak/bin/kcadm.sh config credentials --config /tmp/kcadm.config --server http://localhost:8080 --realm master --client admin-cli --user admin --password admin; /opt/bitnami/keycloak/bin/kcadm.sh get clients -r authority -q clientId=cli --config /tmp/kcadm.config > /tmp/clientinfo.json'",
-  "kubectl cp local-authority-keycloak-0:/tmp/clientinfo.json {{xdg_cache_home ~ '/simpl-client-keycloak.json'}}",
-  { task = "code:test-automation:write-set-client-secret" },
-]
+"""
+secret="$( (
+kubectl exec -n local-authority local-authority-keycloak-0 -i -- bash -b << EOF
+/opt/bitnami/keycloak/bin/kcadm.sh config credentials \
+       --config /tmp/kcadm.config \
+       --server http://localhost:8080 \
+       --realm master \
+       --client admin-cli \
+       --user admin \
+       --password admin
 
-[tasks."code:test-automation:write-set-client-secret"]
-hide = true
-run = "yq eval '.environments[].service-accounts[].secret = \"{{exec(command='jq -r .[].secret ' ~ xdg_cache_home ~ '/simpl-client-keycloak.json')}}\"' -i {{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml"
+/opt/bitnami/keycloak/bin/kcadm.sh get clients \
+       -r authority \
+       -q clientId=cli \
+       --config /tmp/kcadm.config
+EOF
+) | jq -r .[].secret )"
+out={{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
+echo "Output file: $out"
+echo "Secret: $secret"
+yq eval '.environments[].service-accounts[].secret = "'$secret'"' -i {{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
+""",
+]
 
 [tasks."cluster:forward-node-compose"]
 description = "Runs the Docker Compose file for port forwarding."
