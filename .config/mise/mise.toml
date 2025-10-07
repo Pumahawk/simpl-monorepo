@@ -120,6 +120,11 @@ run = [
   { task = "cluster:forward-node-down" },
   "minikube stop --profile=simpl-control-plane"
 ]
+[tasks."cluster:restart"]
+run = [
+  { task = "cluster:stop" },
+  { task = "cluster:start" },
+]
 
 [tasks."cluster:bash"]
 description = "Opens a shell inside the Minikube control plane container."
