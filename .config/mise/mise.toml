@@ -191,8 +191,14 @@ run = [
   {{vars.pathHelmLocalAuthority}}
   """,
  "kubens local-authority",
- "kubectl -n local-authority scale --replica 0 deployment.apps/redpanda",
+ { task = "cluster:kube-redpanda-scale-0" },
 ]
+
+[tasks."cluster:kube-redpanda-scale-0"]
+ run = [
+   "kubectl -n local-authority scale --replicas 0 deployment.apps/redpanda",
+   "kubectl -n local-authority scale --replicas 0 deployment.apps/redpanda-console",
+ ]
 
 [tasks."cluster:authority-uninstall"]
 description = "Uninstalls the authority Helm chart."
