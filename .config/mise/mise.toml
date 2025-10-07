@@ -9,6 +9,7 @@ helm = "3.19.0"
 kubectx = "0.9.5"
 kubens = "0.9.5"
 minikube = "1.37.0"
+yq = "4.47.2"
 
 [vars]
 pathSimplRepo = "./simpl-repo"
@@ -83,6 +84,33 @@ run = "mvnd -f {{vars.pathSimplBackend}}/tests/test-automation resources:resourc
 [tasks."cluster:k"]
 run = "kubectl"
 
+[tasks."code:test-automation:autoconfigure-client-secret"]
+shell = "bash -c"
+run = [
+"""
+secret="$( (
+kubectl exec -n local-authority local-authority-keycloak-0 -i -- bash -b << EOF
+/opt/bitnami/keycloak/bin/kcadm.sh config credentials \
+       --config /tmp/kcadm.config \
+       --server http://localhost:8080 \
+       --realm master \
+       --client admin-cli \
+       --user admin \
+       --password admin
+
+/opt/bitnami/keycloak/bin/kcadm.sh get clients \
+       -r authority \
+       -q clientId=cli \
+       --config /tmp/kcadm.config
+EOF
+) | jq -r .[].secret )"
+out={{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
+echo "Output file: $out"
+echo "Secret: $secret"
+yq eval '.environments[].service-accounts[].secret = "'$secret'"' -i {{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
+""",
+]
+
 [tasks."cluster:forward-node-compose"]
 description = "Runs the Docker Compose file for port forwarding."
 run = "docker-cli-plugin-docker-compose -f .config/docker/forward-node/docker-compose.yaml -p simpl-portforward"
@@ -101,11 +129,15 @@ run = "minikube start --network=simpl-network --driver=docker --profile=simpl-co
 
 [tasks."cluster:destroy"]
 description = "Deletes the Minikube cluster."
-run = "minikube delete --profile=simpl-control-plane"
+run = [
+  { task = "cluster:forward-node-down" },
+  "minikube delete --profile=simpl-control-plane",
+]
 
 [tasks."cluster:start"]
 description = "Starts the Minikube cluster and sets up port forwarding."
 run = [
+  { task = "cluster:forward-node-down" },
   "minikube start --network=simpl-network --driver=docker --profile=simpl-control-plane",
   { task = "cluster:forward-node-up" },
 ]
