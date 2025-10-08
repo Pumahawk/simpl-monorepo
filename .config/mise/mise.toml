@@ -15,8 +15,13 @@ yq = "4.47.2"
 pathSimplRepo = "./simpl-repo"
 pathSimplBackend = "{{vars.pathSimplRepo}}/backend"
 pathHelmLocalAuthority = "{{vars.pathSimplRepo}}/docs/charts/app-values/local/local-authority"
+
+run_mise_code_build = "mvnd -Dmvnd.connectTimeout=100000 clean install -fae -f {{vars.pathSimplBackend}}"
+run_cluster_forward-node-compose = "docker-cli-plugin-docker-compose -f .config/docker/forward-node/docker-compose.yaml -p simpl-portforward"
+
 zscaler_enabled = false
 keycloak_secrets_wait = "2"
+
 
 [tasks."initialization:project"]
 description = "Initializes the entire project environment by executing the following subtasks:"
@@ -79,7 +84,7 @@ run = "mvnd -Dmvnd.connectTimeout=100000 clean install -fae -f {{vars.pathSimplB
 
 [tasks."code:build:no-test"]
 description = "Builds all projects but skips tests and license downloads."
-run = "mise run code:build --fail-never -Dlicense.skipDownloadLicenses -Dmaven.test.skip"
+run = "{{vars.run_mise_code_build}} --fail-never -Dlicense.skipDownloadLicenses -Dmaven.test.skip"
 
 [tasks."code:test-automation:run-by-tag"]
 description = "Runs automation tests filtered by Cucumber tags."
@@ -156,11 +161,11 @@ yq eval '.environments[1].service-accounts[].secret = "'$secret_consumer'"' -i {
 
 [tasks."cluster:forward-node-compose"]
 description = "Runs the Docker Compose file for port forwarding."
-run = "docker-cli-plugin-docker-compose -f .config/docker/forward-node/docker-compose.yaml -p simpl-portforward"
+run = "{{vars.run_cluster_forward}}"
 
 [tasks."cluster:forward-node-up"]
 description = "Starts port forwarding services."
-run = "mise r cluster:forward-node-compose up -d"
+run = "{{vars.run_cluster_forward}} up -d"
 
 [tasks."cluster:redpanda:compose"]
 run = "docker-cli-plugin-docker-compose -p simpl-redpanda -f .config/docker/redpanda/docker-compose.yaml"
@@ -173,7 +178,7 @@ run = "docker-cli-plugin-docker-compose -p simpl-redpanda -f .config/docker/redp
 
 [tasks."cluster:forward-node-down"]
 description = "Shuts down all port forwards."
-run = "mise r cluster:forward-node-compose down -v"
+run = "{{vars.run_cluster_forward}} down -v"
 
 [tasks."cluster:create"]
 description = "Starts Minikube with a dedicated Docker network and profile."
