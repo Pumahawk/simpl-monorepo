@@ -17,10 +17,68 @@ pathSimplBackend = "{{vars.pathSimplRepo}}/backend"
 pathHelmLocalAuthority = "{{vars.pathSimplRepo}}/docs/charts/app-values/local/local-authority"
 
 run_mise_code_build = "mvnd -Dmvnd.connectTimeout=100000 clean install -fae -f {{vars.pathSimplBackend}}"
-run_cluster_forward-node-compose = "docker-cli-plugin-docker-compose -f .config/docker/forward-node/docker-compose.yaml -p simpl-portforward"
+run_cluster_forward_node_compose = "docker-cli-plugin-docker-compose -f .config/docker/forward-node/docker-compose.yaml -p simpl-portforward"
 
 zscaler_enabled = false
-keycloak_secrets_wait = "2"
+keycloak_secrets_wait = "1"
+
+lib_keycloak = """
+function echokpod() {
+  echo -e "\\n⏳ Waiting for \\033[1;33mKeycloak\\033[0m status to become \\033[1;32mReady\\033[0m..."
+  kubectl get statefulset | grep --color=always -E -e $ -e keycloak
+  kubectl get pod | grep --color=always -E -e $ -e keycloak
+}
+
+function waitkpod() {
+    local wait=$1
+    for (( i = 0; i < $wait; i++ )); do
+      echokpod
+      if kubectl wait --for=jsonpath='{.status.availableReplicas}'=1 statefulset.apps/local-authority-keycloak --timeout=10s 2>/dev/null; then
+        return 0
+      fi
+    done
+    return 1
+}
+
+function getsecret() {
+  local realm="$1"
+     (
+  >&2  echo "Retrieve secret $realm"
+  kubectl exec -n local-authority local-authority-keycloak-0 -i -- bash -eb << EOF
+  /opt/bitnami/keycloak/bin/kcadm.sh get clients \
+         -r "$realm" \
+         -q clientId=cli \
+         --config /tmp/kcadm.config
+EOF
+  ) | jq -r .[].secret 
+}
+
+function keylogin() {
+  kubectl exec -n local-authority local-authority-keycloak-0 -i -- bash -eb << EOF
+    >&2 echo "Login to keycloak admin..."
+    /opt/bitnami/keycloak/bin/kcadm.sh config credentials \
+           --config /tmp/kcadm.config \
+           --server http://localhost:8080 \
+
+           --realm master \
+           --client admin-cli \
+           --user admin \
+           --password admin
+EOF
+}
+
+function keycloak_update_attribute() {
+  local realm="$1"
+  local key="$2"
+  local value="$3"
+  kubectl exec -n local-authority local-authority-keycloak-0 -i -- bash -eb << EOF
+  echo "Setting property [realm=$realm] [key=$key] [value=$value]"
+  /opt/bitnami/keycloak/bin/kcadm.sh update "realms/$realm" \
+    --config /tmp/kcadm.config \
+    -s "$key=$value"
+EOF
+}
+"""
 
 
 [tasks."initialization:project"]
@@ -56,8 +114,10 @@ run = [
   { task = "cluster:create" },
   { task = "initialization:zscaler" },
   { task = "cluster:forward-node-up" },
-  { task = "cluster:authority-install-or-upgrade" },
   { task = "cluster:redpanda:up" },
+  { task = "cluster:authority-install-or-upgrade" },
+  { task = "code:test-automation:autoconfigure-client-secret" },
+  { task = "cluster:keycloak-autoconfigure" },
 ]
 
 [tasks."initialization:zscaler"]
@@ -94,52 +154,12 @@ run = "mvnd -f {{vars.pathSimplBackend}}/tests/test-automation resources:resourc
 run = "kubectl"
 
 [tasks."code:test-automation:autoconfigure-client-secret"]
-shell = "bash -c"
+shell = "bash -ec"
 run = [
 """
 echo "Wait Keycloak"
-function echokpod() {
-  kubectl get statefulset | grep --color=always -E -e $ -e keycloak
-  kubectl get pod | grep --color=always -E -e $ -e keycloak
-}
-
-function waitkpod() {
-    for (( i = 0; i < {{vars.keycloak_secrets_wait}}; i++ )); do
-      echokpod
-      if kubectl wait --for=jsonpath='{.status.availableReplicas}'=1 statefulset.apps/local-authority-keycloak --timeout=10s 2>/dev/null; then
-        return 0
-      fi
-    done
-    return 1
-}
-
-function getsecret() {
-  local realm="$1"
-     (
-  >&2  echo "Retrieve secret $realm"
-  kubectl exec -n local-authority local-authority-keycloak-0 -i -- bash -b << EOF
-  /opt/bitnami/keycloak/bin/kcadm.sh get clients \
-         -r "$realm" \
-         -q clientId=cli \
-         --config /tmp/kcadm.config
-EOF
-  ) | jq -r .[].secret 
-}
-
-function keylogin() {
-  kubectl exec -n local-authority local-authority-keycloak-0 -i -- bash -b << EOF
-    >&2 echo "Login to keycloak admin..."
-    /opt/bitnami/keycloak/bin/kcadm.sh config credentials \
-           --config /tmp/kcadm.config \
-           --server http://localhost:8080 \
-
-           --realm master \
-           --client admin-cli \
-           --user admin \
-           --password admin
-EOF
-}
-if ! waitkpod ; then
+{{vars.lib_keycloak}}
+if ! waitkpod {{vars.keycloak_secrets_wait}}; then
     echo "Keycloak pod not ready."
     echo "Skipping initialization of secrets for automation testing."
     echo "Run manually: 'mise code:test-automation:autoconfigure-client-secret'"
@@ -161,11 +181,11 @@ yq eval '.environments[1].service-accounts[].secret = "'$secret_consumer'"' -i {
 
 [tasks."cluster:forward-node-compose"]
 description = "Runs the Docker Compose file for port forwarding."
-run = "{{vars.run_cluster_forward}}"
+run = "{{vars.run_cluster_forward_node_compose}}"
 
 [tasks."cluster:forward-node-up"]
 description = "Starts port forwarding services."
-run = "{{vars.run_cluster_forward}} up -d"
+run = "{{vars.run_cluster_forward_node_compose}} up -d"
 
 [tasks."cluster:redpanda:compose"]
 run = "docker-cli-plugin-docker-compose -p simpl-redpanda -f .config/docker/redpanda/docker-compose.yaml"
@@ -178,7 +198,7 @@ run = "docker-cli-plugin-docker-compose -p simpl-redpanda -f .config/docker/redp
 
 [tasks."cluster:forward-node-down"]
 description = "Shuts down all port forwards."
-run = "{{vars.run_cluster_forward}} down -v"
+run = "{{vars.run_cluster_forward_node_compose}} down -v"
 
 [tasks."cluster:create"]
 description = "Starts Minikube with a dedicated Docker network and profile."
@@ -243,7 +263,6 @@ run = [
   """,
  "kubens local-authority",
  { task = "cluster:kube-redpanda-scale-0" },
- { task = "code:test-automation:autoconfigure-client-secret" },
 ]
 
 [tasks."cluster:kube-redpanda-scale-0"]
@@ -262,8 +281,23 @@ run = "kubectl get -n local-authority pod"
 [tasks."cluster:deployments"]
 run = "kubectl get -n local-authority deployments"
 
+[tasks."cluster:keycloak-autoconfigure"]
+shell = "bash -ec"
+run = """
+{{vars.lib_keycloak}}
+if ! waitkpod {{vars.keycloak_secrets_wait}} ; then
+    echo "Keycloak pod not ready."
+    echo "Skipping keycloak environment configuration"
+    echo "Run manually: 'mise cluster:keycloak-autoconfigure'"
+    exit 0
+fi
+keylogin
+keycloak_update_attribute authority attributes.frontendUrl http://localhost:8100/auth
+keycloak_update_attribute consumer attributes.frontendUrl http://localhost:8200/auth
+"""
+
 [tasks."zscaler:install-cluster"]
-shell = "bash -e -c"
+shell = "bash -ec"
 description = "Installs Z-Scaler certificates inside the Minikube cluster."
 run = [
 """
@@ -342,7 +376,7 @@ SPRING_PROFILES_ACTIVE = "local-consumer"
 run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :usersroles spring-boot:run"
 
 [tasks."zscaler:install-jdk"]
-shell = "bash -e -c"
+shell = "bash -ec"
 description = "Imports Z-Scaler CA into the Java keystore."
 run = """
   {% if vars.zscaler_enabled %}
@@ -353,7 +387,7 @@ run = """
 """
 
 [tasks."zscaler:remove-jdk"]
-shell = "bash -e -c"
+shell = "bash -ec"
 description = "Removes the Z-Scaler CA from the Java keystore."
 run = """
 if ! keytool -delete -alias zscaler-ca -keystore {{env.JAVA_HOME}}/lib/security/cacerts -storepass changeit; then
