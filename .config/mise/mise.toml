@@ -150,6 +150,12 @@ run = "{{vars.run_mise_code_build}} --fail-never -Dlicense.skipDownloadLicenses 
 description = "Runs automation tests filtered by Cucumber tags."
 run = "mvnd -f {{vars.pathSimplBackend}}/tests/test-automation resources:resources resources:testResources compiler:compile compiler:testCompile surefire:test -Dcucumber.filter.tags={{arg(name=\"tags\")}}"
 
+[tasks."code:test-automation:run-all"]
+run = "mvnd -f {{vars.pathSimplBackend}}/tests/test-automation clean test allure:report"
+
+[tasks."code:test-automation:allure-report-serve"]
+run = "mvnd -f {{vars.pathSimplBackend}}/tests/test-automation allure:serve"
+
 [tasks."cluster:k"]
 run = "kubectl"
 
