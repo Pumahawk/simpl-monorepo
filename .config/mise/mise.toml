@@ -25,15 +25,15 @@ keycloak_secrets_wait = "1"
 lib_keycloak = """
 function echokpod() {
   echo -e "\\n⏳ Waiting for \\033[1;33mKeycloak\\033[0m status to become \\033[1;32mReady\\033[0m..."
-  kubectl get statefulset | grep --color=always -E -e $ -e keycloak
-  kubectl get pod | grep --color=always -E -e $ -e keycloak
+  kubectl -n local-authority get statefulset | grep --color=always -E -e $ -e keycloak
+  kubectl -n local-authority get pod | grep --color=always -E -e $ -e keycloak
 }
 
 function waitkpod() {
     local wait=$1
     for (( i = 0; i < $wait; i++ )); do
       echokpod
-      if kubectl wait --for=jsonpath='{.status.availableReplicas}'=1 statefulset.apps/local-authority-keycloak --timeout=10s 2>/dev/null; then
+      if kubectl wait -n local-authority --for=jsonpath='{.status.availableReplicas}'=1 statefulset.apps/local-authority-keycloak --timeout=10s 2>/dev/null; then
         return 0
       fi
     done
@@ -150,8 +150,20 @@ run = "{{vars.run_mise_code_build}} --fail-never -Dlicense.skipDownloadLicenses 
 description = "Runs automation tests filtered by Cucumber tags."
 run = "mvnd -f {{vars.pathSimplBackend}}/tests/test-automation resources:resources resources:testResources compiler:compile compiler:testCompile surefire:test -Dcucumber.filter.tags={{arg(name=\"tags\")}}"
 
+[tasks."code:test-automation:restart-postgrest"]
+shell = "bash -ec"
+run = """
+echo -e "Restart \\e[33mPostgREST\\e[0m deployments"
+kubectl -n local-authority rollout restart $(kubectl -n local-authority get deployments -oname | grep postgrest)
+"""
+
 [tasks."code:test-automation:run-all"]
-run = "mvnd -f {{vars.pathSimplBackend}}/tests/test-automation clean test allure:report"
+shell = "bash -c"
+run = [
+  { task = "code:test-automation:restart-postgrest" },
+  "sleep 30",
+  "mvnd -f {{vars.pathSimplBackend}}/tests/test-automation clean test allure:report",
+]
 
 [tasks."code:test-automation:allure-report-serve"]
 run = "mvnd -f {{vars.pathSimplBackend}}/tests/test-automation allure:serve"
