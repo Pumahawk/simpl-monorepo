@@ -408,7 +408,7 @@ run = """
 shell = "bash -ec"
 description = "Removes the Z-Scaler CA from the Java keystore."
 run = """
-if ! keytool -delete -alias zscaler-ca -keystore {{env.JAVA_HOME}}/lib/security/cacerts -storepass changeit; then
+if ! keytool -delete -alias zscaler-ca -keystore '{{env.JAVA_HOME}}/lib/security/cacerts' -storepass changeit; then
   echo "Unable to remove zscaler-ca from jdk"
 fi
 """
