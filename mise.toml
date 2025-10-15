@@ -140,11 +140,17 @@ run = "mvnd -f {{vars.pathSimplBackend}} spotless:apply"
 
 [tasks."code:build"]
 description = "Builds all projects with Maven, including tests."
-run = "mvnd -Dmvnd.connectTimeout=100000 clean install -fae -f {{vars.pathSimplBackend}}"
+run = [
+  "mvnd --stop",
+  "mvnd -Dmvnd.connectTimeout=100000 clean install -fae -f {{vars.pathSimplBackend}}",
+ ]
 
 [tasks."code:build:no-test"]
 description = "Builds all projects but skips tests and license downloads."
-run = "{{vars.run_mise_code_build}} --fail-never -Dlicense.skipDownloadLicenses -Dmaven.test.skip"
+run = [
+  "mvnd --stop",
+  "{{vars.run_mise_code_build}} --fail-never -Dlicense.skipDownloadLicenses -Dmaven.test.skip",
+]
 
 [tasks."code:test-automation:run-by-tag"]
 description = "Runs automation tests filtered by Cucumber tags."
@@ -414,7 +420,7 @@ fi
 """
 
 [env]
-PROJECT_RELEASE_VERSION = "2.5.0-RC"
+PROJECT_RELEASE_VERSION = "2.6.0-RC"
 KUBECONFIG = "./.config/.kube/config"
 
 #Database
