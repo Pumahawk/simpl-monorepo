@@ -141,7 +141,6 @@ run = "mvnd -f {{vars.pathSimplBackend}} spotless:apply"
 [tasks."code:build"]
 description = "Builds all projects with Maven, including tests."
 run = [
-  "mvnd --stop",
   "mvnd -Dmvnd.connectTimeout=100000 clean install -fae -f {{vars.pathSimplBackend}}",
  ]
 
