@@ -346,58 +346,91 @@ run = "git submodule update --remote --recursive"
 SPRING_PROFILES_ACTIVE = "local-authority"
 CRYPTO_SECRETKEYBASE64 = "KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A"
 [tasks."micro:run:authority-authenticationprovider"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :authenticationprovider spring-boot:run"
+dir = "{{vars.pathSimplBackend}}/microservices/authentication_provider"
+shell="bash -ec"
+run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+# run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:consumer-authenticationprovider".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
 CRYPTO_SECRETKEYBASE64 = "KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A"
 [tasks."micro:run:consumer-authenticationprovider"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :authenticationprovider spring-boot:run"
+dir = "{{vars.pathSimplBackend}}/microservices/authentication_provider"
+shell="bash -ec"
+run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+# run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-identityprovider".env]
 SPRING_PROFILES_ACTIVE = "local"
 [tasks."micro:run:authority-identityprovider"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :identity-provider spring-boot:run"
+dir = "{{vars.pathSimplBackend}}/microservices/identity-provider"
+shell="bash -ec"
+run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+# run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-onboarding".env]
 SPRING_PROFILES_ACTIVE = "local"
 [tasks."micro:run:authority-onboarding"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :onboarding spring-boot:run"
+dir = "{{vars.pathSimplBackend}}/microservices/onboarding"
+shell="bash -ec"
+run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+# run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-securityattributesprovider".env]
 SPRING_PROFILES_ACTIVE = "local"
 [tasks."micro:run:authority-securityattributesprovider"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :security-attributes-provider spring-boot:run"
+dir = "{{vars.pathSimplBackend}}/microservices/security-attributes-provider"
+shell="bash -ec"
+run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+# run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-tierone".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
 [tasks."micro:run:authority-tierone"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :tier1-gateway spring-boot:run"
+dir = "{{vars.pathSimplBackend}}/microservices/tier1-gateway"
+shell="bash -ec"
+run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+# run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:consumer-tierone".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-tierone"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :tier1-gateway spring-boot:run"
+dir = "{{vars.pathSimplBackend}}/microservices/tier1-gateway"
+shell="bash -ec"
+run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+# run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-tiertwo".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
 [tasks."micro:run:authority-tiertwo"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :tier2-gateway spring-boot:run"
+dir = "{{vars.pathSimplBackend}}/microservices/tier2-gateway"
+shell="bash -ec"
+run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+# run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:consumer-tiertwo".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-tiertwo"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :tier2-gateway spring-boot:run"
+dir = "{{vars.pathSimplBackend}}/microservices/tier2-gateway"
+shell="bash -ec"
+run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+# run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-usersroles".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
 [tasks."micro:run:authority-usersroles"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :usersroles spring-boot:run"
+dir = "{{vars.pathSimplBackend}}/microservices/users-roles"
+shell="bash -ec"
+run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+# run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:consumer-usersroles".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-usersroles"]
-run = "mvnd -Dmvnd.connectTimeout=100000 -f {{vars.pathSimplBackend}} -pl :usersroles spring-boot:run"
+dir = "{{vars.pathSimplBackend}}/microservices/users-roles"
+shell="bash -ec"
+run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+# run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."zscaler:install-jdk"]
 shell = "bash -ec"
