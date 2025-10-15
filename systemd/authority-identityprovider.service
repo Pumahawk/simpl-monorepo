@@ -3,5 +3,6 @@ Description=authority-identityprovider
 
 [Service]
 ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run micro:run:authority-identityprovider
+MemoryHigh=300M
 StandardOutput=journal
 StandardError=journal

@@ -3,5 +3,6 @@ Description=authority-usersroles
 
 [Service]
 ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run micro:run:authority-usersroles
+MemoryHigh=300M
 StandardOutput=journal
 StandardError=journal
