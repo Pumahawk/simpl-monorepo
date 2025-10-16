@@ -3,6 +3,6 @@ Description=authority-tiertwo
 
 [Service]
 ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run micro:run:authority-tiertwo
-MemoryHigh=300M
+Slice=simpl.slice
 StandardOutput=journal
 StandardError=journal

@@ -3,6 +3,6 @@ Description=consumer-tiertwo
 
 [Service]
 ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run micro:run:consumer-tiertwo
-MemoryHigh=300M
+Slice=simpl.slice
 StandardOutput=journal
 StandardError=journal

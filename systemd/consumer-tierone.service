@@ -3,6 +3,6 @@ Description=consumer-tierone
 
 [Service]
 ExecStart=mise --cd "${SIMPL_PROJECT_HOME}" run micro:run:consumer-tierone
-MemoryHigh=300M
+Slice=simpl.slice
 StandardOutput=journal
 StandardError=journal
