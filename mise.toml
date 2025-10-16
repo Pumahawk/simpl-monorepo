@@ -146,10 +146,7 @@ run = [
 
 [tasks."code:build:no-test"]
 description = "Builds all projects but skips tests and license downloads."
-run = [
-  "mvnd --stop",
-  "{{vars.run_mise_code_build}} --fail-never -Dlicense.skipDownloadLicenses -Dmaven.test.skip",
-]
+run = "{{vars.run_mise_code_build}} --fail-never -Dlicense.skipDownloadLicenses -Dmaven.test.skip"
 
 [tasks."code:test-automation:run-by-tag"]
 description = "Runs automation tests filtered by Cucumber tags."
