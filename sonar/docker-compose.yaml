@@ -5,7 +5,7 @@ services:
     build: ./sonar
     container_name: sonarqube
     ports:
-      - "9000:9000"
+      - "9001:9000"
     environment:
       SONAR_JDBC_URL: jdbc:postgresql://db:5432/sonarqube
       SONAR_JDBC_USERNAME: sonar
@@ -15,6 +15,7 @@ services:
       - db
     volumes:
       - sonarqube_data:/opt/sonarqube/data
+    mem_limit: 1g
 
   db:
     image: postgres:13
