@@ -98,6 +98,9 @@ run = [
 [tasks."initialization:build:code"]
 description = "Builds all projects without executing tests using Maven (`mvnd`)."
 run = [
+  "mvnd --stop",
+  "mvnd clean install -N -f simpl-repo/backend/libs/common",
+  "mvnd clean install -N -f simpl-repo/backend/libs/simpl-http-client",
   { task = "code:build:no-test" },
 ]
 
@@ -450,7 +453,7 @@ fi
 
 [env]
 PROJECT_RELEASE_VERSION = "2.6.0-RC"
-KUBECONFIG = "./.config/.kube/config"
+KUBECONFIG = "{{config_root}}/.config/.kube/config"
 
 #Database
 SIMPL_DB_PORT_FORWARD = "55432"

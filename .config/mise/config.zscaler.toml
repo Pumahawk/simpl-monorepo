@@ -1,2 +1,5 @@
 [vars]
 zscaler_enabled = true
+
+[env]
+NODE_EXTRA_CA_CERTS = "{{config_root}}/.config/certs/zscaler-ca.pem"
