@@ -347,7 +347,7 @@ CRYPTO_SECRETKEYBASE64 = "KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A"
 [tasks."micro:run:authority-authenticationprovider"]
 dir = "{{vars.pathSimplBackend}}/microservices/authentication_provider"
 shell="bash -ec"
-run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "java -jar $(find target -maxdepth 2 -name '*jar')"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:consumer-authenticationprovider".env]
@@ -356,7 +356,7 @@ CRYPTO_SECRETKEYBASE64 = "KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A"
 [tasks."micro:run:consumer-authenticationprovider"]
 dir = "{{vars.pathSimplBackend}}/microservices/authentication_provider"
 shell="bash -ec"
-run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "java -jar $(find target -maxdepth 2 -name '*jar')"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-identityprovider".env]
@@ -364,7 +364,7 @@ SPRING_PROFILES_ACTIVE = "local"
 [tasks."micro:run:authority-identityprovider"]
 dir = "{{vars.pathSimplBackend}}/microservices/identity-provider"
 shell="bash -ec"
-run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "java -jar $(find target -maxdepth 2 -name '*jar')"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-onboarding".env]
@@ -372,7 +372,7 @@ SPRING_PROFILES_ACTIVE = "local"
 [tasks."micro:run:authority-onboarding"]
 dir = "{{vars.pathSimplBackend}}/microservices/onboarding"
 shell="bash -ec"
-run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "java -jar $(find target -maxdepth 2 -name '*jar')"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-securityattributesprovider".env]
@@ -380,7 +380,7 @@ SPRING_PROFILES_ACTIVE = "local"
 [tasks."micro:run:authority-securityattributesprovider"]
 dir = "{{vars.pathSimplBackend}}/microservices/security-attributes-provider"
 shell="bash -ec"
-run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "java -jar $(find target -maxdepth 2 -name '*jar')"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-tierone".env]
@@ -388,7 +388,7 @@ SPRING_PROFILES_ACTIVE = "local-authority"
 [tasks."micro:run:authority-tierone"]
 dir = "{{vars.pathSimplBackend}}/microservices/tier1-gateway"
 shell="bash -ec"
-run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "java -jar $(find target -maxdepth 2 -name '*jar')"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:consumer-tierone".env]
@@ -396,7 +396,7 @@ SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-tierone"]
 dir = "{{vars.pathSimplBackend}}/microservices/tier1-gateway"
 shell="bash -ec"
-run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "java -jar $(find target -maxdepth 2 -name '*jar')"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-tiertwo".env]
@@ -404,7 +404,7 @@ SPRING_PROFILES_ACTIVE = "local-authority"
 [tasks."micro:run:authority-tiertwo"]
 dir = "{{vars.pathSimplBackend}}/microservices/tier2-gateway"
 shell="bash -ec"
-run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "java -jar $(find target -maxdepth 2 -name '*jar')"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:consumer-tiertwo".env]
@@ -412,7 +412,7 @@ SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-tiertwo"]
 dir = "{{vars.pathSimplBackend}}/microservices/tier2-gateway"
 shell="bash -ec"
-run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "java -jar $(find target -maxdepth 2 -name '*jar')"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-usersroles".env]
@@ -420,7 +420,7 @@ SPRING_PROFILES_ACTIVE = "local-authority"
 [tasks."micro:run:authority-usersroles"]
 dir = "{{vars.pathSimplBackend}}/microservices/users-roles"
 shell="bash -ec"
-run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "java -jar $(find target -maxdepth 2 -name '*jar')"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:consumer-usersroles".env]
@@ -428,7 +428,7 @@ SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-usersroles"]
 dir = "{{vars.pathSimplBackend}}/microservices/users-roles"
 shell="bash -ec"
-run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "java -jar $(find target -maxdepth 2 -name '*jar')"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."zscaler:install-jdk"]
