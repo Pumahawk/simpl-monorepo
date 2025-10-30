@@ -1,4 +1,5 @@
 # Table of contents
+
 - [SIMPL - Monorepo Development Environment](#simpl---monorepo-development-environment)
   - [Project Overview](#project-overview)
   - [Architecture](#architecture)
@@ -13,6 +14,15 @@
     - [Code Management](#code-management)
     - [Logging](#logging)
     - [Z-Scaler Integration](#z-scaler-integration)
+
+# TL;DR
+
+```bash
+git clone https://github.com/Pumahawk/simpl-monorepo.git
+cd simpl-monorepo
+mise trust -E zscaler,wait
+mise run -E zscaler,wait initialization:project
+```
 
 # SIMPL - Monorepo Development Environment
 
