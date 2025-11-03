@@ -78,3 +78,23 @@
 	path = simpl-repo/docs/documentation
 	url = https://code.europa.eu/simpl/simpl-open/development/iaa/documentation.git
 	branch = develop
+[submodule "simpl-repo/frontend/microfe/fe-authentication-provider"]
+	path = simpl-repo/frontend/microfe/fe-authentication-provider
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/fe-authentication-provider
+	branch = develop
+[submodule "simpl-repo/frontend/microfe/fe-identity-provider"]
+	path = simpl-repo/frontend/microfe/fe-identity-provider
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/fe-identity-provider
+	branch = develop
+[submodule "simpl-repo/frontend/microfe/fe-onboarding"]
+	path = simpl-repo/frontend/microfe/fe-onboarding
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/fe-onboarding
+	branch = develop
+[submodule "simpl-repo/frontend/microfe/fe-security-attribute-provider"]
+	path = simpl-repo/frontend/microfe/fe-security-attribute-provider
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/fe-security-attribute-provider
+	branch = develop
+[submodule "simpl-repo/frontend/microfe/fe-users-and-roles"]
+	path = simpl-repo/frontend/microfe/fe-users-and-roles
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/fe-users-and-roles
+	branch = develop
