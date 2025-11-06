@@ -108,7 +108,12 @@ function cleanDB() {
 	       local db="$(echo $db_conn | cut -d: -f1)"
 	       local user="$(echo $db_conn | cut -d: -f2)"
 	       local password="$(echo $db_conn | cut -d: -f3)"
-               ( PGPASSWORD="${password}" dropdb -f -U${user} "$db" && PGPASSWORD="${password}" createdb -U$user -O "$user" "$db" ) || { log "Unable drop or create db $db"; }
+               (
+                 kubectl_cmd exec -i postgresql-0 -- bash -eb << EOF
+echo "Delete $db from pod postgresql-0"
+PGPASSWORD="${password}" dropdb -f -U${user} "$db" && PGPASSWORD="${password}" createdb -U$user -O "$user" "$db"
+EOF
+                 ) || { log "Unable drop or create db $db"; }
        done
 	log "Success Clean Database"
 }
