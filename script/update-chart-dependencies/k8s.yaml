@@ -31,15 +31,15 @@ spec:
               }
               git config --global user.name 'CI Script'
               git config --global user.email 'project_779_bot_968636c24b2e429f6e52ce5a830e454a@noreply.code.europa.eu'
-              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/authority/Chart.yaml '.version | test("SNAPSHOT")' "iaa: update authority" feature/iaa-dsdev
-              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/data-provider/Chart.yaml '.version | test("SNAPSHOT")' "iaa: update data-provider" feature/iaa-dsdev
-              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/consumer/Chart.yaml '.version | test("SNAPSHOT")' "iaa: update consumer" feature/iaa-dsdev
-              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/authority/Chart.yaml '.version | test("SNAPSHOT") | not' "iaa-dsstaging: update authority" "feature/iaa-dsstaging"
-              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/data-provider/Chart.yaml '.version | test("SNAPSHOT") | not' "iaa-dsstaging: update data-provider" "feature/iaa-dsstaging"
-              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/consumer/Chart.yaml '.version | test("SNAPSHOT") | not' "iaa-dsstaging: update consumer" "feature/iaa-dsstaging"
-              # update_chart /tmp/p1/app-values/ovh-dev-components/iaa-dsdev/authority/Chart.yaml '.version | test("SNAPSHOT")' "iaa-dsdev: update authority"
-              # update_chart /tmp/p1/app-values/ovh-dev-components/iaa-dsdev/consumer/Chart.yaml '.version | test("SNAPSHOT")' "iaa-dsdev: update consumer"
-              # update_chart /tmp/p1/app-values/ovh-dev-components/iaa-dsdev/data-provider/Chart.yaml '.version | test("SNAPSHOT")' "iaa-dsdev: update data-provider"
+              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/authority/Chart.yaml '.version | (test("SNAPSHOT")) and (test("latest") | not)' "iaa: update authority" feature/iaa-dsdev
+              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/data-provider/Chart.yaml '.version | (test("SNAPSHOT")) and (test("latest") | not)' "iaa: update data-provider" feature/iaa-dsdev
+              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/consumer/Chart.yaml '.version | (test("SNAPSHOT")) and (test("latest") | not)' "iaa: update consumer" feature/iaa-dsdev
+              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/authority/Chart.yaml '.version | (test("SNAPSHOT") | not) and (test("latest") | not)' "iaa-dsstaging: update authority" "feature/iaa-dsstaging"
+              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/data-provider/Chart.yaml '.version | (test("SNAPSHOT") | not) and (test("latest") | not)' "iaa-dsstaging: update data-provider" "feature/iaa-dsstaging"
+              update_chart /tmp/p1/app-values/ovh-dev-components/iaa/consumer/Chart.yaml '.version | (test("SNAPSHOT") | not) and (test("latest") | not)' "iaa-dsstaging: update consumer" "feature/iaa-dsstaging"
+              # update_chart /tmp/p1/app-values/ovh-dev-components/iaa-dsdev/authority/Chart.yaml '.version | (test("SNAPSHOT")) and (test("latest") | not)' "iaa-dsdev: update authority"
+              # update_chart /tmp/p1/app-values/ovh-dev-components/iaa-dsdev/consumer/Chart.yaml '.version | (test("SNAPSHOT")) and (test("latest") | not)' "iaa-dsdev: update consumer"
+              # update_chart /tmp/p1/app-values/ovh-dev-components/iaa-dsdev/data-provider/Chart.yaml '.version | (test("SNAPSHOT")) and (test("latest") | not)' "iaa-dsdev: update data-provider"
 
             envFrom:
             - secretRef:
