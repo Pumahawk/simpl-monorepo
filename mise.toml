@@ -451,6 +451,21 @@ if ! keytool -delete -alias zscaler-ca -keystore '{{env.JAVA_HOME}}/lib/security
 fi
 """
 
+[tasks."db:clean"]
+shell = "bash -ec"
+run = """
+kubectl --namespace local-authority exec -i local-authority-postgresql-0 -- bash -eb << EOF
+  echo "Clean database: authority_authenticationprovider "; PGPASSWORD=postgres dropdb -f -U postgres authority_authenticationprovider; PGPASSWORD=postgres createdb -U postgres -O authority_authenticationprovider authority_authenticationprovider
+  echo "Clean database: authority_ejbca "; PGPASSWORD=postgres dropdb -f -U postgres authority_ejbca; PGPASSWORD=postgres createdb -U postgres -O ejbca authority_ejbca
+  echo "Clean database: authority_identityprovider "; PGPASSWORD=postgres dropdb -f -U postgres authority_identityprovider; PGPASSWORD=postgres createdb -U postgres -O authority_identityprovider authority_identityprovider
+  echo "Clean database: authority_onboarding "; PGPASSWORD=postgres dropdb -f -U postgres authority_onboarding; PGPASSWORD=postgres createdb -U postgres -O authority_onboarding authority_onboarding
+  echo "Clean database: authority_securityattributesprovider "; PGPASSWORD=postgres dropdb -f -U postgres authority_securityattributesprovider; PGPASSWORD=postgres createdb -U postgres -O authority_securityattributesprovider authority_securityattributesprovider
+  echo "Clean database: authority_usersroles "; PGPASSWORD=postgres dropdb -f -U postgres authority_usersroles; PGPASSWORD=postgres createdb -U postgres -O authority_usersroles authority_usersroles
+  echo "Clean database: consumer_authenticationprovider "; PGPASSWORD=postgres dropdb -f -U postgres consumer_authenticationprovider; PGPASSWORD=postgres createdb -U postgres -O consumer_authenticationprovider consumer_authenticationprovider
+  echo "Clean database: consumer_usersroles "; PGPASSWORD=postgres dropdb -f -U postgres consumer_usersroles; PGPASSWORD=postgres createdb -U postgres -O consumer_usersroles consumer_usersroles
+EOF
+"""
+
 [env]
 PROJECT_RELEASE_VERSION = "2.6.0-RC"
 KUBECONFIG = "{{config_root}}/.config/.kube/config"
