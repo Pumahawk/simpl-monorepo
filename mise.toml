@@ -22,6 +22,23 @@ run_cluster_forward_node_compose = "docker-cli-plugin-docker-compose -f .config/
 zscaler_enabled = false
 keycloak_secrets_wait = "1"
 
+lib_extract_jar = """
+function simpl_extract_jar_from_image() {
+  local image="${1?missing image}"
+  local cname=$(docker create "$image")
+  trap "docker rm -v '$cname' >/dev/null 2>&1" EXIT
+  docker export "$cname" | tar -xO app.jar
+}
+
+function simpl_extract_jar_from_image_to_file() {
+  local image="${1?missing image}"
+  local destination="${2?destination image}"
+  local dir_destination="$(dirname "$destination")"
+  mkdir -p "$dir_destination"
+  simpl_extract_jar_from_image "$image" > "$destination"
+}
+"""
+
 lib_keycloak = """
 function echokpod() {
   echo -e "\\n⏳ Waiting for \\033[1;33mKeycloak\\033[0m status to become \\033[1;32mReady\\033[0m..."
@@ -376,6 +393,15 @@ shell="bash -ec"
 # run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
 run = "docker run --network host --name  authority-authenticationprovider --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" -e \"CRYPTO_SECRETKEYBASE64={{env.CRYPTO_SECRETKEYBASE64}}\" {{env.SIMPL_DOCKER_MICRO_AUTHENTICATIONPROVIDER_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
+[tasks."micro:jar:download:authenticationprovider"]
+shell = "bash -ec"
+dir = "{{vars.pathSimplBackend}}/microservices/authentication_provider"
+run = """
+IMAGE="code.europa.eu:4567/simpl/simpl-open/development/iaa/authentication_provider"
+TAG={{arg(name=\"tag\")}}
+{{vars.lib_extract_jar}}
+simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar
+"""
 
 [tasks."micro:run:consumer-authenticationprovider".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
@@ -395,6 +421,15 @@ shell="bash -ec"
 # run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
 run = "docker run --network host --name  authority-identityprovider --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_IDENTITYPROVIDER_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
+[tasks."micro:jar:download:identityprovider"]
+shell = "bash -ec"
+dir = "{{vars.pathSimplBackend}}/microservices/identity-provider"
+run = """
+IMAGE="code.europa.eu:4567/simpl/simpl-open/development/iaa/identity-provider"
+TAG={{arg(name=\"tag\")}}
+{{vars.lib_extract_jar}}
+simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar
+"""
 
 [tasks."micro:run:authority-onboarding".env]
 SPRING_PROFILES_ACTIVE = "local"
@@ -404,6 +439,15 @@ shell="bash -ec"
 # run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
 run = "docker run --network host --name  authority-onboarding --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_ONBOARDING_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
+[tasks."micro:jar:download:onboarding"]
+shell = "bash -ec"
+dir = "{{vars.pathSimplBackend}}/microservices/onboarding"
+run = """
+IMAGE="code.europa.eu:4567/simpl/simpl-open/development/iaa/onboarding"
+TAG={{arg(name=\"tag\")}}
+{{vars.lib_extract_jar}}
+simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar
+"""
 
 [tasks."micro:run:authority-securityattributesprovider".env]
 SPRING_PROFILES_ACTIVE = "local"
@@ -413,6 +457,15 @@ shell="bash -ec"
 # run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
 run = "docker run --network host --name  authority-securityattributesprovider --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_SECURITYATTRIBUTESPROVIDER_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
+[tasks."micro:jar:download:securityattributesprovider"]
+shell = "bash -ec"
+dir = "{{vars.pathSimplBackend}}/microservices/security-attributes-provider"
+run = """
+IMAGE="code.europa.eu:4567/simpl/simpl-open/development/iaa/security-attributes-provider"
+TAG={{arg(name=\"tag\")}}
+{{vars.lib_extract_jar}}
+simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar
+"""
 
 [tasks."micro:run:authority-tierone".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
@@ -422,6 +475,15 @@ shell="bash -ec"
 # run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
 run = "docker run --network host --name  authority-tierone --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_TIERONE_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
+[tasks."micro:jar:download:tierone"]
+shell = "bash -ec"
+dir = "{{vars.pathSimplBackend}}/microservices/tier1-gateway"
+run = """
+IMAGE="code.europa.eu:4567/simpl/simpl-open/development/iaa/tier1-gateway"
+TAG={{arg(name=\"tag\")}}
+{{vars.lib_extract_jar}}
+simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar
+"""
 
 [tasks."micro:run:consumer-tierone".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
@@ -440,6 +502,15 @@ shell="bash -ec"
 # run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
 run = "docker run --network host --name  authority-tiertwo --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_TIERTWO_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
+[tasks."micro:jar:download:tiertwo"]
+shell = "bash -ec"
+dir = "{{vars.pathSimplBackend}}/microservices/tier2-gateway"
+run = """
+IMAGE="code.europa.eu:4567/simpl/simpl-open/development/iaa/tier2-gateway"
+TAG={{arg(name=\"tag\")}}
+{{vars.lib_extract_jar}}
+simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar
+"""
 
 [tasks."micro:run:consumer-tiertwo".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
@@ -458,6 +529,15 @@ shell="bash -ec"
 # run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
 run = "docker run --network host --name  authority-usersroles --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_USERSROLES_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
+[tasks."micro:jar:download:usersroles"]
+shell = "bash -ec"
+dir = "{{vars.pathSimplBackend}}/microservices/users-roles"
+run = """
+IMAGE="code.europa.eu:4567/simpl/simpl-open/development/iaa/users-roles"
+TAG={{arg(name=\"tag\")}}
+{{vars.lib_extract_jar}}
+simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar
+"""
 
 [tasks."micro:run:consumer-usersroles".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
