@@ -115,6 +115,7 @@ run = [
 description = "Creates the Minikube cluster, configures port forwarding, and installs or upgrades the authority chart."
 run = [
   { task = "cluster:create" },
+  { task = "cluster:install-ingress-addon" },
   { task = "initialization:zscaler" },
   { task = "cluster:forward-node-up" },
   { task = "cluster:redpanda:up" },
@@ -227,6 +228,12 @@ run = "docker-cli-plugin-docker-compose -p simpl-redpanda -f .config/docker/redp
 description = "Shuts down all port forwards."
 run = "{{vars.run_cluster_forward_node_compose}} down -v"
 
+[tasks."cluster:install-ingress-addon"]
+run = [
+  "minikube --profile=simpl-control-plane addons enable ingress",
+  "minikube --profile=simpl-control-plane addons enable ingress-dns",
+]
+
 [tasks."cluster:create"]
 description = "Starts Minikube with a dedicated Docker network and profile."
 run = "minikube start --namespace local-authority --network=simpl-network --driver=docker --profile=simpl-control-plane"
@@ -290,6 +297,21 @@ run = [
   """,
  "kubens local-authority",
  { task = "cluster:kube-redpanda-scale-0" },
+]
+
+[tasks."cluster:authority-fe-install-or-upgrade"]
+description = "Installs or upgrades the local authority Helm chart and switches namespace."
+run = [
+  """
+  helm upgrade \
+  -i \
+  --dependency-update \
+  --create-namespace \
+  -n local-authority-fe \
+  local-authority-fe \
+  {{config_root}}/helm-charts/simpl-frontend/local-authority/
+  """,
+ "kubens local-authority",
 ]
 
 [tasks."cluster:kube-redpanda-scale-0"]

@@ -1,0 +1,79 @@
+fe-authentication-provider:
+  hostFe: localhost
+  cors: 
+    allowOrigin: http://localhost:33443
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "http://localhost:8100"
+  - name: KEYCLOAK_URL
+    value: "http://localhost:8100/auth"
+  - name: KEYCLOAK_REALM
+    value: "authority"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+
+fe-identity-provider:
+  hostFe: localhost
+  cors: 
+    allowOrigin: http://localhost:33443
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "http://localhost:8100"
+  - name: KEYCLOAK_URL
+    value: "http://localhost:8100/auth"
+  - name: KEYCLOAK_REALM
+    value: "authority"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+
+fe-onboarding:
+  hostFe: localhost
+  cors: 
+    allowOrigin: http://localhost:33443
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "http://localhost:8100"
+  - name: KEYCLOAK_URL
+    value: "http://localhost:8100/auth"
+  - name: KEYCLOAK_REALM
+    value: "authority"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+
+fe-security-attribute-provider:
+  hostFe: localhost
+  cors: 
+    allowOrigin: http://localhost:33443
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "http://localhost:8100"
+  - name: KEYCLOAK_URL
+    value: "http://localhost:8100/auth"
+  - name: KEYCLOAK_REALM
+    value: "authority"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+
+fe-users-and-roles:
+  hostFe: localhost
+  cors: 
+    allowOrigin: http://localhost:33443
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "http://localhost:8100"
+  - name: KEYCLOAK_URL
+    value: "http://localhost:8100/auth"
+  - name: KEYCLOAK_REALM
+    value: "authority"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
