@@ -351,7 +351,8 @@ CRYPTO_SECRETKEYBASE64 = "KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A"
 [tasks."micro:run:authority-authenticationprovider"]
 dir = "{{vars.pathSimplBackend}}/microservices/authentication_provider"
 shell="bash -ec"
-run = "java -jar $(find target -maxdepth 2 -name '*jar')"
+# run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "docker run --network host --name  authority-authenticationprovider --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" -e \"CRYPTO_SECRETKEYBASE64={{env.CRYPTO_SECRETKEYBASE64}}\" {{env.SIMPL_DOCKER_MICRO_AUTHENTICATIONPROVIDER_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:consumer-authenticationprovider".env]
@@ -360,7 +361,8 @@ CRYPTO_SECRETKEYBASE64 = "KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A"
 [tasks."micro:run:consumer-authenticationprovider"]
 dir = "{{vars.pathSimplBackend}}/microservices/authentication_provider"
 shell="bash -ec"
-run = "java -jar $(find target -maxdepth 2 -name '*jar')"
+# run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "docker run --network host --name  consumer-authenticationprovider --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" -e \"CRYPTO_SECRETKEYBASE64={{env.CRYPTO_SECRETKEYBASE64}}\" {{env.SIMPL_DOCKER_MICRO_AUTHENTICATIONPROVIDER_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-identityprovider".env]
@@ -368,7 +370,8 @@ SPRING_PROFILES_ACTIVE = "local"
 [tasks."micro:run:authority-identityprovider"]
 dir = "{{vars.pathSimplBackend}}/microservices/identity-provider"
 shell="bash -ec"
-run = "java -jar $(find target -maxdepth 2 -name '*jar')"
+# run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "docker run --network host --name  authority-identityprovider --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_IDENTITYPROVIDER_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-onboarding".env]
@@ -376,7 +379,8 @@ SPRING_PROFILES_ACTIVE = "local"
 [tasks."micro:run:authority-onboarding"]
 dir = "{{vars.pathSimplBackend}}/microservices/onboarding"
 shell="bash -ec"
-run = "java -jar $(find target -maxdepth 2 -name '*jar')"
+# run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "docker run --network host --name  authority-onboarding --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_ONBOARDING_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-securityattributesprovider".env]
@@ -384,7 +388,8 @@ SPRING_PROFILES_ACTIVE = "local"
 [tasks."micro:run:authority-securityattributesprovider"]
 dir = "{{vars.pathSimplBackend}}/microservices/security-attributes-provider"
 shell="bash -ec"
-run = "java -jar $(find target -maxdepth 2 -name '*jar')"
+# run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "docker run --network host --name  authority-securityattributesprovider --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_SECURITYATTRIBUTESPROVIDER_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-tierone".env]
@@ -392,7 +397,8 @@ SPRING_PROFILES_ACTIVE = "local-authority"
 [tasks."micro:run:authority-tierone"]
 dir = "{{vars.pathSimplBackend}}/microservices/tier1-gateway"
 shell="bash -ec"
-run = "java -jar $(find target -maxdepth 2 -name '*jar')"
+# run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "docker run --network host --name  authority-tierone --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_TIERONE_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:consumer-tierone".env]
@@ -400,7 +406,8 @@ SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-tierone"]
 dir = "{{vars.pathSimplBackend}}/microservices/tier1-gateway"
 shell="bash -ec"
-run = "java -jar $(find target -maxdepth 2 -name '*jar')"
+# run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "docker run --network host --name  consumer-tierone --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_TIERONE_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-tiertwo".env]
@@ -408,7 +415,8 @@ SPRING_PROFILES_ACTIVE = "local-authority"
 [tasks."micro:run:authority-tiertwo"]
 dir = "{{vars.pathSimplBackend}}/microservices/tier2-gateway"
 shell="bash -ec"
-run = "java -jar $(find target -maxdepth 2 -name '*jar')"
+# run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "docker run --network host --name  authority-tiertwo --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_TIERTWO_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:consumer-tiertwo".env]
@@ -416,7 +424,8 @@ SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-tiertwo"]
 dir = "{{vars.pathSimplBackend}}/microservices/tier2-gateway"
 shell="bash -ec"
-run = "java -jar $(find target -maxdepth 2 -name '*jar')"
+# run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "docker run --network host --name  consumer-tiertwo --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_TIERTWO_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-usersroles".env]
@@ -424,7 +433,8 @@ SPRING_PROFILES_ACTIVE = "local-authority"
 [tasks."micro:run:authority-usersroles"]
 dir = "{{vars.pathSimplBackend}}/microservices/users-roles"
 shell="bash -ec"
-run = "java -jar $(find target -maxdepth 2 -name '*jar')"
+# run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "docker run --network host --name  authority-usersroles --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_USERSROLES_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:consumer-usersroles".env]
@@ -432,7 +442,8 @@ SPRING_PROFILES_ACTIVE = "local-consumer"
 [tasks."micro:run:consumer-usersroles"]
 dir = "{{vars.pathSimplBackend}}/microservices/users-roles"
 shell="bash -ec"
-run = "java -jar $(find target -maxdepth 2 -name '*jar')"
+# run = "java -jar target/$(ls target | grep -E \\*\\.jar$)"
+run = "docker run --network host --name  consumer-usersroles --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_USERSROLES_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."zscaler:install-jdk"]
@@ -476,3 +487,13 @@ KUBECONFIG = "{{config_root}}/.config/.kube/config"
 
 #Database
 SIMPL_DB_PORT_FORWARD = "55432"
+
+# Docker
+
+SIMPL_DOCKER_MICRO_AUTHENTICATIONPROVIDER_IMAGE = "code.europa.eu:4567/simpl/simpl-open/development/iaa/authentication_provider:2.8.0-rc.latest"
+SIMPL_DOCKER_MICRO_IDENTITYPROVIDER_IMAGE = "code.europa.eu:4567/simpl/simpl-open/development/iaa/identity-provider:2.8.0-rc.latest"
+SIMPL_DOCKER_MICRO_ONBOARDING_IMAGE = "code.europa.eu:4567/simpl/simpl-open/development/iaa/onboarding:2.8.0-rc.latest"
+SIMPL_DOCKER_MICRO_SECURITYATTRIBUTESPROVIDER_IMAGE = "code.europa.eu:4567/simpl/simpl-open/development/iaa/security-attributes-provider"
+SIMPL_DOCKER_MICRO_TIERONE_IMAGE = "code.europa.eu:4567/simpl/simpl-open/development/iaa/tier1-gateway:2.8.0-rc.latest"
+SIMPL_DOCKER_MICRO_TIERTWO_IMAGE = "code.europa.eu:4567/simpl/simpl-open/development/iaa/tier2-gateway:2.8.0-SNAPSHOT.latest"
+SIMPL_DOCKER_MICRO_USERSROLES_IMAGE = "code.europa.eu:4567/simpl/simpl-open/development/iaa/users-roles:2.8.0-rc.latest"
