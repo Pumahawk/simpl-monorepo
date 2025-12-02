@@ -25,7 +25,8 @@ keycloak_secrets_wait = "1"
 lib_extract_jar = """
 function simpl_extract_jar_from_image() {
   local image="${1?missing image}"
-  local cname=$(docker create "$image")
+  local pull_arg="${SIMPL_DOWNLOAD_PULL-0}"
+  local cname=$(docker create $( [ "$pull_arg" -ne 0 ] && echo -n "--pull=always" ) "$image")
   trap "docker rm -v '$cname' >/dev/null 2>&1" EXIT
   docker export "$cname" | tar -xO app.jar
 }
@@ -317,7 +318,6 @@ run = [
 ]
 
 [tasks."cluster:authority-fe-install-or-upgrade"]
-description = "Installs or upgrades the local authority Helm chart and switches namespace."
 run = [
   """
   helm upgrade \
@@ -382,7 +382,20 @@ run = "git submodule init"
 
 [tasks."git:update-all"]
 description = "Updates all submodules recursively to the latest remote commits."
-run = "git submodule update --remote --recursive"
+run = "git submodule update --remote --recursive -N"
+
+[tasks."micro:jar:download:all"]
+run = [
+{ tasks = [
+  "micro:jar:download:authenticationprovider latest",
+  "micro:jar:download:identityprovider latest",
+  "micro:jar:download:onboarding latest",
+  "micro:jar:download:securityattributesprovider latest",
+  "micro:jar:download:tierone latest",
+  "micro:jar:download:tiertwo latest",
+  "micro:jar:download:usersroles latest",
+  ]}
+]
 
 [tasks."micro:run:authority-authenticationprovider".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
@@ -482,7 +495,7 @@ run = """
 IMAGE="code.europa.eu:4567/simpl/simpl-open/development/iaa/tier1-gateway"
 TAG={{arg(name=\"tag\")}}
 {{vars.lib_extract_jar}}
-simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar
+simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar "$@"
 """
 
 [tasks."micro:run:consumer-tierone".env]
@@ -509,7 +522,7 @@ run = """
 IMAGE="code.europa.eu:4567/simpl/simpl-open/development/iaa/tier2-gateway"
 TAG={{arg(name=\"tag\")}}
 {{vars.lib_extract_jar}}
-simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar
+simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar "$@"
 """
 
 [tasks."micro:run:consumer-tiertwo".env]
@@ -536,7 +549,7 @@ run = """
 IMAGE="code.europa.eu:4567/simpl/simpl-open/development/iaa/users-roles"
 TAG={{arg(name=\"tag\")}}
 {{vars.lib_extract_jar}}
-simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar
+simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar "$@"
 """
 
 [tasks."micro:run:consumer-usersroles".env]
