@@ -133,8 +133,8 @@ run = [
 description = "Creates the Minikube cluster, configures port forwarding, and installs or upgrades the authority chart."
 run = [
   { task = "cluster:create" },
-  { task = "cluster:install-ingress-addon" },
   { task = "initialization:zscaler" },
+  { task = "cluster:install-ingress-addon" },
   { task = "cluster:forward-node-up" },
   { task = "cluster:redpanda:up" },
   { task = "cluster:authority-install-or-upgrade" },
@@ -315,6 +315,20 @@ run = [
   """,
  "kubens local-authority",
  { task = "cluster:kube-redpanda-scale-0" },
+]
+
+[tasks."cluster:participant-fe-install-or-upgrade"]
+run = [
+  """
+  helm upgrade \
+  -i \
+  --dependency-update \
+  --create-namespace \
+  -n local-participant-fe \
+  local-participant-fe \
+  {{config_root}}/helm-charts/simpl-frontend/local-participant/
+  """,
+ "kubens local-authority",
 ]
 
 [tasks."cluster:authority-fe-install-or-upgrade"]
