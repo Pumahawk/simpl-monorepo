@@ -1,0 +1,33 @@
+fe-authentication-provider:
+  hostFe: localhost
+  path: "/participant/participant-utility"
+  cors: 
+    allowOrigin: http://localhost:33443
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "http://localhost:8200"
+  - name: KEYCLOAK_URL
+    value: "http://localhost:8200/auth"
+  - name: KEYCLOAK_REALM
+    value: "consumer"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+
+fe-users-and-roles:
+  hostFe: localhost
+  path: "/participant/users-roles"
+  cors: 
+    allowOrigin: http://localhost:33443
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "http://localhost:8200"
+  - name: KEYCLOAK_URL
+    value: "http://localhost:8200/auth"
+  - name: KEYCLOAK_REALM
+    value: "consumer"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"

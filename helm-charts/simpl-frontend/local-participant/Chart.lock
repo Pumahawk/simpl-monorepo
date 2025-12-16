@@ -1,0 +1,9 @@
+dependencies:
+- name: fe-authentication-provider
+  repository: https://code.europa.eu/api/v4/projects/1308/packages/helm/stable
+  version: 2.8.0-SNAPSHOT.75.8fa81d7d
+- name: fe-users-and-roles
+  repository: https://code.europa.eu/api/v4/projects/1310/packages/helm/stable
+  version: 2.7.0-SNAPSHOT.49.871ccffc
+digest: sha256:7ec6a4507f6cffe14f11f09a6abbed44c617a3b2db90cd83e59fd8cdca6810ec
+generated: "2025-12-04T13:26:04.457866329+01:00"

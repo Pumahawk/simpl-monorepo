@@ -4,18 +4,22 @@ version: 1.0.0
 Appversion: 1.0.0
 description: This Chart deploys a frontend SIMPL Authority.
 dependencies:
+
+# Authority section
+
   - name: fe-authentication-provider
     repository: https://code.europa.eu/api/v4/projects/1308/packages/helm/stable
-    version: 2.8.0-SNAPSHOT.75.8fa81d7d
+    version: 2.8.0
   - name: fe-identity-provider
     repository: https://code.europa.eu/api/v4/projects/1311/packages/helm/stable
-    version: 2.8.0-SNAPSHOT.95.a2cf3f71
+    version: 2.8.0
   - name: fe-onboarding
     repository: https://code.europa.eu/api/v4/projects/1307/packages/helm/stable
-    version: 2.8.0-SNAPSHOT.latest
+    version: 2.8.0
   - name: fe-security-attribute-provider
     repository: https://code.europa.eu/api/v4/projects/1309/packages/helm/stable
-    version: 2.7.0-SNAPSHOT.59.2d8af236
+    version: 2.8.0
   - name: fe-users-and-roles
     repository: https://code.europa.eu/api/v4/projects/1310/packages/helm/stable
-    version: 2.7.0-SNAPSHOT.49.871ccffc
+    version: 2.8.0
+

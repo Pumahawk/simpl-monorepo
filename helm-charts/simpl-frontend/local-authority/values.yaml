@@ -1,5 +1,6 @@
 fe-authentication-provider:
   hostFe: localhost
+  path: "/authority/participant-utility"
   cors: 
     allowOrigin: http://localhost:33443
   ingress:
@@ -16,6 +17,7 @@ fe-authentication-provider:
 
 fe-identity-provider:
   hostFe: localhost
+  path: "/authority/identity-provider"
   cors: 
     allowOrigin: http://localhost:33443
   ingress:
@@ -32,6 +34,7 @@ fe-identity-provider:
 
 fe-onboarding:
   hostFe: localhost
+  path: "/authority/onboarding"
   cors: 
     allowOrigin: http://localhost:33443
   ingress:
@@ -48,6 +51,7 @@ fe-onboarding:
 
 fe-security-attribute-provider:
   hostFe: localhost
+  path: "/authority/sap"
   cors: 
     allowOrigin: http://localhost:33443
   ingress:
@@ -64,6 +68,7 @@ fe-security-attribute-provider:
 
 fe-users-and-roles:
   hostFe: localhost
+  path: "/authority/users-roles"
   cors: 
     allowOrigin: http://localhost:33443
   ingress:

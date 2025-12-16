@@ -1,0 +1,32 @@
+hostFe: localhost # this is an example, update this field
+cors: # this is an example, update this field
+  allowOrigin: http://localhost:8100,http://localhost,http://localhost:4202,http://localhost:4203,http://localhost:3000
+ingress:
+  issuer: dev-prod
+
+env:
+- name: API_URL
+  value: "http://localhost:8100" # this is an example, update this field
+- name: KEYCLOAK_URL
+  value: "http://localhost:8100/auth" # this is an example, update this field
+- name: KEYCLOAK_REALM
+  value: "authority" 
+- name: KEYCLOAK_CLIENT_ID
+  value: "frontend-cli"
+  
+microfrontends:
+# uncomment if you are deploying an authority
+- name: sap
+  application: sap
+  path: "/sap"
+# uncomment if you are deploying an authority
+- name: onboarding
+  application: onboarding
+  path: "/onboarding"
+- name: usersroles
+  application: usersandroles
+  path: "/users-roles"
+# uncomment if you are deploying a participant
+- name: participant
+  application: participant-utility
+  path: "/participant-utility"

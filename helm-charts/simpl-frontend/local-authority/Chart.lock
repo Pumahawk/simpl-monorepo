@@ -14,5 +14,5 @@ dependencies:
 - name: fe-users-and-roles
   repository: https://code.europa.eu/api/v4/projects/1310/packages/helm/stable
   version: 2.7.0-SNAPSHOT.49.871ccffc
-digest: sha256:4258f92f5109da536eb1e8ee0d68a715745b89b914d067a9283b10d2ed1ad0a4
-generated: "2025-11-24T12:31:47.222705265+01:00"
+digest: sha256:ac40656f902643435ab3f834da8258c02d19050eea4bf3b97a1a62dd2f9b1f74
+generated: "2025-12-04T13:21:15.559775126+01:00"
