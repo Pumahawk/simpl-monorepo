@@ -345,6 +345,13 @@ run = [
  "kubens local-authority",
 ]
 
+[tasks."cluster:fe-mono-install-authority"]
+run = "helm upgrade simpl-fe simpl-fe-charts/simpl-fe --version {{arg(name=\"version\")}} --values helm-charts/fe-values.yaml"
+
+[tasks."cluster:fe-mono-install-participant"]
+run = "helm upgrade simpl-fe simpl-fe-charts/simpl-fe --version {{arg(name=\"version\")}} --values helm-charts/fe-part-values.yaml"
+
+
 [tasks."cluster:kube-redpanda-scale-0"]
  run = [
    "kubectl -n local-authority scale --replicas 0 deployment.apps/redpanda",
@@ -414,10 +421,15 @@ run = [
 [tasks."micro:run:authority-authenticationprovider".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
 CRYPTO_SECRETKEYBASE64 = "KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A"
+
+[tasks."micro:coverage:download:authority-authenticationprovider"]
+dir = "{{vars.pathSimplBackend}}/microservices/authentication_provider"
+run = "jacoco dump --address localhost --port 6300 --destfile target/authority-jacoco.exec --reset"
+
 [tasks."micro:run:authority-authenticationprovider"]
 dir = "{{vars.pathSimplBackend}}/microservices/authentication_provider"
 shell="bash -ec"
-run = "java -jar {{env.SIMPL_MICRO_JAR_AUTHENTICATIONPROVIDER}}"
+run = "bash -c 'java -javaagent:\"$(ls -1 $HOME/.m2/repository/org/jacoco/org.jacoco.agent/*/org.jacoco.agent-*-runtime.jar | sort -V | tail -n 1)\"=destfile=target/jacoco.exec,append=false,output=tcpserver,address=*,port=6300 -jar {{env.SIMPL_MICRO_JAR_AUTHENTICATIONPROVIDER}}'"
 # run = "docker run --network host --name  authority-authenticationprovider --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" -e \"CRYPTO_SECRETKEYBASE64={{env.CRYPTO_SECRETKEYBASE64}}\" {{env.SIMPL_DOCKER_MICRO_AUTHENTICATIONPROVIDER_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 [tasks."micro:jar:download:authenticationprovider"]
@@ -433,19 +445,29 @@ simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar
 [tasks."micro:run:consumer-authenticationprovider".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
 CRYPTO_SECRETKEYBASE64 = "KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A"
+
+[tasks."micro:coverage:download:consumer-authenticationprovider"]
+dir = "{{vars.pathSimplBackend}}/microservices/authentication_provider"
+run = "jacoco dump --address localhost --port 6301 --destfile target/consumer-jacoco.exec --reset"
+
 [tasks."micro:run:consumer-authenticationprovider"]
 dir = "{{vars.pathSimplBackend}}/microservices/authentication_provider"
 shell="bash -ec"
-run = "java -jar {{env.SIMPL_MICRO_JAR_AUTHENTICATIONPROVIDER}}"
+run = "bash -c 'java -javaagent:\"$(ls -1 $HOME/.m2/repository/org/jacoco/org.jacoco.agent/*/org.jacoco.agent-*-runtime.jar | sort -V | tail -n 1)\"=destfile=target/jacoco.exec,append=false,output=tcpserver,address=*,port=6301 -jar {{env.SIMPL_MICRO_JAR_AUTHENTICATIONPROVIDER}}'"
 # run = "docker run --network host --name  consumer-authenticationprovider --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" -e \"CRYPTO_SECRETKEYBASE64={{env.CRYPTO_SECRETKEYBASE64}}\" {{env.SIMPL_DOCKER_MICRO_AUTHENTICATIONPROVIDER_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-identityprovider".env]
 SPRING_PROFILES_ACTIVE = "local"
+
+[tasks."micro:coverage:download:authority-identityprovider"]
+dir = "{{vars.pathSimplBackend}}/microservices/identity-provider"
+run = "jacoco dump --address localhost --port 6302 --destfile target/authority-jacoco.exec --reset"
+
 [tasks."micro:run:authority-identityprovider"]
 dir = "{{vars.pathSimplBackend}}/microservices/identity-provider"
 shell="bash -ec"
-run = "java -jar {{env.SIMPL_MICRO_JAR_IDENTITYPROVIDER}}"
+run = "bash -c 'java  -agentlib:jdwp=transport=dt_socket,server=y,suspend=${JAVAD_SUSPEND:-n},address=${JAVAD_ADDRESS:-0.0.0.0:9090} -javaagent:\"$(ls -1 $HOME/.m2/repository/org/jacoco/org.jacoco.agent/*/org.jacoco.agent-*-runtime.jar | sort -V | tail -n 1)\"=destfile=target/jacoco.exec,append=false,output=tcpserver,address=*,port=6302 -jar {{env.SIMPL_MICRO_JAR_IDENTITYPROVIDER}}'"
 # run = "docker run --network host --name  authority-identityprovider --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_IDENTITYPROVIDER_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 [tasks."micro:jar:download:identityprovider"]
@@ -460,10 +482,15 @@ simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar
 
 [tasks."micro:run:authority-onboarding".env]
 SPRING_PROFILES_ACTIVE = "local"
+
+[tasks."micro:coverage:download:authority-onboarding"]
+dir = "{{vars.pathSimplBackend}}/microservices/onboarding"
+run = "jacoco dump --address localhost --port 6303 --destfile target/authority-jacoco.exec --reset"
+
 [tasks."micro:run:authority-onboarding"]
 dir = "{{vars.pathSimplBackend}}/microservices/onboarding"
 shell="bash -ec"
-run = "java -jar {{env.SIMPL_MICRO_JAR_ONBOARDING}}"
+run = "bash -c 'java -javaagent:\"$(ls -1 $HOME/.m2/repository/org/jacoco/org.jacoco.agent/*/org.jacoco.agent-*-runtime.jar | sort -V | tail -n 1)\"=destfile=target/jacoco.exec,append=false,output=tcpserver,address=*,port=6303 -jar {{env.SIMPL_MICRO_JAR_ONBOARDING}}'"
 # run = "docker run --network host --name  authority-onboarding --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_ONBOARDING_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 [tasks."micro:jar:download:onboarding"]
@@ -478,10 +505,15 @@ simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar
 
 [tasks."micro:run:authority-securityattributesprovider".env]
 SPRING_PROFILES_ACTIVE = "local"
+
+[tasks."micro:coverage:download:authority-securityattributesprovider"]
+dir = "{{vars.pathSimplBackend}}/microservices/security-attributes-provider"
+run = "jacoco dump --address localhost --port 6304 --destfile target/authority-jacoco.exec --reset"
+
 [tasks."micro:run:authority-securityattributesprovider"]
 dir = "{{vars.pathSimplBackend}}/microservices/security-attributes-provider"
 shell="bash -ec"
-run = "java -jar {{env.SIMPL_MICRO_JAR_SECURITYATTRIBUTESPROVIDER}}"
+run = "bash -c 'java -javaagent:\"$(ls -1 $HOME/.m2/repository/org/jacoco/org.jacoco.agent/*/org.jacoco.agent-*-runtime.jar | sort -V | tail -n 1)\"=destfile=target/jacoco.exec,append=false,output=tcpserver,address=*,port=6304 -jar {{env.SIMPL_MICRO_JAR_SECURITYATTRIBUTESPROVIDER}}'"
 # run = "docker run --network host --name  authority-securityattributesprovider --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_SECURITYATTRIBUTESPROVIDER_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 [tasks."micro:jar:download:securityattributesprovider"]
@@ -496,10 +528,15 @@ simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar
 
 [tasks."micro:run:authority-tierone".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
+
+[tasks."micro:coverage:download:authority-tierone"]
+dir = "{{vars.pathSimplBackend}}/microservices/tier1-gateway"
+run = "jacoco dump --address localhost --port 6305 --destfile target/authority-jacoco.exec --reset"
+
 [tasks."micro:run:authority-tierone"]
 dir = "{{vars.pathSimplBackend}}/microservices/tier1-gateway"
 shell="bash -ec"
-run = "java -jar {{env.SIMPL_MICRO_JAR_TIERONE}}"
+run = "bash -c 'java -javaagent:\"$(ls -1 $HOME/.m2/repository/org/jacoco/org.jacoco.agent/*/org.jacoco.agent-*-runtime.jar | sort -V | tail -n 1)\"=destfile=target/jacoco.exec,append=false,output=tcpserver,address=*,port=6305 -jar {{env.SIMPL_MICRO_JAR_TIERONE}}'"
 # run = "docker run --network host --name  authority-tierone --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_TIERONE_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 [tasks."micro:jar:download:tierone"]
@@ -514,15 +551,25 @@ simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar "$@"
 
 [tasks."micro:run:consumer-tierone".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
+
+[tasks."micro:coverage:download:consumer-tierone"]
+dir = "{{vars.pathSimplBackend}}/microservices/tier1-gateway"
+run = "jacoco dump --address localhost --port 6306 --destfile target/consumer-jacoco.exec --reset"
+
 [tasks."micro:run:consumer-tierone"]
 dir = "{{vars.pathSimplBackend}}/microservices/tier1-gateway"
 shell="bash -ec"
-run = "java -jar {{env.SIMPL_MICRO_JAR_TIERONE}}"
+run = "bash -c 'java -javaagent:\"$(ls -1 $HOME/.m2/repository/org/jacoco/org.jacoco.agent/*/org.jacoco.agent-*-runtime.jar | sort -V | tail -n 1)\"=destfile=target/jacoco.exec,append=false,output=tcpserver,address=*,port=6306 -jar {{env.SIMPL_MICRO_JAR_TIERONE}}'"
 # run = "docker run --network host --name  consumer-tierone --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_TIERONE_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-tiertwo".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
+
+[tasks."micro:coverage:download:authority-tiertwo"]
+dir = "{{vars.pathSimplBackend}}/microservices/tier2-gateway"
+run = "jacoco dump --address localhost --port XXXX --destfile target/authority-jacoco.exec --reset"
+
 [tasks."micro:run:authority-tiertwo"]
 dir = "{{vars.pathSimplBackend}}/microservices/tier2-gateway"
 shell="bash -ec"
@@ -541,19 +588,29 @@ simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar "$@"
 
 [tasks."micro:run:consumer-tiertwo".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
+
+[tasks."micro:coverage:download:consumer-tiertwo"]
+dir = "{{vars.pathSimplBackend}}/microservices/tier2-gateway"
+run = "jacoco dump --address localhost --port 6307 --destfile target/consumer-jacoco.exec --reset"
+
 [tasks."micro:run:consumer-tiertwo"]
 dir = "{{vars.pathSimplBackend}}/microservices/tier2-gateway"
 shell="bash -ec"
-run = "java -jar {{env.SIMPL_MICRO_JAR_TIERTWO}}"
+run = "bash -c 'java -javaagent:\"$(ls -1 $HOME/.m2/repository/org/jacoco/org.jacoco.agent/*/org.jacoco.agent-*-runtime.jar | sort -V | tail -n 1)\"=destfile=target/jacoco.exec,append=false,output=tcpserver,address=*,port=6307 -jar {{env.SIMPL_MICRO_JAR_TIERTWO}}'"
 # run = "docker run --network host --name  consumer-tiertwo --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_TIERTWO_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
 [tasks."micro:run:authority-usersroles".env]
 SPRING_PROFILES_ACTIVE = "local-authority"
+
+[tasks."micro:coverage:download:authority-usersroles"]
+dir = "{{vars.pathSimplBackend}}/microservices/users-roles"
+run = "jacoco dump --address localhost --port 6308 --destfile target/authority-jacoco.exec --reset"
+
 [tasks."micro:run:authority-usersroles"]
 dir = "{{vars.pathSimplBackend}}/microservices/users-roles"
 shell="bash -ec"
-run = "java -jar {{env.SIMPL_MICRO_JAR_USERSROLES}}"
+run = "bash -c 'java -javaagent:\"$(ls -1 $HOME/.m2/repository/org/jacoco/org.jacoco.agent/*/org.jacoco.agent-*-runtime.jar | sort -V | tail -n 1)\"=destfile=target/jacoco.exec,append=false,output=tcpserver,address=*,port=6308 -jar {{env.SIMPL_MICRO_JAR_USERSROLES}}'"
 # run = "docker run --network host --name  authority-usersroles --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_USERSROLES_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 [tasks."micro:jar:download:usersroles"]
@@ -568,10 +625,15 @@ simpl_extract_jar_from_image_to_file "$IMAGE:$TAG" target/app.jar "$@"
 
 [tasks."micro:run:consumer-usersroles".env]
 SPRING_PROFILES_ACTIVE = "local-consumer"
+
+[tasks."micro:coverage:download:consumer-usersroles"]
+dir = "{{vars.pathSimplBackend}}/microservices/users-roles"
+run = "jacoco dump --address localhost --port 6309 --destfile target/consumer-jacoco.exec --reset"
+
 [tasks."micro:run:consumer-usersroles"]
 dir = "{{vars.pathSimplBackend}}/microservices/users-roles"
 shell="bash -ec"
-run = "java -jar {{env.SIMPL_MICRO_JAR_USERSROLES}}"
+run = "bash -c 'java -javaagent:\"$(ls -1 $HOME/.m2/repository/org/jacoco/org.jacoco.agent/*/org.jacoco.agent-*-runtime.jar | sort -V | tail -n 1)\"=destfile=target/jacoco.exec,append=false,output=tcpserver,address=*,port=6309 -jar {{env.SIMPL_MICRO_JAR_USERSROLES}}'"
 # run = "docker run --network host --name  consumer-usersroles --rm -m 400m -e \"SPRING_PROFILES_ACTIVE={{env.SPRING_PROFILES_ACTIVE}}\" {{env.SIMPL_DOCKER_MICRO_USERSROLES_IMAGE}}"
 # run = "mvnd -Dmvnd.connectTimeout=100000 spring-boot:run"
 
@@ -595,23 +657,67 @@ if ! keytool -delete -alias zscaler-ca -keystore '{{env.JAVA_HOME}}/lib/security
 fi
 """
 
-[tasks."db:clean"]
+[tasks."cluster:authority-initialization"]
 shell = "bash -ec"
 run = """
-kubectl --namespace local-authority exec -i local-authority-postgresql-0 -- bash -eb << EOF
-  echo "Clean database: authority_authenticationprovider "; PGPASSWORD=postgres dropdb -f -U postgres authority_authenticationprovider; PGPASSWORD=postgres createdb -U postgres -O authority_authenticationprovider authority_authenticationprovider
-  echo "Clean database: authority_ejbca "; PGPASSWORD=postgres dropdb -f -U postgres authority_ejbca; PGPASSWORD=postgres createdb -U postgres -O ejbca authority_ejbca
-  echo "Clean database: authority_identityprovider "; PGPASSWORD=postgres dropdb -f -U postgres authority_identityprovider; PGPASSWORD=postgres createdb -U postgres -O authority_identityprovider authority_identityprovider
-  echo "Clean database: authority_onboarding "; PGPASSWORD=postgres dropdb -f -U postgres authority_onboarding; PGPASSWORD=postgres createdb -U postgres -O authority_onboarding authority_onboarding
-  echo "Clean database: authority_securityattributesprovider "; PGPASSWORD=postgres dropdb -f -U postgres authority_securityattributesprovider; PGPASSWORD=postgres createdb -U postgres -O authority_securityattributesprovider authority_securityattributesprovider
-  echo "Clean database: authority_usersroles "; PGPASSWORD=postgres dropdb -f -U postgres authority_usersroles; PGPASSWORD=postgres createdb -U postgres -O authority_usersroles authority_usersroles
-  echo "Clean database: consumer_authenticationprovider "; PGPASSWORD=postgres dropdb -f -U postgres consumer_authenticationprovider; PGPASSWORD=postgres createdb -U postgres -O consumer_authenticationprovider consumer_authenticationprovider
-  echo "Clean database: consumer_usersroles "; PGPASSWORD=postgres dropdb -f -U postgres consumer_usersroles; PGPASSWORD=postgres createdb -U postgres -O consumer_usersroles consumer_usersroles
-EOF
+TMP_TOKEN="eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICIxb1FtRDFpN0NCbEdCdV9OVDg4UFJ5SmZvcjRNaFJGcnFUMTZzNHJXYzdBIn0.eyJleHAiOjE3NjU0Nzg1NTAsImlhdCI6MTc2NTQ3ODI1MCwianRpIjoiMGNjYTVmMjEtY2MzNy00ODVhLTk5OTMtZDkzMTBkZDBlODE3IiwiaXNzIjoiaHR0cHM6Ly90MS5pYWEtZHNkZXYtYXV0aG9yaXR5LmRldi5zaW1wbC1ldXJvcGUuZXUvYXV0aC9yZWFsbXMvYXV0aG9yaXR5Iiwic3ViIjoiNGZjMjZkNGMtNGRjNi00Y2QyLTk5ODItZDRhNDRkOWFjNmM3IiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiZnJvbnRlbmQtY2xpIiwic2lkIjoiYjlkNDFlMDYtOTY4Ni00MGQzLWExMmUtZWUwOTMzNmU4YjQ4IiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJOT1RBUlkiXX0sInNjb3BlIjoiZW1haWwgcHJvZmlsZSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwYXJ0aWNpcGFudF9pZCI6IjAxOWFiYThkLWEzMGQtN2E0Yy1iNGViLTI4ZGIyM2EzZmQ5YiIsIm5hbWUiOiJNaWNoZWFsIFRob21wc29uIiwicHJlZmVycmVkX3VzZXJuYW1lIjoibS50IiwiZ2l2ZW5fbmFtZSI6Ik1pY2hlYWwiLCJmYW1pbHlfbmFtZSI6IlRob21wc29uIiwiY2xpZW50LXJvbGVzIjpbIk5PVEFSWSJdLCJlbWFpbCI6Im0udEBlbWFpbC5jb20iLCJpZGVudGl0eV9hdHRyaWJ1dGVzIjpbXX0.naLUAVjXLezRW2V-Shf9bfn2qk5lGD0I1cnLtJbtcfzhRZ4dchQypRd6olST94AkSdAOsZyd5ZmLdnOk5AXJiR7z-IHRV15-TgmwVCBWmDbidgEWewDYu8w4FElIKDjtHZExDgYoB-u_FOho6E-G6rcIQ9ivPMYb0kzfJRlROteU3xcmMvoFjd9frhaQNznsQ4qYXtgtTHLMQwvPRhfAop78YJm8EE2utvSjYOhcClC0aGmzLjofhjg8FVpB3NZwkCBN8Oy0qW2MCeqedCUEXP8CSYyuP7mKVr7YhDFu_j6HsZ9e60swAXtlD447zZyPk12s__BzIagb95KlOd-Qzw"
+
+export AUTHORITY_AUTH_PROVIDER=localhost:8105
+export AUTHORITY_IDENTITY_PROVIDER=localhost:8103
+
+>&2 echo Generating keypair...
+curl -v -X POST "$AUTHORITY_AUTH_PROVIDER/v1/keypairs/generate"
+
+>&2 echo Generating CSR...
+curl -v -X POST "$AUTHORITY_AUTH_PROVIDER/v1/csr/generate" \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "commonName": "localhost",
+  "country": "it",
+  "organization": "test",
+  "organizationalUnit": "test"
+}' > csr.pem
+
+>&2 echo Creating Authority participant
+PARTICIPANT_ID=$(curl -v -X POST "$AUTHORITY_IDENTITY_PROVIDER/v1/participants" \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "organization": "test",
+  "participantType": "GOVERNANCE_AUTHORITY"
+}' | sed -E 's/^"(.*)"$/\\1/')
+
+>&2 echo Uploading CSR ..
+>&2 echo "Participant id: $PARTICIPANT_ID"
+curl -X POST "$AUTHORITY_IDENTITY_PROVIDER/v1/participants/$PARTICIPANT_ID/csr" \
+-F "csr=@csr.pem"
+
+>&2 echo Downloading credentials ...
+curl "$AUTHORITY_IDENTITY_PROVIDER/v1/credentials/$PARTICIPANT_ID/download" \
+-o cert.pem
+
+>&2 echo Uploading credentials ...
+curl -v -H "Authorization: Bearer $TMP_TOKEN" -X POST "$AUTHORITY_AUTH_PROVIDER/v1/credentials" \
+-F "credential=@cert.pem"
+"""
+
+[tasks."micro:coverage:snapshot:all"]
+shell = "bash -ec"
+run = """
+mise run micro:coverage:download:authority-authenticationprovider;
+mise run micro:coverage:download:authority-identityprovider;
+mise run micro:coverage:download:authority-onboarding;
+mise run micro:coverage:download:authority-securityattributesprovider;
+mise run micro:coverage:download:authority-tierone;
+mise run micro:coverage:download:authority-tiertwo;
+mise run micro:coverage:download:authority-usersroles;
+mise run micro:coverage:download:consumer-authenticationprovider;
+mise run micro:coverage:download:consumer-tierone;
+mise run micro:coverage:download:consumer-tiertwo;
+mise run micro:coverage:download:consumer-usersroles;
 """
 
 [env]
-PROJECT_RELEASE_VERSION = "2.6.0-RC"
+PROJECT_RELEASE_VERSION = "monorepo-dev"
 KUBECONFIG = "{{config_root}}/.config/.kube/config"
 
 #Database
