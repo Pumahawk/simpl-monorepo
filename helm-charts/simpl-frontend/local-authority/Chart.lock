@@ -1,18 +1,18 @@
 dependencies:
 - name: fe-authentication-provider
   repository: https://code.europa.eu/api/v4/projects/1308/packages/helm/stable
-  version: 2.8.0-SNAPSHOT.75.8fa81d7d
+  version: 2.8.4
 - name: fe-identity-provider
   repository: https://code.europa.eu/api/v4/projects/1311/packages/helm/stable
-  version: 2.8.0-SNAPSHOT.95.a2cf3f71
+  version: 2.8.1
 - name: fe-onboarding
   repository: https://code.europa.eu/api/v4/projects/1307/packages/helm/stable
-  version: 2.8.0-SNAPSHOT.latest
+  version: 2.9.2
 - name: fe-security-attribute-provider
   repository: https://code.europa.eu/api/v4/projects/1309/packages/helm/stable
-  version: 2.7.0-SNAPSHOT.59.2d8af236
+  version: 2.8.1
 - name: fe-users-and-roles
   repository: https://code.europa.eu/api/v4/projects/1310/packages/helm/stable
-  version: 2.7.0-SNAPSHOT.49.871ccffc
-digest: sha256:ac40656f902643435ab3f834da8258c02d19050eea4bf3b97a1a62dd2f9b1f74
-generated: "2025-12-04T13:21:15.559775126+01:00"
+  version: 2.9.2
+digest: sha256:8782c98a4f6243924e25dbf88d1b2c945aea7740b9b095cbd60d23b93171cfa7
+generated: "2026-01-14T15:23:49.612734323+01:00"

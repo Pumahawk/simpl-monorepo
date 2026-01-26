@@ -9,17 +9,17 @@ dependencies:
 
   - name: fe-authentication-provider
     repository: https://code.europa.eu/api/v4/projects/1308/packages/helm/stable
-    version: 2.8.0
+    version: 2.8.4
   - name: fe-identity-provider
     repository: https://code.europa.eu/api/v4/projects/1311/packages/helm/stable
-    version: 2.8.0
+    version: 2.8.1
   - name: fe-onboarding
     repository: https://code.europa.eu/api/v4/projects/1307/packages/helm/stable
-    version: 2.8.0
+    version: 2.9.2
   - name: fe-security-attribute-provider
     repository: https://code.europa.eu/api/v4/projects/1309/packages/helm/stable
-    version: 2.8.0
+    version: 2.8.1
   - name: fe-users-and-roles
     repository: https://code.europa.eu/api/v4/projects/1310/packages/helm/stable
-    version: 2.8.0
+    version: 2.9.2
 
