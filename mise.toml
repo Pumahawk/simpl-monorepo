@@ -63,7 +63,7 @@ function getsecret() {
      (
   >&2  echo "Retrieve secret $realm"
   kubectl exec -n local-authority local-authority-keycloak-0 -i -- bash -eb << EOF
-  /opt/bitnami/keycloak/bin/kcadm.sh get clients \
+  /opt/keycloak/bin/kcadm.sh get clients \
          -r "$realm" \
          -q clientId=cli \
          --config /tmp/kcadm.config
@@ -74,7 +74,7 @@ EOF
 function keylogin() {
   kubectl exec -n local-authority local-authority-keycloak-0 -i -- bash -eb << EOF
     >&2 echo "Login to keycloak admin..."
-    /opt/bitnami/keycloak/bin/kcadm.sh config credentials \
+    /opt/keycloak/bin/kcadm.sh config credentials \
            --config /tmp/kcadm.config \
            --server http://localhost:8080 \
 
@@ -91,7 +91,7 @@ function keycloak_update_attribute() {
   local value="$3"
   kubectl exec -n local-authority local-authority-keycloak-0 -i -- bash -eb << EOF
   echo "Setting property [realm=$realm] [key=$key] [value=$value]"
-  /opt/bitnami/keycloak/bin/kcadm.sh update "realms/$realm" \
+  /opt/keycloak/bin/kcadm.sh update "realms/$realm" \
     --config /tmp/kcadm.config \
     -s "$key=$value"
 EOF
