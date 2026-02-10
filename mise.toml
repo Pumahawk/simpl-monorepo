@@ -716,6 +716,15 @@ mise run micro:coverage:download:consumer-tiertwo;
 mise run micro:coverage:download:consumer-usersroles;
 """
 
+[tasks."db:connect"]
+shell = "bash -ec"
+run = """
+function db_connect() {
+  kubectl exec -it -n local-authority local-authority-postgresql-0 -- bash -c "PGPASSWORD=postgres psql -U postgres $*"
+}
+db_connect
+"""
+
 [env]
 PROJECT_RELEASE_VERSION = "monorepo-dev"
 KUBECONFIG = "{{config_root}}/.config/.kube/config"
