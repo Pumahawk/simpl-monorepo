@@ -99,6 +99,6 @@
 	url = https://code.europa.eu/simpl/simpl-open/development/iaa/fe-users-and-roles
 	branch = develop
 [submodule "simpl-repo/eidas-demo-keycloak-extension"]
-	path = simpl-repo/eidas-demo-keycloak-extension
+	path = simpl-repo/backend/misc/eidas-demo-keycloak-extension
 	url = https://code.europa.eu/simpl/simpl-open/development/iaa/eidas-demo-keycloak-extension.git
 	branch = develop
