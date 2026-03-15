@@ -307,6 +307,8 @@ run = [
   { task = "cluster:forward-node-down" },
   "minikube stop --profile=simpl-control-plane",
   { task = "cluster:redpanda:down" },
+  { task = "simpl-services:down" },
+  { task = "simpl-services-fe:down" },
 ]
 [tasks."cluster:restart"]
 run = [
