@@ -675,49 +675,6 @@ if ! keytool -delete -alias zscaler-ca -keystore '{{env.JAVA_HOME}}/lib/security
 fi
 """
 
-[tasks."cluster:authority-initialization"]
-shell = "bash -ec"
-run = """
-TMP_TOKEN="eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICIxb1FtRDFpN0NCbEdCdV9OVDg4UFJ5SmZvcjRNaFJGcnFUMTZzNHJXYzdBIn0.eyJleHAiOjE3NjU0Nzg1NTAsImlhdCI6MTc2NTQ3ODI1MCwianRpIjoiMGNjYTVmMjEtY2MzNy00ODVhLTk5OTMtZDkzMTBkZDBlODE3IiwiaXNzIjoiaHR0cHM6Ly90MS5pYWEtZHNkZXYtYXV0aG9yaXR5LmRldi5zaW1wbC1ldXJvcGUuZXUvYXV0aC9yZWFsbXMvYXV0aG9yaXR5Iiwic3ViIjoiNGZjMjZkNGMtNGRjNi00Y2QyLTk5ODItZDRhNDRkOWFjNmM3IiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiZnJvbnRlbmQtY2xpIiwic2lkIjoiYjlkNDFlMDYtOTY4Ni00MGQzLWExMmUtZWUwOTMzNmU4YjQ4IiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIqIl0sInJlYWxtX2FjY2VzcyI6eyJyb2xlcyI6WyJOT1RBUlkiXX0sInNjb3BlIjoiZW1haWwgcHJvZmlsZSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJwYXJ0aWNpcGFudF9pZCI6IjAxOWFiYThkLWEzMGQtN2E0Yy1iNGViLTI4ZGIyM2EzZmQ5YiIsIm5hbWUiOiJNaWNoZWFsIFRob21wc29uIiwicHJlZmVycmVkX3VzZXJuYW1lIjoibS50IiwiZ2l2ZW5fbmFtZSI6Ik1pY2hlYWwiLCJmYW1pbHlfbmFtZSI6IlRob21wc29uIiwiY2xpZW50LXJvbGVzIjpbIk5PVEFSWSJdLCJlbWFpbCI6Im0udEBlbWFpbC5jb20iLCJpZGVudGl0eV9hdHRyaWJ1dGVzIjpbXX0.naLUAVjXLezRW2V-Shf9bfn2qk5lGD0I1cnLtJbtcfzhRZ4dchQypRd6olST94AkSdAOsZyd5ZmLdnOk5AXJiR7z-IHRV15-TgmwVCBWmDbidgEWewDYu8w4FElIKDjtHZExDgYoB-u_FOho6E-G6rcIQ9ivPMYb0kzfJRlROteU3xcmMvoFjd9frhaQNznsQ4qYXtgtTHLMQwvPRhfAop78YJm8EE2utvSjYOhcClC0aGmzLjofhjg8FVpB3NZwkCBN8Oy0qW2MCeqedCUEXP8CSYyuP7mKVr7YhDFu_j6HsZ9e60swAXtlD447zZyPk12s__BzIagb95KlOd-Qzw"
-
-export AUTHORITY_AUTH_PROVIDER=localhost:8105
-export AUTHORITY_IDENTITY_PROVIDER=localhost:8103
-
->&2 echo Generating keypair...
-curl -v -X POST "$AUTHORITY_AUTH_PROVIDER/v1/keypairs/generate"
-
->&2 echo Generating CSR...
-curl -v -X POST "$AUTHORITY_AUTH_PROVIDER/v1/csr/generate" \
---header 'Content-Type: application/json' \
---data-raw '{
-  "commonName": "localhost",
-  "country": "it",
-  "organization": "test",
-  "organizationalUnit": "test"
-}' > csr.pem
-
->&2 echo Creating Authority participant
-PARTICIPANT_ID=$(curl -v -X POST "$AUTHORITY_IDENTITY_PROVIDER/v1/participants" \
---header 'Content-Type: application/json' \
---data-raw '{
-  "organization": "test",
-  "participantType": "GOVERNANCE_AUTHORITY"
-}' | sed -E 's/^"(.*)"$/\\1/')
-
->&2 echo Uploading CSR ..
->&2 echo "Participant id: $PARTICIPANT_ID"
-curl -X POST "$AUTHORITY_IDENTITY_PROVIDER/v1/participants/$PARTICIPANT_ID/csr" \
--F "csr=@csr.pem"
-
->&2 echo Downloading credentials ...
-curl "$AUTHORITY_IDENTITY_PROVIDER/v1/credentials/$PARTICIPANT_ID/download" \
--o cert.pem
-
->&2 echo Uploading credentials ...
-curl -v -H "Authorization: Bearer $TMP_TOKEN" -X POST "$AUTHORITY_AUTH_PROVIDER/v1/credentials" \
--F "credential=@cert.pem"
-"""
-
 [tasks."micro:coverage:snapshot:all"]
 shell = "bash -ec"
 run = """
@@ -741,6 +698,53 @@ function db_connect() {
   kubectl exec -it -n local-authority local-authority-postgresql-0 -- bash -c "PGPASSWORD=postgres psql -U postgres $*"
 }
 db_connect
+"""
+
+[tasks."cluster:authority_initialization"]
+shell = "bash -ec"
+run = """
+AUTH_PF_PORT=8105
+ID_PF_PORT=8103
+
+AUTH_SERVICE=authentication-provider
+ID_SERVICE=identity-provider
+
+export AUTHORITY_AUTH_PROVIDER=localhost:$AUTH_PF_PORT
+export AUTHORITY_IDENTITY_PROVIDER=localhost:$ID_PF_PORT
+
+>&2 echo Generating keypair...
+curl -v -X POST "$AUTHORITY_AUTH_PROVIDER/v1/keypairs/generate"
+
+>&2 echo Generating CSR...
+curl -v -X POST "$AUTHORITY_AUTH_PROVIDER/v1/csr/generate" \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "commonName": "localhost",
+  "country": "it",
+  "organization": "authority",
+  "organizationalUnit": "authority"
+}' > csr.pem
+
+>&2 echo Creating Authority participant
+PARTICIPANT_ID=$(curl -v -X POST "$AUTHORITY_IDENTITY_PROVIDER/v1/participants" \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "organization": "authority",
+  "participantType": "GOVERNANCE_AUTHORITY"
+}' | sed -E 's/^"(.*)"$/\\1/')
+
+>&2 echo Uploading CSR ..
+>&2 echo "Participant id: $PARTICIPANT_ID"
+curl -X POST "$AUTHORITY_IDENTITY_PROVIDER/v1/participants/$PARTICIPANT_ID/csr" \
+-F "csr=@csr.pem"
+
+>&2 echo Downloading credentials ...
+curl "$AUTHORITY_IDENTITY_PROVIDER/v1/credentials/$PARTICIPANT_ID/download" \
+-o cert.pem
+
+>&2 echo Uploading credentials ...
+curl -v -X POST "$AUTHORITY_AUTH_PROVIDER/v1/credentials" \
+-F "credential=@cert.pem"
 """
 
 [env]
