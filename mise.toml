@@ -242,6 +242,24 @@ run = "docker-cli-plugin-docker-compose -p simpl-redpanda -f .config/docker/redp
 [tasks."cluster:redpanda:down"]
 run = "docker-cli-plugin-docker-compose -p simpl-redpanda -f .config/docker/redpanda/docker-compose.yaml down"
 
+[tasks."simpl-services:compose"]
+run = "docker-cli-plugin-docker-compose -p simpl-services --env-file=./simpl-services.env -f .config/docker/simpl-services/docker-compose.yaml"
+
+[tasks."simpl-services:up"]
+run = "docker-cli-plugin-docker-compose -p simpl-services --env-file=./simpl-services.env -f .config/docker/simpl-services/docker-compose.yaml up -d"
+
+[tasks."simpl-services:down"]
+run = "docker-cli-plugin-docker-compose -p simpl-services --env-file=./simpl-services.env -f .config/docker/simpl-services/docker-compose.yaml down"
+
+[tasks."simpl-services-fe:compose"]
+run = "docker-cli-plugin-docker-compose -p simpl-services-fe --env-file=./simpl-services.env -f .config/docker/simpl-fe/docker-compose.yaml"
+
+[tasks."simpl-services-fe:up"]
+run = "docker-cli-plugin-docker-compose -p simpl-services-fe --env-file=./simpl-services.env -f .config/docker/simpl-fe/docker-compose.yaml up -d"
+
+[tasks."simpl-services-fe:down"]
+run = "docker-cli-plugin-docker-compose -p simpl-services-fe --env-file=./simpl-services.env -f .config/docker/simpl-fe/docker-compose.yaml down"
+
 [tasks."cluster:forward-node-down"]
 description = "Shuts down all port forwards."
 run = "{{vars.run_cluster_forward_node_compose}} down -v"

@@ -1,0 +1,49 @@
+services:
+  gateway:
+    image: nginx:alpine
+    ports:
+      - "4100:4100"
+      - "4200:4200"
+    configs:
+      - source: nginx_conf
+        target: /etc/nginx/nginx.conf
+
+  fe-authentication-provider-authority:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/fe-authentication-provider:${SIMPL_SERVICE_FE_AUTHENTICATION_PROVIDER}
+    env_file:
+      - fe-authentication-provider-authority.env
+    mem_limit: 100m
+  fe-authentication-provider-participant:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/fe-authentication-provider:${SIMPL_SERVICE_FE_AUTHENTICATION_PROVIDER}
+    env_file:
+      - fe-authentication-provider-participant.env
+    mem_limit: 100m
+  fe-identity-provider-authority:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/fe-identity-provider:${SIMPL_SERVICE_FE_IDENTITY_PROVIDER}
+    env_file:
+      - fe-identity-provider-authority.env
+    mem_limit: 100m
+  fe-onboarding-authority:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/fe-onboarding:${SIMPL_SERVICE_FE_ONBOARDING}
+    env_file:
+      - fe-onboarding-authority.env
+    mem_limit: 100m
+  fe-security-attribute-provider-authority:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/fe-security-attribute-provider:${SIMPL_SERVICE_FE_SECURITY_ATTRIBUTE_PROVIDER}
+    env_file:
+      - fe-security-attribute-provider-authority.env
+    mem_limit: 100m
+  fe-users-and-roles-authority:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/fe-users-and-roles:${SIMPL_SERVICE_FE_USERS_AND_ROLES}
+    env_file:
+      - fe-users-and-roles-authority.env
+    mem_limit: 100m
+  fe-users-and-roles-participant:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/fe-users-and-roles:${SIMPL_SERVICE_FE_USERS_AND_ROLES}
+    env_file:
+      - fe-users-and-roles-participant.env
+    mem_limit: 100m
+
+configs:
+  nginx_conf:
+    file: ./nginx.conf

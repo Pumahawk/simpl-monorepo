@@ -1,0 +1,107 @@
+version: "3.9"
+
+services:
+  authentication-provider-authority:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/authentication_provider:${SIMPL_SERVICE_AUTHENTICATION_PROVIDER_VERSION}
+    ports:
+      - "8105:8105"
+    networks:
+    - simpl-network
+    env_file:
+      - authentication_provider/application-local-authority.env
+    mem_limit: 512m
+  authentication-provider-consumer:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/authentication_provider:${SIMPL_SERVICE_AUTHENTICATION_PROVIDER_VERSION}
+    ports:
+      - "8205:8205"
+    networks:
+    - simpl-network
+    env_file:
+      - authentication_provider/application-local-consumer.env
+    mem_limit: 512m
+  identity-provider-authority:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/identity-provider:${SIMPL_SERVICE_IDENTITY_PROVIDER_VERSION}
+    ports:
+      - "8103:8103"
+    networks:
+    - simpl-network
+    env_file:
+      - identity-provider/application-local-authority.env
+    mem_limit: 512m
+  onboarding-authority:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/onboarding:${SIMPL_SERVICE_ONBOARDING_VERSION}
+    ports:
+      - "8104:8104"
+    networks:
+    - simpl-network
+    env_file:
+      - onboarding/application-local-authority.env
+    mem_limit: 512m
+  security-attributes-provider-authority:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/security-attributes-provider:${SIMPL_SERVICE_SECURITY_ATTRIBUTES_PROVIDER_VERSION}
+    ports:
+      - "8102:8102"
+    networks:
+    - simpl-network
+    env_file:
+      - security-attributes-provider/application-local-authority.env
+    mem_limit: 512m
+  tier1-gateway-authority:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier1-gateway:${SIMPL_SERVICE_TIER1_GATEWAY_VERSION}
+    ports:
+      - "8100:8100"
+    networks:
+    - simpl-network
+    env_file:
+      - tier1-gateway/application-local-authority.env
+    mem_limit: 512m
+  tier1-gateway-consumer:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier1-gateway:${SIMPL_SERVICE_TIER1_GATEWAY_VERSION}
+    ports:
+      - "8200:8200"
+    networks:
+    - simpl-network
+    env_file:
+      - tier1-gateway/application-local-consumer.env
+    mem_limit: 512m
+  tier2-gateway-authority:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier2-gateway:${SIMPL_SERVICE_TIER2_GATEWAY_VERSION}
+    ports:
+      - "8143:8143"
+    networks:
+    - simpl-network
+    env_file:
+      - tier2-gateway/application-local-authority.env
+    mem_limit: 512m
+  tier2-gateway-consumer:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier2-gateway:${SIMPL_SERVICE_TIER2_GATEWAY_VERSION}
+    ports:
+      - "8243:8243"
+    networks:
+    - simpl-network
+    env_file:
+      - tier2-gateway/application-local-consumer.env
+    mem_limit: 512m
+  users-roles-authority:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/users-roles:${SIMPL_SERVICE_USERS_ROLES_VERSION}
+    ports:
+      - "8101:8101"
+    networks:
+    - simpl-network
+    env_file:
+      - users-roles/application-local-authority.env
+    mem_limit: 512m
+  users-roles-consumer:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/users-roles:${SIMPL_SERVICE_USERS_ROLES_VERSION}
+    ports:
+      - "8201:8201"
+    networks:
+    - simpl-network
+    env_file:
+      - users-roles/application-local-consumer.env
+    mem_limit: 512m
+
+
+networks:
+  simpl-network:
+    external: true

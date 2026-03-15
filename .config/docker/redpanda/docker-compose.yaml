@@ -2,6 +2,8 @@ services:
   redpanda:
     image: redpandadata/redpanda:latest
     container_name: redpanda
+    networks:
+    - simpl-network
     command:
       - redpanda
       - start
@@ -22,6 +24,8 @@ services:
   console:
     image: redpandadata/console:latest
     container_name: redpanda-console
+    networks:
+    - simpl-network
     environment:
       KAFKA_BROKERS: redpanda:19092
     ports:
@@ -29,3 +33,7 @@ services:
     depends_on:
       - redpanda
     restart: unless-stopped
+
+networks:
+  simpl-network:
+    external: true
