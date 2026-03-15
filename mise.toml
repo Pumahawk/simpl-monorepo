@@ -104,7 +104,6 @@ description = "Initializes the entire project environment by executing the follo
 run = [
   { task = "initialization:code" },
   { task = "initialization:cluster" },
-  { task = "initialization:build:code" },
 ]
 
 [tasks."destruction:all"]
@@ -134,12 +133,13 @@ description = "Creates the Minikube cluster, configures port forwarding, and ins
 run = [
   { task = "cluster:create" },
   { task = "initialization:zscaler" },
-  { task = "cluster:install-ingress-addon" },
   { task = "cluster:forward-node-up" },
   { task = "cluster:redpanda:up" },
   { task = "cluster:authority-install-or-upgrade" },
   { task = "code:test-automation:autoconfigure-client-secret" },
   { task = "cluster:keycloak-autoconfigure" },
+  { task = "simpl-services:up" },
+  { task = "simpl-services-fe:up" },
 ]
 
 [tasks."initialization:zscaler"]
@@ -280,6 +280,8 @@ run = [
   { task = "cluster:forward-node-down" },
   "minikube delete --profile=simpl-control-plane",
   { task = "cluster:redpanda:down" },
+  { task = "simpl-services:down" },
+  { task = "simpl-services-fe:down" },
 ]
 
 [tasks."cluster:start"]
