@@ -102,3 +102,6 @@
 	path = simpl-repo/backend/misc/eidas-demo-keycloak-extension
 	url = https://code.europa.eu/simpl/simpl-open/development/iaa/eidas-demo-keycloak-extension.git
 	branch = develop
+[submodule "custom-repo/keycloak-realm-configurator"]
+	path = custom-repo/keycloak-realm-configurator
+	url = https://github.com/JCCorreale/keycloak-realm-configurator.git
