@@ -138,6 +138,8 @@ run = [
   { task = "cluster:authority-install-or-upgrade" },
   { task = "code:test-automation:autoconfigure-client-secret" },
   { task = "cluster:keycloak-autoconfigure" },
+  { task = "cluster:initialization_ejbca" },
+  { task = "cluster:download_ejbca_pem" },
   { task = "simpl-services:up" },
   { task = "simpl-services-fe:up" },
 ]
