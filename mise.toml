@@ -10,6 +10,7 @@ kubectx = "0.9.5"
 kubens = "0.9.5"
 minikube = "1.37.0"
 yq = "4.47.2"
+gomplate = "5.0.0"
 
 [vars]
 pathSimplRepo = "./simpl-repo"
@@ -405,6 +406,22 @@ fi
 keylogin
 keycloak_update_attribute authority attributes.frontendUrl http://localhost:8100/auth
 keycloak_update_attribute consumer attributes.frontendUrl http://localhost:8200/auth
+"""
+
+[tasks."keycloak:realm-generate"]
+shell = "bash -ec"
+run = """
+DIR="custom-repo/keycloak-realm-configurator"
+cp -v "$DIR/examples/authority-with-eidas.yaml" "$DIR/realm.yaml"
+echo "Generate Realm"
+env -C "$DIR" gomplate
+echo "Start keycloak-config-cli"
+env -C "$DIR" java \
+ -jar bin/keycloak-config-cli.jar \
+ --keycloak.url=http://localhost:8100/auth \
+ --keycloak.user=admin \
+ --keycloak.password=admin \
+ --import.files.locations=out/realm.yaml
 """
 
 [tasks."zscaler:install-cluster"]
