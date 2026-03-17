@@ -272,3 +272,7 @@ gradle-app.setting
 
 # Local cluster config
 .config/.kube/config
+
+.config/docker/simpl-services/identity-provider/SuperAdmin.p12
+.config/docker/simpl-services/identity-provider/truststore.jks
+.config/docker/simpl-services/tier1-gateway/ejbca-local.pem

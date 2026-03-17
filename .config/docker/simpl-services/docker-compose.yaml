@@ -9,6 +9,8 @@ services:
     - simpl-network
     env_file:
       - authentication_provider/application-local-authority.env
+    volumes:
+      - ./authentication_provider/application-local-authority.yaml:/config/application.yaml:ro
     mem_limit: 512m
   authentication-provider-consumer:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/authentication_provider:${SIMPL_SERVICE_AUTHENTICATION_PROVIDER_VERSION}
@@ -18,6 +20,8 @@ services:
     - simpl-network
     env_file:
       - authentication_provider/application-local-consumer.env
+    volumes:
+      - ./authentication_provider/application-local-consumer.yaml:/config/application.yaml:ro
     mem_limit: 512m
   identity-provider-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/identity-provider:${SIMPL_SERVICE_IDENTITY_PROVIDER_VERSION}
@@ -27,6 +31,9 @@ services:
     - simpl-network
     env_file:
       - identity-provider/application-local-authority.env
+    volumes:
+      - ./identity-provider/SuperAdmin.p12:/config/SuperAdmin.p12:ro
+      - ./identity-provider/truststore.jks:/config/truststore.jks:ro
     mem_limit: 512m
   onboarding-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/onboarding:${SIMPL_SERVICE_ONBOARDING_VERSION}
@@ -54,6 +61,8 @@ services:
     - simpl-network
     env_file:
       - tier1-gateway/application-local-authority.env
+    volumes:
+      - ./tier1-gateway/ejbca-local.pem:/config/ejbca-local.pem:ro
     mem_limit: 512m
   tier1-gateway-consumer:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier1-gateway:${SIMPL_SERVICE_TIER1_GATEWAY_VERSION}

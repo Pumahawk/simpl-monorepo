@@ -1,0 +1,3 @@
+open-id-connect:
+  certs-endpoint: "http://tier1-gateway-authority:8200/auth/realms/authority/protocol/openid-connect/certs"
+

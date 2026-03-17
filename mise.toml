@@ -102,7 +102,7 @@ EOF
 [tasks."initialization:project"]
 description = "Initializes the entire project environment by executing the following subtasks:"
 run = [
-  { task = "initialization:code" },
+  # { task = "initialization:code" },
   { task = "initialization:cluster" },
 ]
 
@@ -401,8 +401,8 @@ if ! waitkpod {{vars.keycloak_secrets_wait}} ; then
     exit 0
 fi
 keylogin
-keycloak_update_attribute authority attributes.frontendUrl http://localhost:8100/auth
-keycloak_update_attribute consumer attributes.frontendUrl http://localhost:8200/auth
+keycloak_update_attribute authority attributes.frontendUrl http://tier1-gateway-authority:8100/auth
+keycloak_update_attribute consumer attributes.frontendUrl http://tier1-gateway-consumer:8200/auth
 """
 
 [tasks."zscaler:install-cluster"]
@@ -723,7 +723,7 @@ curl -v -X POST "$AUTHORITY_AUTH_PROVIDER/v1/keypairs/generate"
 curl -v -X POST "$AUTHORITY_AUTH_PROVIDER/v1/csr/generate" \
 --header 'Content-Type: application/json' \
 --data-raw '{
-  "commonName": "localhost",
+  "commonName": "tier2-gateway-authority",
   "country": "it",
   "organization": "authority",
   "organizationalUnit": "authority"
@@ -749,6 +749,43 @@ curl "$AUTHORITY_IDENTITY_PROVIDER/v1/credentials/$PARTICIPANT_ID/download" \
 >&2 echo Uploading credentials ...
 curl -v -X POST "$AUTHORITY_AUTH_PROVIDER/v1/credentials" \
 -F "credential=@cert.pem"
+"""
+
+[tasks."cluster:initialization_ejbca"]
+shell = "bash -ec"
+run = """
+EJBCA_POD="$(kubectl get pod -o name --sort-by={.metadata.creationTimestamp} | tail -n1)"
+DOCKER_DIR=".config/docker/simpl-services"
+EJBCA_DOCKER_DIR="$DOCKER_DIR/ejbca"
+IDENTITY_DOCKER_DIR="$DOCKER_DIR/identity-provider"
+REMOTE_POD_CONFIG_DIR="/tmp/config"
+
+until status="$(kubectl get "$EJBCA_POD" -o jsonpath={.status.phase})" && [ "$status" == "Running" ]; do
+  echo "wait Ejbca. Status=[$status]"
+  sleep 5;
+done
+
+kubectl exec -i "$EJBCA_POD" --  mkdir "$REMOTE_POD_CONFIG_DIR" || true
+
+for line in "$EJBCA_DOCKER_DIR/config/"*; do
+  FILE_NAME="$(basename "$line")"
+  echo "Upload $line"
+  cat "$line" | kubectl exec -i "$EJBCA_POD" -- sh -c "cat > $REMOTE_POD_CONFIG_DIR/$FILE_NAME"
+done
+
+cat "$EJBCA_DOCKER_DIR/entrypoint.sh" | kubectl exec -i "$EJBCA_POD" -- sh -
+
+kubectl exec -i "$EJBCA_POD" --  cat /opt/keyfactor/p12/SuperAdmin.p12 > "$IDENTITY_DOCKER_DIR/SuperAdmin.p12"
+kubectl exec -i "$EJBCA_POD" --  cat /opt/keyfactor/p12/truststore.jks > "$IDENTITY_DOCKER_DIR/truststore.jks"
+"""
+
+[tasks."cluster:download_ejbca_pem"]
+shell = "bash -ec"
+run = """
+OUTPUT_FILE=".config/docker/simpl-services/tier1-gateway/ejbca-local.pem"
+HOST="localhost:30443"
+echo "Download ejbca x509 from $HOST to $OUTPUT_FILE"
+openssl s_client -connect "$HOST" -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM | tee "$OUTPUT_FILE"
 """
 
 [env]
