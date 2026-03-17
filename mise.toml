@@ -403,8 +403,8 @@ if ! waitkpod {{vars.keycloak_secrets_wait}} ; then
     exit 0
 fi
 keylogin
-keycloak_update_attribute authority attributes.frontendUrl http://tier1-gateway-authority:8100/auth
-keycloak_update_attribute consumer attributes.frontendUrl http://tier1-gateway-consumer:8200/auth
+keycloak_update_attribute authority attributes.frontendUrl http://localhost:8100/auth
+keycloak_update_attribute consumer attributes.frontendUrl http://localhost:8200/auth
 """
 
 [tasks."zscaler:install-cluster"]
