@@ -404,6 +404,8 @@ run = [
   --dependency-update \
   --create-namespace \
   -n local-authority \
+  --set keycloak.livenessProbe.enabled=false \
+  --set-string primary.initdb.scriptsConfigMap="" \
   local-authority \
   {{vars.pathHelmLocalAuthority}}
   """,
