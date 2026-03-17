@@ -21,7 +21,7 @@ run_mise_code_build = "mvnd -Dmvnd.connectTimeout=100000 clean install -fae -f {
 run_cluster_forward_node_compose = "docker-cli-plugin-docker-compose -f .config/docker/forward-node/docker-compose.yaml -p simpl-portforward"
 
 zscaler_enabled = false
-keycloak_secrets_wait = "1"
+keycloak_secrets_wait = "300"
 
 lib_extract_jar = """
 function simpl_extract_jar_from_image() {
@@ -405,7 +405,7 @@ run = [
   --create-namespace \
   -n local-authority \
   --set keycloak.livenessProbe.enabled=false \
-  --set-string primary.initdb.scriptsConfigMap="" \
+  --set-string postgrest.primary.initdb.scripts.restoreEjbca="" \
   local-authority \
   {{vars.pathHelmLocalAuthority}}
   """,
