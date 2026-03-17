@@ -123,7 +123,7 @@ function kcadm_remote() {
 [tasks."initialization:project"]
 description = "Initializes the entire project environment by executing the following subtasks:"
 run = [
-  # { task = "initialization:code" },
+  { task = "initialization:code" },
   { task = "initialization:cluster" },
 ]
 
@@ -552,7 +552,7 @@ run = "git submodule init"
 
 [tasks."git:update-all"]
 description = "Updates all submodules recursively to the latest remote commits."
-run = "git submodule update --remote --recursive -N"
+run = "git submodule update --recursive -N"
 
 [tasks."micro:jar:download:all"]
 run = [
