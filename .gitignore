@@ -276,3 +276,4 @@ gradle-app.setting
 .config/docker/simpl-services/identity-provider/SuperAdmin.p12
 .config/docker/simpl-services/identity-provider/truststore.jks
 .config/docker/simpl-services/tier1-gateway/ejbca-local.pem
+.config/docker/simpl-services/onboarding/keycloak-onboarding-secret-authority.env

@@ -10,6 +10,7 @@ kubectx = "0.9.5"
 kubens = "0.9.5"
 minikube = "1.37.0"
 yq = "4.47.2"
+gomplate = "5.0.0"
 
 [vars]
 pathSimplRepo = "./simpl-repo"
@@ -96,6 +97,26 @@ function keycloak_update_attribute() {
     -s "$key=$value"
 EOF
 }
+
+function kcadm_remote() {
+  local server
+  local agent_type="${1?Missing agent type}"; shift;
+  case "$agent_type" in
+    auth|authority)
+      tier=http://tier1-gateway-authority:8100/auth
+    ;;
+    part|cons|participant|consumer)
+      tier=http://tier1-gateway-consumer:8100/auth
+    ;;
+    *)
+      >&2 echo "Invalid agent type=[$agent_type]"
+      return 1;
+    ;;
+  esac
+  local action="${1?Missing action}"; shift;
+  local name="$(kubectl -n local-authority get pod -l app.kubernetes.io/name=keycloak -ojsonpath={.items[].metadata.name} --sort-by {.metadata.creationTimestamp} | tail -n1)"
+  kubectl -n local-authority exec -i "$name" -- ./opt/keycloak/bin/kcadm.sh "$action" --server http://localhost:8080 --realm master --user admin --password admin "$@" 
+}
 """
 
 
@@ -137,9 +158,13 @@ run = [
   { task = "cluster:redpanda:up" },
   { task = "cluster:authority-install-or-upgrade" },
   { task = "code:test-automation:autoconfigure-client-secret" },
-  { task = "cluster:keycloak-autoconfigure" },
   { task = "cluster:initialization_ejbca" },
   { task = "cluster:download_ejbca_pem" },
+  { task = "simpl-services:tier1-authority-up" },
+  { task = "cluster:keycloak-base-autoconfigure" },
+  { task = "cluster:keycloak-clean-realms" },
+  { task = "cluster:keycloak-realm-autoconfigure" },
+  { task = "cluster:keycloak-download-secret-onboarding-sa" },
   { task = "simpl-services:up" },
   { task = "simpl-services-fe:up" },
 ]
@@ -247,8 +272,14 @@ run = "docker-cli-plugin-docker-compose -p simpl-redpanda -f .config/docker/redp
 [tasks."simpl-services:compose"]
 run = "docker-cli-plugin-docker-compose -p simpl-services --env-file=./simpl-services.env -f .config/docker/simpl-services/docker-compose.yaml"
 
+[tasks."simpl-services:tier1-authority-up"]
+run = "docker-cli-plugin-docker-compose -p simpl-services --env-file=./simpl-services.env -f .config/docker/simpl-services/docker-compose.yaml up -d tier1-gateway-authority"
+
+[tasks."simpl-services:tier1-authority-restart"]
+run = "docker-cli-plugin-docker-compose -p simpl-services --env-file=./simpl-services.env -f .config/docker/simpl-services/docker-compose.yaml restart tier1-gateway-authority"
+
 [tasks."simpl-services:up"]
-run = "docker-cli-plugin-docker-compose -p simpl-services --env-file=./simpl-services.env -f .config/docker/simpl-services/docker-compose.yaml up -d"
+run = "docker-cli-plugin-docker-compose -p simpl-services --env-file=./simpl-services.env -f .config/docker/simpl-services/docker-compose.yaml up -d --pull=always"
 
 [tasks."simpl-services:down"]
 run = "docker-cli-plugin-docker-compose -p simpl-services --env-file=./simpl-services.env -f .config/docker/simpl-services/docker-compose.yaml down"
@@ -257,7 +288,7 @@ run = "docker-cli-plugin-docker-compose -p simpl-services --env-file=./simpl-ser
 run = "docker-cli-plugin-docker-compose -p simpl-services-fe --env-file=./simpl-services.env -f .config/docker/simpl-fe/docker-compose.yaml"
 
 [tasks."simpl-services-fe:up"]
-run = "docker-cli-plugin-docker-compose -p simpl-services-fe --env-file=./simpl-services.env -f .config/docker/simpl-fe/docker-compose.yaml up -d"
+run = "docker-cli-plugin-docker-compose -p simpl-services-fe --env-file=./simpl-services.env -f .config/docker/simpl-fe/docker-compose.yaml up -d --pull=always"
 
 [tasks."simpl-services-fe:down"]
 run = "docker-cli-plugin-docker-compose -p simpl-services-fe --env-file=./simpl-services.env -f .config/docker/simpl-fe/docker-compose.yaml down"
@@ -327,14 +358,14 @@ run = [
 
 [tasks."simpl:stop"]
 run = [
-  { task = "simpl-services:up" },
-  { task = "simpl-services-fe:up" },
+  { task = "simpl-services:down" },
+  { task = "simpl-services-fe:down" },
 ]
 
 [tasks."simpl:restart"]
 run = [
-  { task = "simpl-services:stop" },
-  { task = "simpl-services:start" },
+  { task = "simpl:stop" },
+  { task = "simpl:start" },
 ]
 
 [tasks."simpl:status"]
@@ -431,19 +462,74 @@ run = "kubectl get -n local-authority pod"
 [tasks."cluster:deployments"]
 run = "kubectl get -n local-authority deployments"
 
-[tasks."cluster:keycloak-autoconfigure"]
+[tasks."cluster:keycloak-base-autoconfigure"]
 shell = "bash -ec"
 run = """
 {{vars.lib_keycloak}}
 if ! waitkpod {{vars.keycloak_secrets_wait}} ; then
     echo "Keycloak pod not ready."
     echo "Skipping keycloak environment configuration"
-    echo "Run manually: 'mise cluster:keycloak-autoconfigure'"
+    echo "Run manually: 'mise cluster:keycloak-base-autoconfigure'"
     exit 0
 fi
 keylogin
 keycloak_update_attribute authority attributes.frontendUrl http://localhost:8100/auth
 keycloak_update_attribute consumer attributes.frontendUrl http://localhost:8200/auth
+"""
+
+[tasks."cluster:keycloak-clean-realms"]
+shell = "bash -ec"
+run = """
+echo "Wait Keycloak"
+{{vars.lib_keycloak}}
+if ! waitkpod {{vars.keycloak_secrets_wait}} ; then
+    echo "Keycloak pod not ready."
+    echo "Skipping keycloak clean realms"
+    echo "Run manually: 'mise cluster:keycloak-clean-realms'"
+    exit 0
+fi
+
+( echo "Delete realm onboarding"; kcadm_remote auth delete realms/onboarding || true; echo "Done onboarding" ) &
+( echo "Delete realm authority"; kcadm_remote auth delete realms/authority || true; echo "Done authority" ) &
+( echo "Delete realm participant"; kcadm_remote auth delete realms/participant || true; echo "Done participant" ) &
+wait
+"""
+
+[tasks."cluster:keycloak-realm-autoconfigure"]
+shell = "bash -ec"
+run = """
+DIR="simpl-repo/backend/misc/tier1-authentication/tools/keycloak-realm-configurator"
+echo "Generate Realm"
+for realm in authority participant onboarding; do
+  echo "process realm=[$realm]"
+  env -C "$DIR" gomplate -c .=examples/${realm}-with-eidas.yaml
+  echo "Start keycloak-config-cli"
+  env -C "$DIR" java \
+  -jar bin/keycloak-config-cli.jar \
+  --keycloak.url=http://localhost:8100/auth \
+  --keycloak.user=admin \
+  --keycloak.password=admin \
+  --import.files.locations=out/realm.yaml
+done
+"""
+
+[tasks."cluster:keycloak-download-secret-onboarding-sa"]
+shell = "bash -ec"
+run = """
+ENV_OUT=".config/docker/simpl-services/onboarding/keycloak-onboarding-secret-authority.env"
+echo "Wait Keycloak"
+{{vars.lib_keycloak}}
+if ! waitkpod {{vars.keycloak_secrets_wait}} ; then
+    echo "Keycloak pod not ready."
+    echo "Skipping keycloak clean realms"
+    echo "Run manually: 'mise run cluster:keycloak-download-secret-onboarding-sa'"
+    exit 0
+fi
+secret="$(kcadm_remote auth get realms/onboarding/clients | jq -r '.[] | select(.clientId == "onboarding-sa").secret')"
+echo Secret onboarding shell
+secret_env="$(echo {} | secret="$secret" yq -oshell -pj '{"keycloak":{"service-account":{"client-secret":strenv(secret)}}}')"
+echo "$secret_env > $ENV_OUT"
+echo "$secret_env" > "$ENV_OUT"
 """
 
 [tasks."zscaler:install-cluster"]
@@ -795,16 +881,19 @@ curl -v -X POST "$AUTHORITY_AUTH_PROVIDER/v1/credentials" \
 [tasks."cluster:initialization_ejbca"]
 shell = "bash -ec"
 run = """
-EJBCA_POD="$(kubectl get pod -o name --sort-by={.metadata.creationTimestamp} | tail -n1)"
+EJBCA_POD="$(kubectl -n local-authority get pod -o name --sort-by={.metadata.creationTimestamp} | grep ejbca-community-helm | tail -n1)"
 DOCKER_DIR=".config/docker/simpl-services"
 EJBCA_DOCKER_DIR="$DOCKER_DIR/ejbca"
 IDENTITY_DOCKER_DIR="$DOCKER_DIR/identity-provider"
 REMOTE_POD_CONFIG_DIR="/tmp/config"
 
-until status="$(kubectl get "$EJBCA_POD" -o jsonpath={.status.phase})" && [ "$status" == "Running" ]; do
-  echo "wait Ejbca. Status=[$status]"
+until ready="$(kubectl -n local-authority get -oyaml "$EJBCA_POD" | yq '.status.containerStatuses[] | select(.name == "ejbca") | .ready')" && [ "$ready" == "true" ]; do
+  echo "wait Ejbca. Ready=[$ready]"
+  kubectl get -n local-authority "$EJBCA_POD"
   sleep 5;
 done
+
+echo "Ejbca ready. Start initialization"
 
 kubectl exec -i "$EJBCA_POD" --  mkdir "$REMOTE_POD_CONFIG_DIR" || true
 
@@ -813,6 +902,8 @@ for line in "$EJBCA_DOCKER_DIR/config/"*; do
   echo "Upload $line"
   cat "$line" | kubectl exec -i "$EJBCA_POD" -- sh -c "cat > $REMOTE_POD_CONFIG_DIR/$FILE_NAME"
 done
+
+echo "Start entrypoint script"
 
 cat "$EJBCA_DOCKER_DIR/entrypoint.sh" | kubectl exec -i "$EJBCA_POD" -- sh -
 

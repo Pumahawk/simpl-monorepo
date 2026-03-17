@@ -43,6 +43,7 @@ services:
     - simpl-network
     env_file:
       - onboarding/application-local-authority.env
+      - onboarding/keycloak-onboarding-secret-authority.env
     mem_limit: 512m
   security-attributes-provider-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/security-attributes-provider:${SIMPL_SERVICE_SECURITY_ATTRIBUTES_PROVIDER_VERSION}
