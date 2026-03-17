@@ -299,8 +299,8 @@ run = [
 description = "Shows the status of the Minikube cluster."
 run = [
   "minikube status --profile=simpl-control-plane",
-  { task = "cluster:forward-node-compose ps" },
-  { task = "cluster:redpanda:compose ps" },
+  { task = "cluster:forward-node-compose ps -a" },
+  { task = "cluster:redpanda:compose ps -a" },
 ]
 
 [tasks."cluster:stop"]
@@ -312,10 +312,49 @@ run = [
   { task = "simpl-services:down" },
   { task = "simpl-services-fe:down" },
 ]
+
 [tasks."cluster:restart"]
 run = [
   { task = "cluster:stop" },
   { task = "cluster:start" },
+]
+
+[tasks."simpl:start"]
+run = [
+  { task = "simpl-services:up" },
+  { task = "simpl-services-fe:up" },
+]
+
+[tasks."simpl:stop"]
+run = [
+  { task = "simpl-services:up" },
+  { task = "simpl-services-fe:up" },
+]
+
+[tasks."simpl:restart"]
+run = [
+  { task = "simpl-services:stop" },
+  { task = "simpl-services:start" },
+]
+
+[tasks."simpl:status"]
+run = [
+  { task = "simpl-services:compose ps -a" },
+  { task = "simpl-services-fe:compose ps -a" },
+]
+
+[tasks."services:status-all"]
+quiet = true
+shell = "bash -ec"
+run = [
+  "echo =================================; echo Backend services; echo =================================;",
+  { task = "simpl-services:compose ps -a" },
+  "echo;echo;echo =================================; echo Frontend services; echo =================================;",
+  { task = "simpl-services-fe:compose ps -a" },
+  "echo;echo;echo =================================; echo Cluster; echo =================================;",
+  { task = "cluster:status" },
+  "echo;echo;echo =================================; echo Kubernetes pods; echo =================================;",
+  "kubectl -n local-authority get pod -o wide",
 ]
 
 [tasks."cluster:bash"]
