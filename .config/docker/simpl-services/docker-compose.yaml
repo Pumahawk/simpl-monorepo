@@ -1,5 +1,10 @@
 version: "3.9"
 
+x-healthcheck: &default-healthcheck
+  interval: 10s
+  timeout: 5s
+  retries: 5
+
 services:
   authentication-provider-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/authentication_provider:${SIMPL_SERVICE_AUTHENTICATION_PROVIDER_VERSION}
@@ -12,6 +17,9 @@ services:
     volumes:
       - ./authentication_provider/application-local-authority.yaml:/config/application.yaml:ro
     mem_limit: 512m
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8105/actuator/health | grep UP"]
   authentication-provider-consumer:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/authentication_provider:${SIMPL_SERVICE_AUTHENTICATION_PROVIDER_VERSION}
     ports:
@@ -23,6 +31,9 @@ services:
     volumes:
       - ./authentication_provider/application-local-consumer.yaml:/config/application.yaml:ro
     mem_limit: 512m
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8205/actuator/health | grep UP"]
   identity-provider-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/identity-provider:${SIMPL_SERVICE_IDENTITY_PROVIDER_VERSION}
     ports:
@@ -35,6 +46,9 @@ services:
       - ./identity-provider/SuperAdmin.p12:/config/SuperAdmin.p12:ro
       - ./identity-provider/truststore.jks:/config/truststore.jks:ro
     mem_limit: 512m
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8103/actuator/health | grep UP"]
   onboarding-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/onboarding:${SIMPL_SERVICE_ONBOARDING_VERSION}
     ports:
@@ -45,6 +59,9 @@ services:
       - onboarding/application-local-authority.env
       - onboarding/keycloak-onboarding-secret-authority.env
     mem_limit: 512m
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8104/actuator/health | grep UP"]
   security-attributes-provider-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/security-attributes-provider:${SIMPL_SERVICE_SECURITY_ATTRIBUTES_PROVIDER_VERSION}
     ports:
@@ -54,6 +71,9 @@ services:
     env_file:
       - security-attributes-provider/application-local-authority.env
     mem_limit: 512m
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8102/actuator/health | grep UP"]
   tier1-gateway-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier1-gateway:${SIMPL_SERVICE_TIER1_GATEWAY_VERSION}
     ports:
@@ -65,6 +85,9 @@ services:
     volumes:
       - ./tier1-gateway/ejbca-local.pem:/config/ejbca-local.pem:ro
     mem_limit: 512m
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8100/actuator/health | grep UP"]
   tier1-gateway-consumer:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier1-gateway:${SIMPL_SERVICE_TIER1_GATEWAY_VERSION}
     ports:
@@ -74,24 +97,39 @@ services:
     env_file:
       - tier1-gateway/application-local-consumer.env
     mem_limit: 512m
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8200/actuator/health | grep UP"]
   tier2-gateway-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier2-gateway:${SIMPL_SERVICE_TIER2_GATEWAY_VERSION}
     ports:
+      - "8142:8142"
       - "8143:8143"
     networks:
     - simpl-network
     env_file:
       - tier2-gateway/application-local-authority.env
+    depends_on:
+      - authentication-provider-authority
     mem_limit: 512m
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8142/actuator/health | grep UP"]
   tier2-gateway-consumer:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier2-gateway:${SIMPL_SERVICE_TIER2_GATEWAY_VERSION}
     ports:
+      - "8242:8242"
       - "8243:8243"
     networks:
     - simpl-network
     env_file:
       - tier2-gateway/application-local-consumer.env
+    depends_on:
+      - authentication-provider-consumer
     mem_limit: 512m
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8242/actuator/health | grep UP"]
   users-roles-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/users-roles:${SIMPL_SERVICE_USERS_ROLES_VERSION}
     ports:
@@ -101,6 +139,9 @@ services:
     env_file:
       - users-roles/application-local-authority.env
     mem_limit: 512m
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8101/actuator/health | grep UP"]
   users-roles-consumer:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/users-roles:${SIMPL_SERVICE_USERS_ROLES_VERSION}
     ports:
@@ -110,6 +151,9 @@ services:
     env_file:
       - users-roles/application-local-consumer.env
     mem_limit: 512m
+    healthcheck:
+      <<: *default-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8201/actuator/health | grep UP"]
 
 
 networks:
