@@ -491,9 +491,9 @@ if ! waitkpod {{vars.keycloak_secrets_wait}} ; then
     exit 0
 fi
 
-( echo "Delete realm onboarding"; kcadm_remote auth delete realms/onboarding || true; echo "Done onboarding" ) &
-( echo "Delete realm authority"; kcadm_remote auth delete realms/authority || true; echo "Done authority" ) &
-( echo "Delete realm participant"; kcadm_remote auth delete realms/participant || true; echo "Done participant" ) &
+  echo "Delete realm onboarding"; kcadm_remote auth delete realms/onboarding || true
+  echo "Delete realm authority"; kcadm_remote auth delete realms/authority || true
+  echo "Delete realm participant"; kcadm_remote auth delete realms/participant || true
 wait
 """
 
