@@ -1,21 +1,35 @@
-# Table of contents
 
-- [SIMPL - Monorepo Development Environment](#simpl---monorepo-development-environment)
-  - [Project Overview](#project-overview)
-  - [Architecture](#architecture)
-  - [Requirements](#requirements)
-  - [Getting Started](#getting-started)
-    - [Useful Commands](#useful-commands)
-  - [Task Descriptions](#task-descriptions)
-    - [Project Initialization](#project-initialization)
-    - [Project Destruction](#project-destruction)
-    - [Cluster Management](#cluster-management)
-    - [Microservices Execution](#microservices-execution)
-    - [Code Management](#code-management)
-    - [Logging](#logging)
-    - [Z-Scaler Integration](#z-scaler-integration)
+- [Simpl IAA Dev Environment Automation Toolkit](#simpl-iaa-dev-environment-automation-toolkit)
+  - [Overview](#overview)
+  - [Goals](#goals)
+  - [Prerequisites](#prerequisites)
+    - [Supported Environment](#supported-environment)
+    - [Required Tools](#required-tools)
+  - [Key Features](#key-features)
+    - [Source Code Management](#source-code-management)
+  - [Download code](#download-code)
+    - [Build & Compilation](#build--compilation)
+  - [Build backend services skips tests](#build-backend-services-skips-tests)
+  - [Build backend services](#build-backend-services)
+    - [Automated Testing](#automated-testing)
+  - [Running tests tasks](#running-tests-tasks)
+    - [Local Execution](#local-execution)
+  - [Run backend service commands](#run-backend-service-commands)
+    - [Environment Initialization](#environment-initialization)
+  - [Initialization Code and Cluster](#initialization-code-and-cluster)
+  - [Initialization code only](#initialization-code-only)
+  - [Initialization keycloak](#initialization-keycloak)
+  - [Initialization ejbca](#initialization-ejbca)
+    - [Docker Compose Management](#docker-compose-management)
+    - [Global Task Orchestration](#global-task-orchestration)
+  - [Cluster Initialization](#cluster-initialization)
+    - [Entry Point](#entry-point)
+    - [Execution Flow](#execution-flow)
+    - [Result](#result)
 
-# TL;DR
+# Simpl IAA Dev Environment Automation Toolkit
+
+## TL;DR
 
 ```bash
 git clone https://github.com/Pumahawk/simpl-monorepo.git
@@ -24,219 +38,270 @@ mise trust -E zscaler,wait
 mise run -E zscaler,wait initialization:project
 ```
 
-# SIMPL - Monorepo Development Environment
+## Overview
 
-This repository provides a unified setup for initializing and managing the development environment of a project composed of multiple microservices.  
+This repository provides a set of tools designed to simplify the management of the development environment for the **Simpl IAA** project.
 
-The goal of this monorepo is to **automate the entire workflow**, including:
-- Downloading all related projects
-- Keeping dependencies up to date
-- Building services
-- Initializing the local development cluster
+Its main goal is to streamline the onboarding process for new developers by minimizing the manual steps required to properly set up a local development environment.
 
-To achieve this, the monorepo leverages **[mise](https://mise.jdx.dev/)**, a package manager that:
-- Automatically installs the required development tools
-- Provides custom scripts created by developers to streamline repetitive or complex tasks
+To achieve this, the repository leverages [Mise](https://mise.jdx.dev/), a tool for managing development dependencies and tasks. It enables automatic installation and configuration of the main tools required for development, including:
 
-## Project Overview
+- gomplate
+- helm
+- java
+- jq
+- kubectl
+- kubectx
+- kubens
+- minikube
+- mvnd
+- yq
 
-The system is built as a collection of **microservices** developed in **Java** using the **Spring Boot** framework.  
+In addition to dependency management, the repository includes a collection of scripts that automate the core operational tasks involved in developing and running the project.
 
-- **Build & Execution**:  
-  Each microservice is built with **Maven** and can be run using the `spring-boot-maven-plugin`.
+## Goals
 
-- **Third-Party Dependencies**:  
-  The project relies on several external services that are deployed locally on a **Minikube cluster**, including:
-  - **[EJBCA](https://www.ejbca.org/)** (certificate authority)
-  - **[Keycloak](https://www.keycloak.org/)** (identity and access management)
+- Reduce development environment setup time
+- Standardize workflows across developers
+- Automate repetitive and error-prone tasks
+- Simplify local execution of the microservices ecosystem
 
-The monorepo provides automation for managing both the internal microservices and the required third-party services, ensuring a consistent and reproducible development environment.
+## Prerequisites
 
-## Architecture
+Before using this repository, ensure that your environment meets the following requirements.
 
-The development environment combines **locally executed microservices** with a **Kubernetes-based cluster** for third-party dependencies.  
+### Supported Environment
 
-- **Microservices execution**  
-  Each service is executed directly on the host machine using the developer’s preferred toolchain, such as:
-  - **IntelliJ IDEA** (for development and debugging)  
-  - **Maven** (for building and running via `spring-boot-maven-plugin`)  
-  - **mise** (for installing and managing development tools)  
+> **Important**
+> This setup is actively maintained and tested using **WSL (Windows Subsystem for Linux) with Ubuntu**.
 
-- **Kubernetes cluster**  
-  A **Minikube node** is configured to run inside Docker, providing a lightweight local Kubernetes environment.  
+### Required Tools
 
-- **Third-party services**  
-  Dependencies required for development are deployed into the Kubernetes cluster using **Helm charts**, including:
-  - Database  
-  - **EJBCA** (certificate authority)  
-  - **Redpanda** (streaming platform)  
-  - **Keycloak** (identity and access management)  
+The following tools must be available on your system:
 
-- **Service integration**  
-  When launched with the provided pre-configurations, each microservice automatically connects to its dependencies within the cluster, ensuring a consistent and reproducible setup.
+- [Docker Desktop](https://docs.docker.com/desktop/) (required to run containers and Kubernetes locally)
+- [Mise](https://mise.jdx.dev/) (used to manage development dependencies and tasks)
 
-## Requirements
+> All additional development tools (e.g. kubectl, JDK, mvnd, minikube) are automatically installed and managed via Mise.
 
-Before setting up the development environment, ensure the following tools are installed and properly configured:
+> **Advanced Configuration (Without Docker Desktop)**
+> It is possible to run the environment without using Docker Desktop, but this requires additional manual configuration.
+> In particular, you must update the **CoreDNS ConfigMap** in your Kubernetes cluster to resolve host.docker.internal to the WSL host.
+> This setup is intended for advanced users and is not officially supported by default.
 
-- **[Git](https://git-scm.com/)** – used to clone the repository and manage submodules. Git is required for:
-  - Cloning the monorepo  
-  - Initializing submodules (`git submodule init`)  
-  - Updating all submodules recursively (`git submodule update --remote --recursive`)
+## Key Features
 
-- **[mise](https://mise.jdx.dev/)** – a package manager that automatically installs and manages all development tools and scripts needed to build, run, and manage the microservices and cluster.
+This repository provides a set of automation tools to simplify the setup and management of the **Simpl IAA** development environment.
 
-- **[Docker](https://www.docker.com/)** – must be installed and running. Docker is required to:
-  - Run Minikube inside a Docker container  
-  - Execute containerized services (databases, Keycloak, EJBCA, etc.)  
-  - Handle port forwarding between the host and the cluster
+### Source Code Management
 
----
-
-### 🪟 Windows Requirements
-
-When working on **Windows**, it is **strongly recommended** to use **mise inside Git Bash**, rather than PowerShell or CMD.
-
-This is required because:
-- Several development scripts rely on **Unix utilities** (e.g., `bash`, `jq`, `grep`, `sed`) for correct execution.  
-- `mise` integrates more reliably within a Unix-like shell environment, ensuring that all project tasks work as intended.  
-
-**Important:**
-- Make sure Git Bash is added to your system path and configured as the default terminal in your IDE (e.g., IntelliJ).  
-- When running commands such as `mise run initialization:project`, always do so from within a **Git Bash** shell session.  
-
----
-
-> **Tip:**  
-> On Windows, you can verify your environment by running:
-> ```bash
-> echo $SHELL
-> ```
-> It should return a path containing `bash`.
-
-## Getting Started
-
-Once the required dependencies are installed, you can set up the monorepo and initialize the development environment.
+- Automated download of all microservices source code (both **frontend** and **backend**)
+- Support for **multi-module repositories**
 
 ```bash
-# Clone the repository
-git clone https://github.com/Pumahawk/simpl-monorepo.git
+## Download code
+mise run initialization:code 
+```
 
-# Move into the project directory
-cd simpl-monorepo
+### Build & Compilation
 
-# Initialize the project
+- Backend microservices compilation using **Maven multi-module** structure
+- Optimized build process through **mvnd**
+
+```bash
+## Build backend services skips tests
+mise run code:build:no-test 
+
+## Build backend services
+mise run code:build
+
+```
+
+### Automated Testing
+
+- Execution of backend automated tests using **Cucumber**
+- Support for:
+  - Feature file execution
+- Tag-based test selection
+- Integration with **Surefire Cucumber plugin**
+
+```bash
+## Running tests tasks
+
+mise run code:test-automation:run-all
+mise run code:test-automation:run-by-feature feature/file/path.feature
+mise run code:test-automation:run-by-tag "@SIMPL=xxx and @issue=yyy"
+mise run code:test-automation:allure-report-serve
+```
+
+### Local Execution
+
+- Startup of all microservices using the **local profile**
+
+```bash
+## Run backend service commands
+mise run micro:run:authority-authenticationprovider
+mise run micro:run:authority-identityprovider
+mise run micro:run:authority-onboarding
+mise run micro:run:authority-securityattributesprovider
+mise run micro:run:authority-tierone
+mise run micro:run:authority-tiertwo
+mise run micro:run:authority-usersroles
+mise run micro:run:consumer-authenticationprovider
+mise run micro:run:consumer-tierone
+mise run micro:run:consumer-tiertwo
+mise run micro:run:consumer-usersroles
+```
+
+### Environment Initialization
+
+- Automated setup of the full development environment, including:
+  - Kubernetes cluster initialization (via minikube)
+  - **Keycloak** setup and realm initialization
+  - **EJBCA** initialization
+  - Configuration of microservices public keys
+  - Management of separate **Docker Compose** configurations for:
+    - Frontend
+    - Backend
+
+```bash
+## Initialization Code and Cluster
 mise run initialization:project
+
+## Initialization code only
+mise run initialization:cluster
+
+## Initialization keycloak
+mise run cluster:keycloak-autoconfigure
+
+## Initialization ejbca
+mise run cluster:initialization_ejbca
 ```
 
-> **Important:**  
-> If your environment requires Z-Scaler certificates, it is recommended to run:
-> 
->    ```mise run initialization:zscaler```
-> 
-> Upon successful execution, the cluster will be available with all necessary port forwards active.
 
----
+### Docker Compose Management
 
-### 🧩 Environment Profiles
-
-The monorepo defines additional **mise environments** that can be activated using the `-E` flag.  
-These environments modify the behavior of tasks by enabling specific runtime configurations.
-
-Available environments:
-
-| Environment | Command Example | Description |
-|--------------|-----------------|--------------|
-| **zscaler** | `mise -E zscaler run initialization:project` | Enables Z-Scaler integration. This environment automatically installs the required Z-Scaler certificates both in the local JDK and inside the Kubernetes cluster. |
-| **wait** | `mise -E wait run initialization:project` | Increases internal timeouts for certain operations, such as Keycloak secret updates or long-running initialization tasks. Recommended when working on slower systems or virtualized environments. |
-
-**Usage Example:**
+- Unified wrapper around **Docker Compose** configurations for:
+  - Frontend microservices
+  - Backend microservices
+- Simplified commands to manage containers without directly interacting with Docker Compose files
+- Consistent interface for starting, stopping, and monitoring services
 
 ```bash
-# Initialize the project with Z-Scaler certificates enabled
-mise -E zscaler run initialization:project
-
-# Initialize the project with extended wait times
-mise -E wait run initialization:project
+mise run cluster:redpanda:compose
+mise run simpl-services-fe:compose
+mise run simpl-services:compose
 ```
 
-### Useful Commands
+### Global Task Orchestration
+
+- Centralized task management via [Mise](https://mise.jdx.dev/).
+- Ability to control the entire microservices ecosystem with a single command
 
 ```bash
-# Stop Kubernetes cluster
-mise run cluster:stop
-
-# Start Kubernetes cluster
-mise run cluster:start
-
-# Destroy the cluster (if needed)
-mise run destruction:all
+mise run simpl:start
+mise run simpl:restart
+mise run simpl:stop
 ```
 
-## Task Descriptions
+## Cluster Initialization
 
-### Project Initialization
-- **`initialization:project`**  
-  Initializes the entire project environment by executing the following subtasks:
-  - `initialization:code` – initializes git submodules and updates all projects.
-  - `initialization:cluster` – creates the Minikube cluster, configures port forwarding, and installs or upgrades the authority chart.
-  - `initialization:build:code` – builds all microservices without running tests.
+The `initialization:cluster` task is responsible for provisioning and configuring the entire runtime environment, including Kubernetes, infrastructure services, and microservices.
 
-- **`initialization:code`**  
-  Sets up the project source code:
-  - `git:init` – initializes git submodules.
-  - `git:update-all` – updates all submodules recursively to the latest remote commits.
+It executes a sequence of steps that must run in a specific order to ensure a fully working system.
 
-- **`initialization:cluster`**  
-  Sets up the local Kubernetes environment:
-  - `cluster:create` – starts Minikube with a dedicated Docker network and profile.
-  - `cluster:forward-node-up` – sets up port forwarding for local access.
-  - `cluster:authority-install-or-upgrade` – installs or upgrades the local authority Helm chart and switches namespace.
+### Entry Point
 
-- **`initialization:build:code`**  
-  Builds all projects without executing tests using Maven (`mvnd`).
+```
+mise run initialization:cluster
+```
 
-- **`initialization:zscaler`**  
-  Configures the environment for Z-Scaler certificates:
-  - `zscaler:install-jdk` – imports Z-Scaler CA into Java keystore.
-  - `zscaler:install-cluster` – installs Z-Scaler certificates inside the Minikube cluster.
+### Execution Flow
 
-### Project Destruction
-- **`destruction:all`**  
-  Completely removes the development environment:
-  - `cluster:destroy` – deletes the Minikube cluster.
-  - `cluster:forward-node-down` – shuts down all port forwards.
-  - `zscaler:remove-jdk` – removes the Z-Scaler CA from the Java keystore.
+The process performs the following steps:
 
-### Cluster Management
-- **`cluster:start`** – starts the Minikube cluster and sets up port forwarding.
-- **`cluster:stop`** – stops the Minikube cluster and disables port forwarding.
-- **`cluster:status`** – shows the status of the Minikube cluster.
-- **`cluster:bash`** – opens a shell inside the Minikube control plane container.
-- **`cluster:forward-node-compose`** – runs the Docker Compose file for port forwarding.
-- **`cluster:forward-node-up`** – starts port forwarding services.
-- **`cluster:forward-node-down`** – stops port forwarding services.
-- **`cluster:authority-install-or-upgrade`** – installs or upgrades the Helm chart for the authority.
-- **`cluster:authority-uninstall`** – uninstalls the authority Helm chart.
+1. **Cluster Creation**
 
-### Microservices Execution
-Each microservice can be started individually using `micro:run:<service>` tasks. The tasks configure Spring profiles and secrets appropriately:
+- Creates a local Kubernetes cluster using **Minikube**
+- Uses a dedicated profile and Docker network
+- Prepares the namespace `local-authority`
 
-- **Authority Services:** `authenticationprovider`, `identityprovider`, `onboarding`, `securityattributesprovider`, `tierone`, `tiertwo`, `usersroles`
-- **Consumer Services:** `authenticationprovider`, `tierone`, `tiertwo`, `usersroles`
+2. **ZScaler Configuration (Optional)**
 
-All services are executed using Maven’s `spring-boot:run` plugin with `mvnd` for optimized builds.
+- Installs ZScaler certificates:
+  - Into the JDK keystore
+  - Inside the Kubernetes cluster
+- This step is executed only if ZScaler support is enabled
 
-### Code Management
-- **`code:fmt`** – formats the code using Spotless.
-- **`code:build`** – builds all projects with Maven, including tests.
-- **`code:build:no-test`** – builds all projects but skips tests and license downloads.
-- **`code:test-automation:run-by-tag`** – runs automation tests filtered by Cucumber tags.
+3. **Port Forwarding Setup**
 
-### Logging
-- **`jqlog`** – formats JSON log output to a readable line-by-line format using `jq`.
+- Starts a dedicated Docker Compose stack for **port forwarding**
+- Exposes internal Kubernetes services to the local machine
 
-### Z-Scaler Integration
-- **`zscaler:install-jdk`** – imports Z-Scaler CA into the Java keystore.
-- **`zscaler:remove-jdk`** – removes the Z-Scaler CA from the Java keystore.
+4. **Redpanda Startup**
 
+- Starts **Redpanda** (Kafka-compatible streaming platform) via Docker Compose
+- Provides messaging infrastructure required by the system
+
+5. **Authority Deployment (Helm)**
+
+- Installs or upgrades the **local-authority Helm chart**
+- Deploys core infrastructure components inside Kubernetes, including:
+  - Keycloak
+  - PostgreSQL
+  - EJBCA
+
+6. **Test Automation Configuration**
+
+- Waits for Keycloak to become available
+- Retrieves client secrets dynamically
+- Injects secrets into test configuration files
+- Enables execution of automated tests without manual setup
+
+7. **EJBCA Initialization**
+
+- Waits for the EJBCA pod to be ready
+- Uploads configuration files into the container
+- Executes initialization EJBCA
+- Extracts:
+  - PKCS#12 keystores
+  - Truststores
+- Makes credentials available to dependent services
+
+8. **EJBCA Certificate Retrieval**
+
+- Downloads the EJBCA public certificate (`.pem`)
+- Stores it locally for use by microservices
+
+9. **Tier1 Authority Bootstrap**
+
+Starts the **tier1 authority gateway** service
+Enables initial interactions with identity and certificate services
+
+10. **Keycloak Auto-Configuration**
+
+- Configures realms:
+  - `authority`
+  - `participant`
+  - `onboarding`
+- Applies base configuration (e.g. frontend URLs)
+- Generates and exports service account secrets
+
+11. **Backend Services Startup**
+
+- Starts all backend microservices via Docker Compose
+- Pulls latest images if required
+
+12. **Frontend Services Startup**
+
+- Starts frontend applications via a separate Docker Compose stack
+
+### Result
+
+After this process completes:
+
+- Kubernetes cluster is fully operational
+- Core infrastructure (Keycloak, EJBCA, Redpanda) is configured
+- Certificates and secrets are generated and propagated
+- Backend and frontend microservices are running
+- The system is ready for development and testing
