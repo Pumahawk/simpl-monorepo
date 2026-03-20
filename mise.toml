@@ -167,6 +167,7 @@ run = [
   { task = "cluster:keycloak-autoconfigure" },
   { task = "simpl-services:up" },
   { task = "simpl-services-fe:up" },
+  { task = "cluster:authority_initialization" },
 ]
 
 [tasks."initialization:zscaler"]
