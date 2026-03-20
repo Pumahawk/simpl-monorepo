@@ -155,18 +155,19 @@ run = [
 [tasks."initialization:cluster"]
 description = "Creates the Minikube cluster, configures port forwarding, and installs or upgrades the authority chart."
 run = [
-  { task = "cluster:create" },
-  { task = "initialization:zscaler" },
-  { task = "cluster:forward-node-up" },
-  { task = "cluster:redpanda:up" },
-  { task = "cluster:authority-install-or-upgrade" },
-  { task = "code:test-automation:autoconfigure-client-secret" },
-  { task = "cluster:initialization_ejbca" },
-  { task = "cluster:download_ejbca_pem" },
-  { task = "simpl-services:tier1-authority-up" },
-  { task = "cluster:keycloak-autoconfigure" },
-  { task = "simpl-services:up" },
+  # { task = "cluster:create" },
+  # { task = "initialization:zscaler" },
+  # { task = "cluster:forward-node-up" },
+  # { task = "cluster:redpanda:up" },
+  # { task = "cluster:authority-install-or-upgrade" },
+  # { task = "code:test-automation:autoconfigure-client-secret" },
+  # { task = "cluster:initialization_ejbca" },
+  # { task = "cluster:download_ejbca_pem" },
+  # { task = "simpl-services:tier1-authority-up" },
+  # { task = "cluster:keycloak-autoconfigure" },
+  # { task = "simpl-services:up" },
   { task = "simpl-services-fe:up" },
+  { task = "cluster:authority_initialization" },
 ]
 
 [tasks."initialization:zscaler"]
@@ -467,7 +468,6 @@ run = "kubectl get -n local-authority deployments"
 [tasks."cluster:keycloak-autoconfigure"]
 run = [
   { task = "cluster:keycloak-clean-realms" },
-  { task = "cluster:keycloak-realm-sleep-existential-fear" },
   { task = "cluster:keycloak-realm-autoconfigure" },
   { task = "cluster:keycloak-base-autoconfigure" },
   { task = "cluster:keycloak-download-secret-onboarding-sa" },
@@ -506,12 +506,6 @@ fi
 wait
 """
 
-[tasks."cluster:keycloak-realm-sleep-existential-fear"]
-run = """
-echo "😰 Pausing for 50 seconds... I have absolutely no idea why this works, and I'm mildly terrified of what happens next."
-sleep 50
-"""
-
 [tasks."cluster:keycloak-realm-autoconfigure"]
 shell = "bash -ec"
 run = """
@@ -521,12 +515,19 @@ for realm in authority participant onboarding; do
   echo "process realm=[$realm]"
   env -C "$DIR" gomplate -c .=examples/${realm}-with-eidas.yaml
   echo "Start keycloak-config-cli"
-  env -C "$DIR" java \
+  try_n=0
+  until try_n=$(( $try_n + 1 )) && env -C "$DIR" java \
   -jar bin/keycloak-config-cli.jar \
   --keycloak.url=http://localhost:8100/auth \
   --keycloak.user=admin \
   --keycloak.password=admin \
-  --import.files.locations=out/realm.yaml
+  --import.files.locations=out/realm.yaml || [ try_n == 3 ]; do
+    echo "Failed command. Repeate the command. ($(( try_n + 1 ))/3)"
+  done
+  if [ try_n == 3 ]; then
+    echo "Unable to import realm $realm"
+    exit 1;
+  fi
 done
 """
 
@@ -851,6 +852,29 @@ db_connect
 [tasks."cluster:authority_initialization"]
 shell = "bash -ec"
 run = """
+wait_all_services_authority_up() {
+  local services=()
+  while read line; do services+=($line); done < <(yq '.services | to_entries | .[].key' .config/docker/simpl-services/docker-compose.yaml  | grep authority )
+  echo "Start waiting for services: ${services[@]}"
+  max_n=60
+  n=1
+  for line in "${services[@]}"; do
+    until status="$(mise run simpl-services:compose ps -a "$line" --format json | jq -r .Health)" && [ "$status" == "healthy" ] || [ $n == $max_n ]; do
+       if [ -z "$status" ]; then
+         echo "Invalid health service=[$line], status=[$status]"
+         return 1;
+       fi
+       echo "($n/$max_n) Wait service $line become healthy."
+       echo "Wait 20s"
+       sleep 20
+       n=$(($n + 1))
+    done
+    if [ $n == $max_n ]; then echo "Unable to check health of service $line"; return 1; fi
+  done
+}
+
+wait_all_services_authority_up || { echo "Unable to initializate authority"; exit 1; }
+
 AUTH_PF_PORT=8105
 ID_PF_PORT=8103
 
@@ -924,8 +948,9 @@ echo "Start entrypoint script"
 
 cat "$EJBCA_DOCKER_DIR/entrypoint.sh" | kubectl exec -i "$EJBCA_POD" -- sh -
 
-if TEMP="$(mktemp)" && kubectl exec -i "$EJBCA_POD" --  cat /opt/keyfactor/p12/SuperAdmin.p12 > "$TEMP" ; then mv -v "$TEMP" "$IDENTITY_DOCKER_DIR/SuperAdmin.p12"; else "Skip download file SuperAdmin"; fi;
-if TEMP="$(mktemp)" && kubectl exec -i "$EJBCA_POD" --  cat /opt/keyfactor/p12/truststore.jks > "$TEMP" ; then mv -v "$TEMP" "$IDENTITY_DOCKER_DIR/truststore.jks"; else "Skip download file truststore"; fi;
+TEMP=/tmp/t
+if kubectl exec -i "$EJBCA_POD" --  cat /opt/keyfactor/p12/SuperAdmin.p12 > "$TEMP" ; then mv -v "$TEMP" "$IDENTITY_DOCKER_DIR/SuperAdmin.p12"; else "Skip download file SuperAdmin"; fi;
+if kubectl exec -i "$EJBCA_POD" --  cat /opt/keyfactor/p12/truststore.jks > "$TEMP" ; then mv -v "$TEMP" "$IDENTITY_DOCKER_DIR/truststore.jks"; else "Skip download file truststore"; fi;
 """
 
 [tasks."cluster:download_ejbca_pem"]
