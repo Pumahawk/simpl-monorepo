@@ -155,19 +155,18 @@ run = [
 [tasks."initialization:cluster"]
 description = "Creates the Minikube cluster, configures port forwarding, and installs or upgrades the authority chart."
 run = [
-  # { task = "cluster:create" },
-  # { task = "initialization:zscaler" },
-  # { task = "cluster:forward-node-up" },
-  # { task = "cluster:redpanda:up" },
-  # { task = "cluster:authority-install-or-upgrade" },
-  # { task = "code:test-automation:autoconfigure-client-secret" },
-  # { task = "cluster:initialization_ejbca" },
-  # { task = "cluster:download_ejbca_pem" },
-  # { task = "simpl-services:tier1-authority-up" },
-  # { task = "cluster:keycloak-autoconfigure" },
-  # { task = "simpl-services:up" },
+  { task = "cluster:create" },
+  { task = "initialization:zscaler" },
+  { task = "cluster:forward-node-up" },
+  { task = "cluster:redpanda:up" },
+  { task = "cluster:authority-install-or-upgrade" },
+  { task = "code:test-automation:autoconfigure-client-secret" },
+  { task = "cluster:initialization_ejbca" },
+  { task = "cluster:download_ejbca_pem" },
+  { task = "simpl-services:tier1-authority-up" },
+  { task = "cluster:keycloak-autoconfigure" },
+  { task = "simpl-services:up" },
   { task = "simpl-services-fe:up" },
-  { task = "cluster:authority_initialization" },
 ]
 
 [tasks."initialization:zscaler"]
