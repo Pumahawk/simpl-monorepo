@@ -12,6 +12,9 @@ minikube = "1.37.0"
 yq = "4.47.2"
 gomplate = "5.0.0"
 
+[shell_alias]
+path_fe = "rg -n --no-heading path: $(fd route  | grep microfe)"
+
 [vars]
 pathSimplRepo = "./simpl-repo"
 pathSimplBackend = "{{vars.pathSimplRepo}}/backend"
@@ -464,6 +467,7 @@ run = "kubectl get -n local-authority deployments"
 [tasks."cluster:keycloak-autoconfigure"]
 run = [
   { task = "cluster:keycloak-clean-realms" },
+  { task = "cluster:keycloak-realm-sleep-existential-fear" },
   { task = "cluster:keycloak-realm-autoconfigure" },
   { task = "cluster:keycloak-base-autoconfigure" },
   { task = "cluster:keycloak-download-secret-onboarding-sa" },
@@ -500,6 +504,12 @@ fi
   echo "Delete realm authority"; kcadm_remote auth delete realms/authority || true
   echo "Delete realm participant"; kcadm_remote auth delete realms/participant || true
 wait
+"""
+
+[tasks."cluster:keycloak-realm-sleep-existential-fear"]
+run = """
+echo "😰 Pausing for 50 seconds... I have absolutely no idea why this works, and I'm mildly terrified of what happens next."
+sleep 50
 """
 
 [tasks."cluster:keycloak-realm-autoconfigure"]
@@ -914,8 +924,8 @@ echo "Start entrypoint script"
 
 cat "$EJBCA_DOCKER_DIR/entrypoint.sh" | kubectl exec -i "$EJBCA_POD" -- sh -
 
-kubectl exec -i "$EJBCA_POD" --  cat /opt/keyfactor/p12/SuperAdmin.p12 > "$IDENTITY_DOCKER_DIR/SuperAdmin.p12"
-kubectl exec -i "$EJBCA_POD" --  cat /opt/keyfactor/p12/truststore.jks > "$IDENTITY_DOCKER_DIR/truststore.jks"
+if TEMP="$(mktemp)" && kubectl exec -i "$EJBCA_POD" --  cat /opt/keyfactor/p12/SuperAdmin.p12 > "$TEMP" ; then mv -v "$TEMP" "$IDENTITY_DOCKER_DIR/SuperAdmin.p12"; else "Skip download file SuperAdmin"; fi;
+if TEMP="$(mktemp)" && kubectl exec -i "$EJBCA_POD" --  cat /opt/keyfactor/p12/truststore.jks > "$TEMP" ; then mv -v "$TEMP" "$IDENTITY_DOCKER_DIR/truststore.jks"; else "Skip download file truststore"; fi;
 """
 
 [tasks."cluster:download_ejbca_pem"]

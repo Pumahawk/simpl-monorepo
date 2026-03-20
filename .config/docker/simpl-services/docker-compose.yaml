@@ -3,7 +3,7 @@ version: "3.9"
 x-healthcheck: &default-healthcheck
   interval: 10s
   timeout: 5s
-  retries: 5
+  retries: 100
 
 services:
   authentication-provider-authority:
@@ -110,7 +110,8 @@ services:
     env_file:
       - tier2-gateway/application-local-authority.env
     depends_on:
-      - authentication-provider-authority
+      authentication-provider-authority:
+        condition: service_healthy
     mem_limit: 512m
     healthcheck:
       <<: *default-healthcheck
@@ -125,7 +126,8 @@ services:
     env_file:
       - tier2-gateway/application-local-consumer.env
     depends_on:
-      - authentication-provider-consumer
+      authentication-provider-consumer:
+        condition: service_healthy
     mem_limit: 512m
     healthcheck:
       <<: *default-healthcheck
@@ -138,6 +140,9 @@ services:
     - simpl-network
     env_file:
       - users-roles/application-local-authority.env
+    depends_on:
+      tier1-gateway-authority:
+        condition: service_healthy
     mem_limit: 512m
     healthcheck:
       <<: *default-healthcheck
@@ -150,6 +155,9 @@ services:
     - simpl-network
     env_file:
       - users-roles/application-local-consumer.env
+    depends_on:
+      tier1-gateway-consumer:
+        condition: service_healthy
     mem_limit: 512m
     healthcheck:
       <<: *default-healthcheck
