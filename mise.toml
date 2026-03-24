@@ -163,6 +163,7 @@ run = [
   { task = "code:test-automation:autoconfigure-client-secret" },
   { task = "cluster:initialization_ejbca" },
   { task = "cluster:download_ejbca_pem" },
+  { task = "config:prepare-files" },
   { task = "simpl-services:tier1-authority-up" },
   { task = "cluster:keycloak-autoconfigure" },
   { task = "simpl-services:up" },
@@ -960,6 +961,22 @@ OUTPUT_FILE=".config/docker/simpl-services/tier1-gateway/ejbca-local.pem"
 HOST="localhost:30443"
 echo "Download ejbca x509 from $HOST to $OUTPUT_FILE"
 openssl s_client -connect "$HOST" -showcerts </dev/null 2>/dev/null | openssl x509 -outform PEM | tee "$OUTPUT_FILE"
+"""
+
+[tasks."config:prepare-files"]
+shell = "bash -ec"
+run = """
+FILES=()
+FILES+=(.config/docker/simpl-services/onboarding/keycloak-onboarding-secret-authority.env)
+for file in "${FILES[@]}"; do
+  if [ ! -f "$file" ]; then
+    echo "Create empty file. file=[$file]"
+    mkdir -p "$(dirname "$file")"
+    touch "$file"
+  else
+    echo "File already exist: file=[$file]"
+  fi
+done
 """
 
 [env]
