@@ -503,7 +503,7 @@ fi
 
   echo "Delete realm onboarding"; kcadm_remote auth delete realms/onboarding || true
   echo "Delete realm authority"; kcadm_remote auth delete realms/authority || true
-  echo "Delete realm participant"; kcadm_remote auth delete realms/participant || true
+  echo "Delete realm consumer"; kcadm_remote auth delete realms/consumer || true
 wait
 """
 
