@@ -979,6 +979,28 @@ for file in "${FILES[@]}"; do
 done
 """
 
+[tasks."db:clean"]
+shell = "bash -ec"
+run = """
+kubectl --namespace local-authority exec -i local-authority-postgresql-0 -- bash -eb /dev/stdin -- "${DB_CLEAN_ALL}" << EOF
+  DB_CLEAN_ALL="$1"
+  bash -c 'echo "Clean database: authority_authenticationprovider "; PGPASSWORD=postgres dropdb -f -U postgres authority_authenticationprovider; PGPASSWORD=postgres createdb -U postgres -O authority_authenticationprovider authority_authenticationprovider; echo "Done database: authority_authenticationprovider "' &
+  bash -c 'echo "Clean database: authority_identityprovider "; PGPASSWORD=postgres dropdb -f -U postgres authority_identityprovider; PGPASSWORD=postgres createdb -U postgres -O authority_identityprovider authority_identityprovider; echo "Done database: authority_identityprovider "' &
+  bash -c 'echo "Clean database: authority_onboarding "; PGPASSWORD=postgres dropdb -f -U postgres authority_onboarding; PGPASSWORD=postgres createdb -U postgres -O authority_onboarding authority_onboarding; echo "Done database: authority_onboarding "' &
+  bash -c 'echo "Clean database: authority_securityattributesprovider "; PGPASSWORD=postgres dropdb -f -U postgres authority_securityattributesprovider; PGPASSWORD=postgres createdb -U postgres -O authority_securityattributesprovider authority_securityattributesprovider; echo "Done database: authority_securityattributesprovider "' &
+  bash -c 'echo "Clean database: authority_usersroles "; PGPASSWORD=postgres dropdb -f -U postgres authority_usersroles; PGPASSWORD=postgres createdb -U postgres -O authority_usersroles authority_usersroles; echo "Done database: authority_usersroles "' &
+  bash -c 'echo "Clean database: consumer_authenticationprovider "; PGPASSWORD=postgres dropdb -f -U postgres consumer_authenticationprovider; PGPASSWORD=postgres createdb -U postgres -O consumer_authenticationprovider consumer_authenticationprovider; echo "Done database: consumer_authenticationprovider "' &
+  bash -c 'echo "Clean database: consumer_usersroles "; PGPASSWORD=postgres dropdb -f -U postgres consumer_usersroles; PGPASSWORD=postgres createdb -U postgres -O consumer_usersroles consumer_usersroles; echo "Done database: consumer_usersroles "' &
+
+  if [ -n "${DB_CLEAN_ALL}" ] && [ "${DB_CLEAN_ALL}" == "1" ]; then
+    bash -c 'echo "Clean database: authority_ejbca "; PGPASSWORD=postgres dropdb -f -U postgres authority_ejbca; PGPASSWORD=postgres createdb -U postgres -O ejbca authority_ejbca; echo "Done database: authority_ejbca "' &
+    bash -c 'echo "Clean database: keycloak "; PGPASSWORD=postgres dropdb -f -U postgres keycloak; PGPASSWORD=postgres createdb -U postgres -O keycloak keycloak; echo "Done database: keycloak "' &
+  fi
+
+  wait
+EOF
+"""
+
 [env]
 PROJECT_RELEASE_VERSION = "monorepo-dev"
 KUBECONFIG = "{{config_root}}/.config/.kube/config"
