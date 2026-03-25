@@ -1001,6 +1001,71 @@ kubectl --namespace local-authority exec -i local-authority-postgresql-0 -- bash
 EOF
 """
 
+[tasks."services:token"]
+shell = "bash -ec"
+run = """
+services_login() {
+  local REALM="${1?Missing realm}"
+  local USERNAME="${2?Missing username}"
+  local PASSWORD="${3-"password"}"
+  local CLIENT_ID="frontend-cli"
+  local BASE_URL="$(service_token_get_base_url "$REALM")"
+  curl -s -X POST "$BASE_URL/protocol/openid-connect/token" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "client_id=frontend-cli" \
+    -d "username=${USERNAME}" \
+    -d "password=$PASSWORD" \
+    -d "grant_type=password"
+}
+services_token() {
+  local REALM="${1?Missing realm}"
+  local USERNAME="${2?Missing username}"
+  local PASSWORD="${3-"password"}"
+  local TOKEN_FILE="${USERNAME}-${REALM}-token.json"
+  local LOGIN_TOKEN="";
+  if [ -f "$TOKEN_FILE" ] && [ "$(cat "$TOKEN_FILE" | jq -r .access_token)" != "null" ]; then
+    LOGIN_TOKEN="$(cat "$TOKEN_FILE")"
+    if [[ $(date -Iseconds) > $(date -Iseconds -d @"$(<<<"$LOGIN_TOKEN" jq -r .access_token | cut -d. -f2 | base64 -d 2>/dev/null | jq .exp)") ]]; then
+      local REFRESH_TOKEN="$(<<<"$LOGIN_TOKEN" jq -r .refresh_token)"
+      LOGIN_TOKEN="$(service_token_refresh "$REALM" "$REFRESH_TOKEN")"
+      if [ -z "$LOGIN_TOKEN" ]; then
+        >&2 echo "Invalid token response"
+        return 1;
+      fi
+      echo "$LOGIN_TOKEN" > "$TOKEN_FILE"
+    fi
+  else
+    LOGIN_TOKEN="$(services_login "$REALM" "$USERNAME" "$PASSWORD")"
+    if [ -z "$LOGIN_TOKEN" ]; then
+      >&2 echo "Invalid token response"
+      return 1;
+    fi
+    echo "$LOGIN_TOKEN" > "$TOKEN_FILE"
+  fi
+  <<<"$LOGIN_TOKEN" jq -r .access_token
+}
+service_token_refresh() {
+  local REALM="${1?Missing realm}"
+  local REFRESH_TOKEN="${2?Missing refresh token}"
+  local BASE_URL="$(service_token_get_base_url "$REALM")"
+  curl -s -X POST "$BASE_URL/protocol/openid-connect/token" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "client_id=frontend-cli" \
+    -d "grant_type=refresh_token" \
+    -d "refresh_token=${REFRESH_TOKEN}"
+}
+service_token_get_base_url() {
+  local REALM="${1?Missing realm}"
+  local FQDN="localhost:8100";
+  if [[ "$REALM" == consumer ]]; then
+    FQDN="localhost:8200";
+  fi
+  echo -n "http://${FQDN}/auth/realms/${REALM}"
+}
+services_token
+"""
+
+
 [env]
 PROJECT_RELEASE_VERSION = "monorepo-dev"
 KUBECONFIG = "{{config_root}}/.config/.kube/config"
