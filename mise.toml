@@ -845,7 +845,7 @@ mise run micro:coverage:download:consumer-usersroles;
 shell = "bash -ec"
 run = """
 function db_connect() {
-  kubectl exec -it -n local-authority local-authority-postgresql-0 -- bash -c "PGPASSWORD=postgres psql -U postgres $*"
+  kubectl exec -it -n local-authority local-authority-postgresql-0 -- bash -c 'PGPASSWORD=postgres psql -U postgres "$@"' -- "$@"
 }
 db_connect
 """
