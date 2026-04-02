@@ -863,7 +863,7 @@ db_connect
 
 [tasks."cluster:authority_initialization"]
 shell = "bash -ec"
-file = ".config/scripts/authority-initialization.sh"
+file = ".config/scripts/cluster_authority_initialization.bash"
 
 [tasks."cluster:initialization_ejbca"]
 shell = "bash -ec"
