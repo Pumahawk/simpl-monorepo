@@ -850,6 +850,17 @@ function db_connect() {
 db_connect
 """
 
+[tasks."db:exec"]
+raw = true
+quiet = true
+shell = "bash -ec"
+run = """
+function db_connect() {
+  kubectl exec -i -n local-authority local-authority-postgresql-0 -- bash -c 'PGPASSWORD=postgres psql -U postgres "$@"' -- "$@"
+}
+db_connect
+"""
+
 [tasks."cluster:authority_initialization"]
 shell = "bash -ec"
 run = """
