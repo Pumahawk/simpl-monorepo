@@ -2,6 +2,29 @@
 
 set -o pipefail
 
+wait_all_services_authority_up() {
+  local services=()
+  while read line; do services+=($line); done < <(yq '.services | to_entries | .[].key' .config/docker/simpl-services/docker-compose.yaml  | grep authority )
+  echo "Start waiting for services: ${services[@]}"
+  max_n=60
+  n=1
+  for line in "${services[@]}"; do
+    until status="$(mise run simpl-services:compose ps -a "$line" --format json | jq -r .Health)" && [ "$status" == "healthy" ] || [ $n == $max_n ]; do
+       if [ -z "$status" ]; then
+         echo "Invalid health service=[$line], status=[$status]"
+         return 1;
+       fi
+       echo "($n/$max_n) Wait service $line become healthy."
+       echo "Wait 20s"
+       sleep 20
+       n=$(($n + 1))
+    done
+    if [ $n == $max_n ]; then echo "Unable to check health of service $line"; return 1; fi
+  done
+}
+
+wait_all_services_authority_up || { echo "Unable to initializate authority"; exit 1; }
+
 export AUTHORITY_AUTH_PROVIDER=localhost:8080
 export AUTHORITY_IDENTITY_PROVIDER=localhost:8090
 
