@@ -863,73 +863,7 @@ db_connect
 
 [tasks."cluster:authority_initialization"]
 shell = "bash -ec"
-run = """
-wait_all_services_authority_up() {
-  local services=()
-  while read line; do services+=($line); done < <(yq '.services | to_entries | .[].key' .config/docker/simpl-services/docker-compose.yaml  | grep authority )
-  echo "Start waiting for services: ${services[@]}"
-  max_n=60
-  n=1
-  for line in "${services[@]}"; do
-    until status="$(mise run simpl-services:compose ps -a "$line" --format json | jq -r .Health)" && [ "$status" == "healthy" ] || [ $n == $max_n ]; do
-       if [ -z "$status" ]; then
-         echo "Invalid health service=[$line], status=[$status]"
-         return 1;
-       fi
-       echo "($n/$max_n) Wait service $line become healthy."
-       echo "Wait 20s"
-       sleep 20
-       n=$(($n + 1))
-    done
-    if [ $n == $max_n ]; then echo "Unable to check health of service $line"; return 1; fi
-  done
-}
-
-wait_all_services_authority_up || { echo "Unable to initializate authority"; exit 1; }
-
-AUTH_PF_PORT=8105
-ID_PF_PORT=8103
-
-AUTH_SERVICE=authentication-provider
-ID_SERVICE=identity-provider
-
-export AUTHORITY_AUTH_PROVIDER=localhost:$AUTH_PF_PORT
-export AUTHORITY_IDENTITY_PROVIDER=localhost:$ID_PF_PORT
-
->&2 echo Generating keypair...
-curl -v -X POST "$AUTHORITY_AUTH_PROVIDER/v1/keypairs/generate"
-
->&2 echo Generating CSR...
-curl -v -X POST "$AUTHORITY_AUTH_PROVIDER/v1/csr/generate" \
---header 'Content-Type: application/json' \
---data-raw '{
-  "commonName": "tier2-gateway-authority",
-  "country": "it",
-  "organization": "authority",
-  "organizationalUnit": "authority"
-}' > csr.pem
-
->&2 echo Creating Authority participant
-PARTICIPANT_ID=$(curl -v -X POST "$AUTHORITY_IDENTITY_PROVIDER/v1/participants" \
---header 'Content-Type: application/json' \
---data-raw '{
-  "organization": "authority",
-  "participantType": "GOVERNANCE_AUTHORITY"
-}' | sed -E 's/^"(.*)"$/\\1/')
-
->&2 echo Uploading CSR ..
->&2 echo "Participant id: $PARTICIPANT_ID"
-curl -X POST "$AUTHORITY_IDENTITY_PROVIDER/v1/participants/$PARTICIPANT_ID/csr" \
--F "csr=@csr.pem"
-
->&2 echo Downloading credentials ...
-curl "$AUTHORITY_IDENTITY_PROVIDER/v1/credentials/$PARTICIPANT_ID/download" \
--o cert.pem
-
->&2 echo Uploading credentials ...
-curl -v -X POST "$AUTHORITY_AUTH_PROVIDER/v1/credentials" \
--F "credential=@cert.pem"
-"""
+file = ".config/scripts/authority-initialization.sh"
 
 [tasks."cluster:initialization_ejbca"]
 shell = "bash -ec"
