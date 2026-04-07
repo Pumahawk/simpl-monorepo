@@ -25,8 +25,8 @@ wait_all_services_authority_up() {
 
 wait_all_services_authority_up || { echo "Unable to initializate authority"; exit 1; }
 
-export AUTHORITY_AUTH_PROVIDER=localhost:8080
-export AUTHORITY_IDENTITY_PROVIDER=localhost:8090
+export AUTHORITY_AUTH_PROVIDER=localhost:8105
+export AUTHORITY_IDENTITY_PROVIDER=localhost:8103
 
 CURL_W_OUT=$(mktemp)
 
