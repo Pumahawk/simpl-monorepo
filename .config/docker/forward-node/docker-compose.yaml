@@ -7,6 +7,7 @@ services:
     ports:
       - "30888:30888"
       - "30443:30443"
+      - "30080:30080"
       - "30432:30432"
       - "30379:30379"
       - "30205:30205"
@@ -44,6 +45,7 @@ services:
       portf 30379 &
       portf 30432 &
       portf 30443 &
+      portf 30080 &
       portf 30888 &
       log "Socat port fotward running"
       wait -n
