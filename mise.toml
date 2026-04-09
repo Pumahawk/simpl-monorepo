@@ -1038,6 +1038,14 @@ service_token_get_base_url() {
 services_token
 """
 
+[tasks."sync"]
+shell = "bash -ec"
+run = """
+git pull
+git submodule update simpl-repo/docs/charts/
+mise run cluster:authority-install-or-upgrade
+"""
+
 
 [env]
 PROJECT_RELEASE_VERSION = "monorepo-dev"
