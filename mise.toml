@@ -504,6 +504,7 @@ fi
   echo "Delete realm onboarding"; kcadm_remote auth delete realms/onboarding || true
   echo "Delete realm authority"; kcadm_remote auth delete realms/authority || true
   echo "Delete realm consumer"; kcadm_remote auth delete realms/consumer || true
+  echo "Delete realm participant"; kcadm_remote auth delete realms/participant || true
 wait
 """
 
@@ -514,18 +515,16 @@ DIR="simpl-repo/backend/misc/tier1-authentication/tools/keycloak-realm-configura
 echo "Generate Realm"
 for realm in authority participant onboarding; do
   echo "process realm=[$realm]"
-  env -C "$DIR" gomplate -c .=examples/${realm}-with-eidas.yaml
   echo "Start keycloak-config-cli"
   try_n=0
-  until try_n=$(( $try_n + 1 )) && env -C "$DIR" java \
-  -jar bin/keycloak-config-cli.jar \
-  --keycloak.url=http://localhost:8100/auth \
-  --keycloak.user=admin \
-  --keycloak.password=admin \
-  --import.files.locations=out/realm.yaml || [ try_n == 3 ]; do
+  until try_n=$(( $try_n + 1 )) && env -C "$DIR" sh ./configure-realm.sh \\
+    -CONFIG values/${realm}.yaml,values/test-default.yaml,values/eidas-default.yaml \\
+    -URL http://localhost:8100/auth \\
+    -USER admin \\
+    -PASSWORD admin || [[ try_n == 3 ]]; do
     echo "Failed command. Repeate the command. ($(( try_n + 1 ))/3)"
   done
-  if [ try_n == 3 ]; then
+  if [[ try_n == 3 ]]; then
     echo "Unable to import realm $realm"
     exit 1;
   fi
