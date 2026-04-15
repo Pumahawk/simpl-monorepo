@@ -862,7 +862,9 @@ db_connect
 
 [tasks."cluster:authority_initialization"]
 shell = "bash -ec"
-file = ".config/scripts/cluster_authority_initialization.bash"
+run = """
+cat .config/scripts/cluster_authority_initialization.bash | docker run --name init-authority --rm -i --network=simpl-network --user 1000:1000 curlimages/curl sh -e
+"""
 
 [tasks."cluster:initialization_ejbca"]
 shell = "bash -ec"
