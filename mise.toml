@@ -354,6 +354,7 @@ run = [
 
 [tasks."simpl:start"]
 run = [
+  { task = "cluster:download_ejbca_pem" },
   { task = "simpl-services:up" },
   { task = "simpl-services-fe:up" },
 ]
@@ -374,6 +375,14 @@ run = [
 run = [
   { task = "simpl-services:compose ps -a" },
   { task = "simpl-services-fe:compose ps -a" },
+]
+
+[tasks."simpl:prune_and_init"]
+run = [
+  { task = "simpl:stop" },
+  { task = "db:clean" },
+  { task = "simpl:start" },
+  { task = "cluster:authority_initialization" },
 ]
 
 [tasks."services:status-all"]
