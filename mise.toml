@@ -64,12 +64,13 @@ function waitkpod() {
 
 function getsecret() {
   local realm="$1"
+  local client_id="${2-"cli"}"
      (
   >&2  echo "Retrieve secret $realm"
   kubectl exec -n local-authority local-authority-keycloak-0 -i -- bash -eb << EOF
   /opt/keycloak/bin/kcadm.sh get clients \
          -r "$realm" \
-         -q clientId=cli \
+         -q clientId="$client_id" \
          --config /tmp/kcadm.config
 EOF
   ) | jq -r .[].secret 
@@ -243,13 +244,19 @@ fi
 
 keylogin
 secret_authority="$(getsecret authority)"
+secret_onboarding="$(getsecret onboarding onboarding-sa)"
+secret_testclient="$(getsecret authority test-client)"
 secret_consumer="$(getsecret consumer)"
 out={{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
 
 echo "Output file: $out"
 echo "Secret authority: $secret_authority"
+echo "Secret onboarding: $secret_onboarding"
+echo "Secret test-client: $secret_testclient"
 echo "Secret consumer: $secret_consumer"
-yq eval '.environments[0].service-accounts[].secret = "'$secret_authority'"' -i {{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
+yq eval '.environments[0].service-accounts[0].secret = "'$secret_authority'"' -i {{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
+yq eval '.environments[0].keycloak-service-accounts.applicant.secret = "'$secret_onboarding'"' -i {{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
+yq eval '.environments[0].keycloak-service-accounts.primary.secret = "'$secret_testclient'"' -i {{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
 yq eval '.environments[1].service-accounts[].secret = "'$secret_consumer'"' -i {{vars.pathSimplBackend}}/tests/test-automation/src/test/resources/environments/environments-local.yaml
 """,
 ]
