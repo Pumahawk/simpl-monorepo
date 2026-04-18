@@ -21,6 +21,9 @@ var clusterCmdG = commandsGroup{
 	ClusterForwardNodeUpCmd,
 	ClusterForwardNodeDownCmd,
 	ClusterForwardNodeComposeCmd,
+	ClusterRedpandaUpCmd,
+	ClusterRedpandaDownCmd,
+	ClusterRedpandaComposeCmd,
 }
 
 func main() {

@@ -14,6 +14,7 @@ gomplate = "5.0.0"
 
 [shell_alias]
 path_fe = "rg -n --no-heading path: $(fd route  | grep microfe)"
+simplcli = "./.config/simplcli/simplcli"
 
 [vars]
 pathSimplRepo = "./simpl-repo"

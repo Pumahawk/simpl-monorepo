@@ -6,6 +6,12 @@ var forwardComposeBaseCmd = []string{
 	"-p", "simpl-portforward",
 }
 
+var redPandaComposeBaseCmd = []string{
+	"compose",
+	"-f", ".config/docker/redpanda/docker-compose.yaml",
+	"-p", "simpl-redpanda",
+}
+
 var ClusterCreateCmd = command{
 	Name:  "create",
 	Descr: "Starts Minikube with a dedicated Docker network and profile.",
@@ -16,9 +22,8 @@ var ClusterCreateCmd = command{
 }
 
 var ClusterForwardNodeComposeCmd = command{
-	Name: "forward",
-	Descr: "" +
-		"",
+	Name:  "forward",
+	Descr: "",
 	Func: func(args ...string) int8 {
 		exargs := append(forwardComposeBaseCmd, args...)
 		cmd := baseEx("docker", exargs...)
@@ -27,27 +32,47 @@ var ClusterForwardNodeComposeCmd = command{
 }
 
 var ClusterForwardNodeUpCmd = command{
-	Name: "forward-up",
-	Descr: "" +
-		"",
+	Name:  "forward-up",
+	Descr: "",
 	Func: func(args ...string) int8 {
-		exargs := []string{"up", "-d"}
-		exargs = append(forwardComposeBaseCmd, exargs...)
-		exargs = append(exargs, args...)
+		args = append(args, "up", "-d")
+		return ClusterForwardNodeComposeCmd.Func(args...)
+	},
+}
+
+var ClusterForwardNodeDownCmd = command{
+	Name:  "forward-down",
+	Descr: "",
+	Func: func(args ...string) int8 {
+		args = append(args, "down")
+		return ClusterForwardNodeComposeCmd.Func(args...)
+	},
+}
+
+var ClusterRedpandaComposeCmd = command{
+	Name:  "redpanda",
+	Descr: "",
+	Func: func(args ...string) int8 {
+		exargs := append(redPandaComposeBaseCmd, args...)
 		cmd := baseEx("docker", exargs...)
 		return runCmd(cmd)
 	},
 }
 
-var ClusterForwardNodeDownCmd = command{
-	Name: "forward-down",
-	Descr: "" +
-		"",
+var ClusterRedpandaUpCmd = command{
+	Name:  "redpanda:up",
+	Descr: "",
 	Func: func(args ...string) int8 {
-		exargs := []string{"down"}
-		exargs = append(forwardComposeBaseCmd, exargs...)
-		exargs = append(exargs, args...)
-		cmd := baseEx("docker", exargs...)
-		return runCmd(cmd)
+		args = append(args, "up", "-d")
+		return ClusterRedpandaComposeCmd.Func(args...)
+	},
+}
+
+var ClusterRedpandaDownCmd = command{
+	Name:  "redpanda:down",
+	Descr: "",
+	Func: func(args ...string) int8 {
+		args = append(args, "down")
+		return ClusterRedpandaComposeCmd.Func(args...)
 	},
 }

@@ -1,14 +1,5 @@
 package main
 
-var ClusterRedpandaUpCmd = command{
-	Name: "cluster:redpanda:up",
-	Descr: "" +
-		"",
-	Func: func(args ...string) int8 {
-		panic("not implemented")
-	},
-}
-
 var ClusterAuthorityInstallOrUpgradeCmd = command{
 	Name: "cluster:authority-install-or-upgrade",
 	Descr: "" +
