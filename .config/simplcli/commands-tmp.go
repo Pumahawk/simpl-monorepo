@@ -1,14 +1,5 @@
 package main
 
-var ClusterCreateCmd = command{
-	Name: "cluster:create",
-	Descr: "" +
-		"",
-	Func: func(args ...string) int8 {
-		panic("not implemented")
-	},
-}
-
 var ClusterForwardNodeUpCmd = command{
 	Name: "cluster:forward-node-up",
 	Descr: "" +

@@ -5,6 +5,7 @@ import "os"
 var rootCmd = commandsGroup{
 	command{Name: "init", Func: initCmdG.Run},
 	command{Name: "code", Func: codeCmdG.Run},
+	command{Name: "cluster", Func: clusterCmdG.Run},
 }
 
 var initCmdG = commandsGroup{
@@ -13,6 +14,10 @@ var initCmdG = commandsGroup{
 
 var codeCmdG = commandsGroup{
 	CodeBuildNoTestCmd,
+}
+
+var clusterCmdG = commandsGroup{
+	ClusterCreateCmd,
 }
 
 func main() {
