@@ -14,6 +14,7 @@ var initCmdG = commandsGroup{
 
 var codeCmdG = commandsGroup{
 	CodeBuildNoTestCmd,
+	CodeTestAutomationAutoconfigureClientSecretCmd,
 }
 
 var clusterCmdG = commandsGroup{

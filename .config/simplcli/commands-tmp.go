@@ -1,14 +1,5 @@
 package main
 
-var CodeTestAutomationAutoconfigureClientSecretCmd = command{
-	Name: "code:test-automation:autoconfigure-client-secret",
-	Descr: "" +
-		"",
-	Func: func(args ...string) int8 {
-		panic("not implemented")
-	},
-}
-
 var ClusterInitializationEjbcaCmd = command{
 	Name: "cluster:initialization_ejbca",
 	Descr: "" +
