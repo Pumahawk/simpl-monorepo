@@ -24,6 +24,7 @@ var clusterCmdG = commandsGroup{
 	ClusterRedpandaUpCmd,
 	ClusterRedpandaDownCmd,
 	ClusterRedpandaComposeCmd,
+	ClusterAuthorityInstallOrUpgradeCmd,
 }
 
 func main() {

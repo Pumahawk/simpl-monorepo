@@ -1,14 +1,5 @@
 package main
 
-var ClusterAuthorityInstallOrUpgradeCmd = command{
-	Name: "cluster:authority-install-or-upgrade",
-	Descr: "" +
-		"",
-	Func: func(args ...string) int8 {
-		panic("not implemented")
-	},
-}
-
 var CodeTestAutomationAutoconfigureClientSecretCmd = command{
 	Name: "code:test-automation:autoconfigure-client-secret",
 	Descr: "" +

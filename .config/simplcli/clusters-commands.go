@@ -1,5 +1,11 @@
 package main
 
+import (
+	"path"
+)
+
+const knamespace = "local-authority"
+
 var forwardComposeBaseCmd = []string{
 	"compose",
 	"-f", ".config/docker/forward-node/docker-compose.yaml",
@@ -12,11 +18,13 @@ var redPandaComposeBaseCmd = []string{
 	"-p", "simpl-redpanda",
 }
 
+var chartLocalAuthorityPath = path.Join("simpl-repo", "docs", "charts", "app-values", "local", "local-authority")
+
 var ClusterCreateCmd = command{
 	Name:  "create",
 	Descr: "Starts Minikube with a dedicated Docker network and profile.",
 	Func: func(args ...string) int8 {
-		cmd := baseEx("minikube", "start", "--namespace", "local-authority", "--network=simpl-network", "--driver=docker", "--profile=simpl-control-plane")
+		cmd := baseEx("minikube", "start", "--namespace", knamespace, "--network=simpl-network", "--driver=docker", "--profile=simpl-control-plane")
 		return runCmd(cmd)
 	},
 }
@@ -74,5 +82,35 @@ var ClusterRedpandaDownCmd = command{
 	Func: func(args ...string) int8 {
 		args = append(args, "down")
 		return ClusterRedpandaComposeCmd.Func(args...)
+	},
+}
+
+var ClusterAuthorityInstallOrUpgradeCmd = command{
+	Name:  "authority-install-or-upgrade",
+	Descr: "",
+	Func: func(args ...string) int8 {
+		cmdHelm := baseEx("helm",
+			"upgrade",
+			"-i",
+			"--dependency-update",
+			"--create-namespace",
+			"-n", knamespace,
+			"--set", "keycloak.livenessProbe.enabled=false",
+			"--set-string", "postgrest.primary.initdb.scripts.restoreEjbca=",
+			knamespace,
+			chartLocalAuthorityPath,
+		)
+		cmdKubens := baseEx("kubens", knamespace)
+		rps0 := baseEx("kubectl", "-n", knamespace, "scale", "--replicas", "0", "deployment.apps/redpanda")
+		rps1 := baseEx("kubectl", "-n", knamespace, "scale", "--replicas", "0", "deployment.apps/redpanda-console")
+		if err := runExList(
+			cmdHelm.Run,
+			cmdKubens.Run,
+			rps0.Run,
+			rps1.Run,
+		); err != nil {
+			return 1
+		}
+		return 0
 	},
 }
