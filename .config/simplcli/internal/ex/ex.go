@@ -1,11 +1,11 @@
-package main
+package ex
 
 import (
 	"os"
 	"os/exec"
 )
 
-func runExList(runs ...func() error) error {
+func RunList(runs ...func() error) error {
 	for _, f := range runs {
 		if err := f(); err != nil {
 			return err
@@ -14,7 +14,7 @@ func runExList(runs ...func() error) error {
 	return nil
 }
 
-func baseEx(name string, args ...string) *exec.Cmd {
+func New(name string, args ...string) *exec.Cmd {
 	cmd := exec.Command(name, args...)
 	cmd.Env = os.Environ()
 	cmd.Stderr = os.Stderr
@@ -22,7 +22,7 @@ func baseEx(name string, args ...string) *exec.Cmd {
 	return cmd
 }
 
-func runCmd(c *exec.Cmd) int8 {
+func RunCmd(c *exec.Cmd) int8 {
 	if err := c.Run(); err != nil {
 		return int8(c.ProcessState.ExitCode())
 	} else {

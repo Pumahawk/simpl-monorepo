@@ -1,5 +1,9 @@
 package main
 
+import (
+	"simplcli/internal/ex"
+)
+
 var InitializationProjectCmd = command{
 	Name: "initialization:project",
 	Descr: "" +
@@ -52,10 +56,10 @@ var InitializationBuildCodeCmd = command{
 	Descr: "" +
 		"",
 	Func: func(args ...string) int8 {
-		if err := runExList(
-			baseEx("mvnd", "--stop").Run,
-			baseEx("mvnd", "clean", "install", "-N", "-f", "simpl-repo/backend/libs/common").Run,
-			baseEx("mvnd", "clean", "install", "-N", "-f", "simpl-repo/backend/libs/simpl-http-client").Run,
+		if err := ex.RunList(
+			ex.New("mvnd", "--stop").Run,
+			ex.New("mvnd", "clean", "install", "-N", "-f", "simpl-repo/backend/libs/common").Run,
+			ex.New("mvnd", "clean", "install", "-N", "-f", "simpl-repo/backend/libs/simpl-http-client").Run,
 		); err != nil {
 			return 1
 		}

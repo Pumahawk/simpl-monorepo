@@ -2,6 +2,7 @@ package main
 
 import (
 	"path"
+	"simplcli/internal/ex"
 )
 
 var pathBackend = path.Join("simpl-repo", "backend")
@@ -16,7 +17,7 @@ var CodeBuildNoTestCmd = command{
 			"--fail-never", "-Dlicense.skipDownloadLicenses", "-Dmaven.test.skip",
 		}
 		mvndargs = append(mvndargs, args...)
-		cmd := baseEx("mvnd", mvndargs...)
+		cmd := ex.New("mvnd", mvndargs...)
 		if err := cmd.Run(); err != nil {
 			return int8(cmd.ProcessState.ExitCode())
 		} else {

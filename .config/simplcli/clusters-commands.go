@@ -2,6 +2,7 @@ package main
 
 import (
 	"path"
+	"simplcli/internal/ex"
 )
 
 const knamespace = "local-authority"
@@ -24,8 +25,8 @@ var ClusterCreateCmd = command{
 	Name:  "create",
 	Descr: "Starts Minikube with a dedicated Docker network and profile.",
 	Func: func(args ...string) int8 {
-		cmd := baseEx("minikube", "start", "--namespace", knamespace, "--network=simpl-network", "--driver=docker", "--profile=simpl-control-plane")
-		return runCmd(cmd)
+		cmd := ex.New("minikube", "start", "--namespace", knamespace, "--network=simpl-network", "--driver=docker", "--profile=simpl-control-plane")
+		return ex.RunCmd(cmd)
 	},
 }
 
@@ -34,8 +35,8 @@ var ClusterForwardNodeComposeCmd = command{
 	Descr: "",
 	Func: func(args ...string) int8 {
 		exargs := append(forwardComposeBaseCmd, args...)
-		cmd := baseEx("docker", exargs...)
-		return runCmd(cmd)
+		cmd := ex.New("docker", exargs...)
+		return ex.RunCmd(cmd)
 	},
 }
 
@@ -62,8 +63,8 @@ var ClusterRedpandaComposeCmd = command{
 	Descr: "",
 	Func: func(args ...string) int8 {
 		exargs := append(redPandaComposeBaseCmd, args...)
-		cmd := baseEx("docker", exargs...)
-		return runCmd(cmd)
+		cmd := ex.New("docker", exargs...)
+		return ex.RunCmd(cmd)
 	},
 }
 
@@ -89,7 +90,7 @@ var ClusterAuthorityInstallOrUpgradeCmd = command{
 	Name:  "authority-install-or-upgrade",
 	Descr: "",
 	Func: func(args ...string) int8 {
-		cmdHelm := baseEx("helm",
+		cmdHelm := ex.New("helm",
 			"upgrade",
 			"-i",
 			"--dependency-update",
@@ -100,10 +101,10 @@ var ClusterAuthorityInstallOrUpgradeCmd = command{
 			knamespace,
 			chartLocalAuthorityPath,
 		)
-		cmdKubens := baseEx("kubens", knamespace)
-		rps0 := baseEx("kubectl", "-n", knamespace, "scale", "--replicas", "0", "deployment.apps/redpanda")
-		rps1 := baseEx("kubectl", "-n", knamespace, "scale", "--replicas", "0", "deployment.apps/redpanda-console")
-		if err := runExList(
+		cmdKubens := ex.New("kubens", knamespace)
+		rps0 := ex.New("kubectl", "-n", knamespace, "scale", "--replicas", "0", "deployment.apps/redpanda")
+		rps1 := ex.New("kubectl", "-n", knamespace, "scale", "--replicas", "0", "deployment.apps/redpanda-console")
+		if err := ex.RunList(
 			cmdHelm.Run,
 			cmdKubens.Run,
 			rps0.Run,
