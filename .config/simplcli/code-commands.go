@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"path"
 	"simplcli/internal/ex"
 	"simplcli/internal/kc"
@@ -37,6 +38,7 @@ var CodeTestAutomationAutoconfigureClientSecretCmd = command{
 	Func: func(args ...string) int8 {
 
 		// Wait keycloak and login
+		log.Println("waiting keycloak startup")
 		if err := kc.Wait(1000 * time.Second); err != nil {
 			return 1
 		}
@@ -44,39 +46,34 @@ var CodeTestAutomationAutoconfigureClientSecretCmd = command{
 			return 1
 		}
 
-		// Get secrets
-		authoritySec, err := kc.GetSecret("authority", "cli")
-		if err != nil {
-			fmt.Printf("error retrieve secrets authority cli: %s\n", err)
-			return 1
+		// Get secrets from keycloak
+		type scr struct{ realm, id, sec, dest string }
+		scrs := []*scr{
+			{"authority", "cli", "", ".environments[0].service-accounts[0].secret"},
+			{"onboarding", "onboarding-sa", "", ".environments[0].keycloak-service-accounts.applicant.secret"},
+			{"authority", "test-client", "", ".environments[0].keycloak-service-accounts.primary.secret"},
+			{"consumer", "cli", "", ".environments[1].service-accounts[].secret"},
 		}
-		onboardingSec, err := kc.GetSecret("onboarding", "onboarding-sa")
-		if err != nil {
-			fmt.Printf("error retrieve secrets onboarding onboarding-sa: %s\n", err)
-			return 1
-		}
-		testSec, err := kc.GetSecret("authority", "test-client")
-		if err != nil {
-			fmt.Printf("error retrieve secrets authority test-client: %s\n", err)
-			return 1
-		}
-		consumerSec, err := kc.GetSecret("consumer", "cli")
-		if err != nil {
-			fmt.Printf("error retrieve secrets consumer cli: %s\n", err)
-			return 1
+		for _, sc := range scrs {
+			if r, err := kc.GetSecret(sc.realm, sc.id); err != nil {
+				log.Printf("error retrieve secrets %s %s: %s", sc.realm, sc.id, err)
+				return 1
+			} else {
+				sc.sec = r
+			}
 		}
 
-		fmt.Printf("secret authority cli: %q\n", authoritySec)
-		fmt.Printf("secret onboarding onboarding-sa: %q\n", onboardingSec)
-		fmt.Printf("secret authority test-client: %q\n", testSec)
-		fmt.Printf("secret consumer cli: %q\n", consumerSec)
+		for _, sc := range scrs {
+			log.Printf("secret %s %s: %q", sc.realm, sc.id, sc.sec)
+		}
 
-		if err := ex.RunList(
-			ex.New("yq", "eval", fmt.Sprintf(".environments[0].service-accounts[0].secret = %q", authoritySec), "-i", testEnvConfPath).Run,
-			ex.New("yq", "eval", fmt.Sprintf(".environments[0].keycloak-service-accounts.applicant.secret = %q", onboardingSec), "-i", testEnvConfPath).Run,
-			ex.New("yq", "eval", fmt.Sprintf(".environments[0].keycloak-service-accounts.primary.secret = %q", testSec), "-i", testEnvConfPath).Run,
-			ex.New("yq", "eval", fmt.Sprintf(".environments[1].service-accounts[].secret = %q", consumerSec), "-i", testEnvConfPath).Run,
-		); err != nil {
+		// Write all secrets to test configuration  environments-local.yaml
+		runls := make([]func() error, 0, len(scrs))
+		for _, sc := range scrs {
+			cmd := ex.New("yq", "eval", fmt.Sprintf("%s = %q", sc.dest, sc.sec), "-i", testEnvConfPath)
+			runls = append(runls, cmd.Run)
+		}
+		if err := ex.RunList(runls...); err != nil {
 			return 1
 		}
 		return 0
