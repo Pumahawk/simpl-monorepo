@@ -1,14 +1,5 @@
 package main
 
-var ClusterForwardNodeUpCmd = command{
-	Name: "cluster:forward-node-up",
-	Descr: "" +
-		"",
-	Func: func(args ...string) int8 {
-		panic("not implemented")
-	},
-}
-
 var ClusterRedpandaUpCmd = command{
 	Name: "cluster:redpanda:up",
 	Descr: "" +

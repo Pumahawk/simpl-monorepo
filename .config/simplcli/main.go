@@ -18,6 +18,9 @@ var codeCmdG = commandsGroup{
 
 var clusterCmdG = commandsGroup{
 	ClusterCreateCmd,
+	ClusterForwardNodeUpCmd,
+	ClusterForwardNodeDownCmd,
+	ClusterForwardNodeComposeCmd,
 }
 
 func main() {
