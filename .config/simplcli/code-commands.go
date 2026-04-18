@@ -9,6 +9,7 @@ import (
 )
 
 var pathBackend = path.Join("simpl-repo", "backend")
+var testEnvConfPath = path.Join("simpl-repo", "backend", "tests", "test-automation", "src", "test", "resources", "environments", "environments-local.yaml")
 
 var CodeBuildNoTestCmd = command{
 	Name: "build:no-test",
@@ -46,30 +47,38 @@ var CodeTestAutomationAutoconfigureClientSecretCmd = command{
 		// Get secrets
 		authoritySec, err := kc.GetSecret("authority", "cli")
 		if err != nil {
-			fmt.Printf("error retrieve secrets authoritySec: %s\n", err)
+			fmt.Printf("error retrieve secrets authority cli: %s\n", err)
 			return 1
 		}
 		onboardingSec, err := kc.GetSecret("onboarding", "onboarding-sa")
 		if err != nil {
-			fmt.Printf("error retrieve secrets onboardingSec: %s\n", err)
+			fmt.Printf("error retrieve secrets onboarding onboarding-sa: %s\n", err)
 			return 1
 		}
 		testSec, err := kc.GetSecret("authority", "test-client")
 		if err != nil {
-			fmt.Printf("error retrieve secrets testSec: %s\n", err)
+			fmt.Printf("error retrieve secrets authority test-client: %s\n", err)
 			return 1
 		}
 		consumerSec, err := kc.GetSecret("consumer", "cli")
 		if err != nil {
-			fmt.Printf("error retrieve secrets consumerSec: %s\n", err)
+			fmt.Printf("error retrieve secrets consumer cli: %s\n", err)
 			return 1
 		}
 
-		// Print secrets, TODO write secrets to file
-		fmt.Printf("secret authoritySec: %q\n", authoritySec)
-		fmt.Printf("secret onboardingSec: %q\n", onboardingSec)
-		fmt.Printf("secret testSec: %q\n", testSec)
-		fmt.Printf("secret consumerSec: %q\n", consumerSec)
+		fmt.Printf("secret authority cli: %q\n", authoritySec)
+		fmt.Printf("secret onboarding onboarding-sa: %q\n", onboardingSec)
+		fmt.Printf("secret authority test-client: %q\n", testSec)
+		fmt.Printf("secret consumer cli: %q\n", consumerSec)
+
+		if err := ex.RunList(
+			ex.New("yq", "eval", fmt.Sprintf(".environments[0].service-accounts[0].secret = %q", authoritySec), "-i", testEnvConfPath).Run,
+			ex.New("yq", "eval", fmt.Sprintf(".environments[0].keycloak-service-accounts.applicant.secret = %q", onboardingSec), "-i", testEnvConfPath).Run,
+			ex.New("yq", "eval", fmt.Sprintf(".environments[0].keycloak-service-accounts.primary.secret = %q", testSec), "-i", testEnvConfPath).Run,
+			ex.New("yq", "eval", fmt.Sprintf(".environments[1].service-accounts[].secret = %q", consumerSec), "-i", testEnvConfPath).Run,
+		); err != nil {
+			return 1
+		}
 		return 0
 	},
 }
