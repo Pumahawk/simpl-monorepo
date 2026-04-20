@@ -952,7 +952,6 @@ done
 [tasks."db:clean"]
 shell = "bash -ec"
 run = """
-  DB_CLEAN_ALL="$1"
 db=()
 db+=(authority_authenticationprovider)
 db+=(authority_identityprovider)
