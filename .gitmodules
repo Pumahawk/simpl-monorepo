@@ -105,3 +105,4 @@
 [submodule "simpl-repo/backend/misc/tier1-authentication"]
 	path = simpl-repo/backend/misc/tier1-authentication
 	url = https://code.europa.eu/simpl/simpl-open/development/iaa/tier1-authentication.git
+	branch = develop

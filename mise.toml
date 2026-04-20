@@ -527,14 +527,21 @@ wait
 [tasks."cluster:keycloak-realm-autoconfigure"]
 shell = "bash -ec"
 run = """
+EIDAS_ENABLED="${EIDAS_ENABLED-1}"
 DIR="simpl-repo/backend/misc/tier1-authentication/tools/keycloak-realm-configurator"
 echo "Generate Realm"
 for realm in authority participant onboarding; do
   echo "process realm=[$realm]"
   echo "Start keycloak-config-cli"
+  config="values/${realm}.yaml,values/test-default.yaml"
+  if [[ "$EIDAS_ENABLED" == 1 ]]; then
+    echo "Eidas enabled"
+    config="$config,values/eidas-default.yaml"
+  fi
   try_n=0
+  echo "Values files: $config"
   until try_n=$(( $try_n + 1 )) && env -C "$DIR" sh ./configure-realm.sh \\
-    -CONFIG values/${realm}.yaml,values/test-default.yaml,values/eidas-default.yaml \\
+    -CONFIG "$config" \\
     -URL http://localhost:8100/auth \\
     -USER admin \\
     -PASSWORD admin || [[ try_n == 3 ]]; do
