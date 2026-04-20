@@ -545,12 +545,12 @@ for realm in authority participant onboarding; do
     -URL http://localhost:8100/auth \\
     -USER admin \\
     -PASSWORD admin || [[ try_n == 3 ]]; do
+    if [[ try_n -ge 3 ]]; then
+      echo "Unable to import realm $realm"
+      exit 1;
+    fi
     echo "Failed command. Repeate the command. ($(( try_n + 1 ))/3)"
   done
-  if [[ try_n == 3 ]]; then
-    echo "Unable to import realm $realm"
-    exit 1;
-  fi
 done
 """
 
