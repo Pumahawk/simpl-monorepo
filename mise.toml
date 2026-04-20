@@ -390,6 +390,7 @@ run = [
   { task = "db:clean" },
   { task = "simpl:start" },
   { task = "cluster:authority_initialization" },
+  { task = "code:test-automation:restart-postgrest" },
 ]
 
 [tasks."services:status-all"]
