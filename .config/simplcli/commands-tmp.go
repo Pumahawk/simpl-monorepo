@@ -1,14 +1,5 @@
 package main
 
-var SimplServicesTier1AuthorityUpCmd = command{
-	Name: "simpl-services:tier1-authority-up",
-	Descr: "" +
-		"",
-	Func: func(args ...string) int8 {
-		panic("not implemented")
-	},
-}
-
 var ClusterKeycloakAutoconfigureCmd = command{
 	Name: "cluster:keycloak-autoconfigure",
 	Descr: "" +
