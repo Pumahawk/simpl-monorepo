@@ -8,6 +8,7 @@ var rootCmd = commandsGroup{
 	command{Name: "cluster", Func: clusterCmdG.Run},
 	command{Name: "config", Func: configCmdG.Run},
 	command{Name: "simpl-services", Func: simplServicesCmdG.Run},
+	command{Name: "simpl-services-fe", Func: simplServicesFeCmdG.Run},
 }
 
 var initCmdG = commandsGroup{
@@ -38,6 +39,11 @@ var configCmdG = commandsGroup{
 
 var simplServicesCmdG = commandsGroup{
 	SimplServicesTier1AuthorityUpCmd,
+	SimplServicesUpCmd,
+}
+
+var simplServicesFeCmdG = commandsGroup{
+	SimplServicesFeUpCmd,
 }
 
 func main() {
