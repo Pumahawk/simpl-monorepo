@@ -6,6 +6,7 @@ var rootCmd = commandsGroup{
 	command{Name: "init", Func: initCmdG.Run},
 	command{Name: "code", Func: codeCmdG.Run},
 	command{Name: "cluster", Func: clusterCmdG.Run},
+	command{Name: "config", Func: configCmdG.Run},
 }
 
 var initCmdG = commandsGroup{
@@ -28,6 +29,10 @@ var clusterCmdG = commandsGroup{
 	ClusterAuthorityInstallOrUpgradeCmd,
 	ClusterInitializationEjbcaCmd,
 	ClusterDownloadEjbcaPemCmd,
+}
+
+var configCmdG = commandsGroup{
+	ConfigPrepareFilesCmd,
 }
 
 func main() {

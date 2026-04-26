@@ -1,14 +1,5 @@
 package main
 
-var ConfigPrepareFilesCmd = command{
-	Name: "config:prepare-files",
-	Descr: "" +
-		"",
-	Func: func(args ...string) int8 {
-		panic("not implemented")
-	},
-}
-
 var SimplServicesTier1AuthorityUpCmd = command{
 	Name: "simpl-services:tier1-authority-up",
 	Descr: "" +
