@@ -1,14 +1,5 @@
 package main
 
-var ClusterDownloadEjbcaPemCmd = command{
-	Name: "cluster:download_ejbca_pem",
-	Descr: "" +
-		"",
-	Func: func(args ...string) int8 {
-		panic("not implemented")
-	},
-}
-
 var ConfigPrepareFilesCmd = command{
 	Name: "config:prepare-files",
 	Descr: "" +

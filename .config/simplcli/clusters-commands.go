@@ -2,9 +2,12 @@ package main
 
 import (
 	"bytes"
+	"crypto/tls"
+	"encoding/pem"
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"os"
 	"path"
 	"simplcli/internal/ejbca"
@@ -218,6 +221,41 @@ var ClusterInitializationEjbcaCmd = command{
 				fmt.Printf("%s\n", err)
 				return 1
 			}
+		}
+		return 0
+	},
+}
+
+var ClusterDownloadEjbcaPemCmd = command{
+	Name: "download_ejbca_pem",
+	Descr: "" +
+		"",
+	Func: func(args ...string) int8 {
+		outFile := path.Join(".config", "docker", "simpl-services", "tier1-gateway", "ejbca-local.pem")
+		host := "localhost:30443"
+		log.Printf("Download ejbca x509 from %q to %q", host, outFile)
+		conn, err := net.Dial("tcp", host)
+		if err != nil {
+			log.Fatalf("unable to open connection: %s", err)
+			return 1
+		}
+		tlsConn := tls.Client(conn, &tls.Config{
+			InsecureSkipVerify: true,
+		})
+		if err := tlsConn.Handshake(); err != nil {
+			log.Fatalf("hanshake error: %v", err)
+		}
+		state := tlsConn.ConnectionState()
+		outf, err := os.OpenFile(outFile, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatalf("%s", err)
+		}
+		mo := io.MultiWriter(os.Stdout, outf)
+		if err := pem.Encode(mo, &pem.Block{
+			Type:  "CERTIFICATE",
+			Bytes: state.PeerCertificates[0].Raw,
+		}); err != nil {
+			log.Fatalf("pem encode: %s", err)
 		}
 		return 0
 	},
