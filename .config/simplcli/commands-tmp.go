@@ -8,12 +8,3 @@ var ClusterKeycloakAutoconfigureCmd = command{
 		panic("not implemented")
 	},
 }
-
-var ClusterAuthorityInitializationCmd = command{
-	Name: "cluster:authority_initialization",
-	Descr: "" +
-		"",
-	Func: func(args ...string) int8 {
-		panic("not implemented")
-	},
-}

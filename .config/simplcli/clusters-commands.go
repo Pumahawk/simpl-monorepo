@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"path"
 	"simplcli/internal/ejbca"
@@ -259,4 +260,71 @@ var ClusterDownloadEjbcaPemCmd = command{
 		}
 		return 0
 	},
+}
+
+var ClusterAuthorityInitializationCmd = command{
+	Name:  "authority_initialization",
+	Descr: "",
+	Func: func(args ...string) int8 {
+		log.Printf("Wait all services")
+		if err := WaitAllServiceAuthorityUp(); err != nil {
+			log.Fatalf("waiting all service: %s", err)
+		}
+		return 0
+	},
+}
+
+func WaitAllServiceAuthorityUp() error {
+	type svcinfo struct {
+		name string
+		url  string
+	}
+
+	services := []svcinfo{
+		{"authentication-provider-authority", "localhost:8105"},
+		{"identity-provider-authority", "localhost:8103"},
+		{"onboarding-authority", "localhost:8104"},
+		{"security-attributes-provider-authority", "localhost:8102"},
+		{"tier1-gateway-authority", "localhost:8100"},
+		{"tier2-gateway-authority", "localhost:8142"},
+		{"users-roles-authority", "localhost:8101"},
+	}
+
+	n, maxN := 0, 60
+	for _, s := range services {
+		n = 0
+		log.Printf("check service %q (%s)", s.name, s.url)
+		for {
+			n++
+			if err := CheckService(s.name, s.url); err != nil {
+				log.Printf("service %q: %s", s.name, err)
+			} else {
+				break
+			}
+			if n > maxN {
+				return fmt.Errorf("max retry limit service %q", s.name)
+			}
+			log.Printf("(%d/%d) wait service %q", n, maxN, s.name)
+			<-time.After(10 * time.Second)
+		}
+	}
+	return nil
+}
+
+func CheckService(name, url string) error {
+	r, err := http.Get(fmt.Sprintf("http://%s/actuator/health", url))
+	if err != nil {
+		return err
+	}
+	defer r.Body.Close()
+
+	if r.StatusCode >= 200 && r.StatusCode < 300 {
+		if b, err := io.ReadAll(r.Body); err == nil && bytes.Contains(b, []byte("UP")) {
+			return nil
+		} else {
+			return fmt.Errorf("body service %q:%q not contains UP, body %q", name, url, string(b))
+		}
+	} else {
+		return fmt.Errorf("status code %d", r.StatusCode)
+	}
 }

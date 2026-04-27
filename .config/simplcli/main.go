@@ -31,6 +31,7 @@ var clusterCmdG = commandsGroup{
 	ClusterAuthorityInstallOrUpgradeCmd,
 	ClusterInitializationEjbcaCmd,
 	ClusterDownloadEjbcaPemCmd,
+	ClusterAuthorityInitializationCmd,
 }
 
 var configCmdG = commandsGroup{
