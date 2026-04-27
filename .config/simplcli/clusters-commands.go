@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/pem"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -310,5 +311,22 @@ func WaitAllServiceAuthorityUp() error {
 			<-time.After(10 * time.Second)
 		}
 	}
+
+	log.Printf("Check authority already initializated")
+	ok, err := authClient.KeypairsActive()
+	if err != nil && !errors.Is(err, simpl.NotFound) {
+		log.Fatalf("unable to check initialization: %s", err)
+	}
+	if ok {
+		log.Printf("authority already initializated")
+		return nil
+	}
+	log.Printf("Authority not initializated")
+	rs, err := authClient.GenerateKeypair("initialization-authority")
+	if err != nil {
+		log.Fatalf("unable to generate keypairs: %s", err)
+	}
+	log.Printf("keypair generated")
+	log.Printf("%v", rs)
 	return nil
 }
