@@ -8,12 +8,12 @@ import (
 	"io"
 	"log"
 	"net"
-	"net/http"
 	"os"
 	"path"
 	"simplcli/internal/ejbca"
 	"simplcli/internal/ex"
 	"simplcli/internal/kube"
+	"simplcli/internal/simpl"
 	"time"
 )
 
@@ -276,29 +276,31 @@ var ClusterAuthorityInitializationCmd = command{
 
 func WaitAllServiceAuthorityUp() error {
 	type svcinfo struct {
-		name string
-		url  string
+		name      string
+		checkFunc func() (bool, error)
 	}
 
+	authClient := simpl.NewAuthorityClient()
 	services := []svcinfo{
-		{"authentication-provider-authority", "localhost:8105"},
-		{"identity-provider-authority", "localhost:8103"},
-		{"onboarding-authority", "localhost:8104"},
-		{"security-attributes-provider-authority", "localhost:8102"},
-		{"tier1-gateway-authority", "localhost:8100"},
-		{"tier2-gateway-authority", "localhost:8142"},
-		{"users-roles-authority", "localhost:8101"},
+		{"authentication-provider-authority", authClient.CheckAuthenticationProvider},
+		{"identity-provider-authority", authClient.CheckIdentityProvider},
+		{"onboarding-authority", authClient.CheckOnboarding},
+		{"security-attributes-provider-authority", authClient.CheckSecurityAttributesProvider},
+		{"tier1-gateway-authority", authClient.CheckTier1Gateway},
+		{"tier2-gateway-authority", authClient.CheckTier2Gateway},
+		{"users-roles-authority", authClient.CheckUsersRoles},
 	}
 
 	n, maxN := 0, 60
 	for _, s := range services {
 		n = 0
-		log.Printf("check service %q (%s)", s.name, s.url)
+		log.Printf("check service %q", s.name)
 		for {
 			n++
-			if err := CheckService(s.name, s.url); err != nil {
+			if ok, err := s.checkFunc(); !ok {
 				log.Printf("service %q: %s", s.name, err)
 			} else {
+				log.Printf("service %q ok", s.name)
 				break
 			}
 			if n > maxN {
@@ -309,22 +311,4 @@ func WaitAllServiceAuthorityUp() error {
 		}
 	}
 	return nil
-}
-
-func CheckService(name, url string) error {
-	r, err := http.Get(fmt.Sprintf("http://%s/actuator/health", url))
-	if err != nil {
-		return err
-	}
-	defer r.Body.Close()
-
-	if r.StatusCode >= 200 && r.StatusCode < 300 {
-		if b, err := io.ReadAll(r.Body); err == nil && bytes.Contains(b, []byte("UP")) {
-			return nil
-		} else {
-			return fmt.Errorf("body service %q:%q not contains UP, body %q", name, url, string(b))
-		}
-	} else {
-		return fmt.Errorf("status code %d", r.StatusCode)
-	}
 }
