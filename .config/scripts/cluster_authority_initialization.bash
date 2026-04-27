@@ -6,7 +6,7 @@ identity-provider-authority:8103
 onboarding-authority:8104
 security-attributes-provider-authority:8102
 tier1-gateway-authority:8100
-tier2-gateway-authority:8142
+tier2-gateway-authority.local:8142
 users-roles-authority:8101'
 
   max_n=60
@@ -28,7 +28,7 @@ wait_all_services_authority_up
 
 MICROSERVICE_AUTHENTICATION_PROVIDER_INTERNAL_URL=authentication-provider-authority:8105
 MICROSERVICE_IDENTITY_PROVIDER_INTERNAL_URL=identity-provider-authority:8103
-CSR_CN=tier2-gateway-authority
+CSR_CN=tier2-gateway-authority.local
 
 CURL_W_OUT=$(mktemp)
 
