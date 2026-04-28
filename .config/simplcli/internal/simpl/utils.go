@@ -35,32 +35,41 @@ func jsonR(body any) io.Reader {
 	return bytes.NewBuffer(b)
 }
 
-func request(method, url string, body any, res any) (*http.Response, error) {
-	hc := http.Client{}
-	r, err := http.NewRequest(method, url, jsonR(body))
-	if body != nil {
-		r.Header.Add("Content-Type", "application/json")
-	}
+func request(method, url string, bodyRequest any, bodyResponse any) (*http.Response, error) {
+	// Prepare request
+	r, err := http.NewRequest(method, url, jsonR(bodyRequest))
 	if err != nil {
+		// Unexpected exception [bug]
 		panic(err)
 	}
+	if bodyRequest != nil {
+		r.Header.Add("Content-Type", "application/json")
+	}
+
+	// Do request
+	hc := http.Client{}
 	rh, err := hc.Do(r)
 	if err != nil {
-		return nil, err
+		return rh, err
 	}
 	defer rh.Body.Close()
+
+	// Check response code
 	if rh.StatusCode == 404 {
-		return nil, fmt.Errorf("status code %d: %w", rh.StatusCode, NotFound)
+		return rh, fmt.Errorf("status code %d: %w", rh.StatusCode, NotFound)
 	} else if rh.StatusCode < 200 || rh.StatusCode >= 300 {
-		return nil, fmt.Errorf("status code %d, body=%q", rh.StatusCode, bodys(rh.Body))
+		return rh, fmt.Errorf("status code %d, body=%q", rh.StatusCode, bodys(rh.Body))
 	} else if rh.StatusCode >= 500 {
 		return rh, fmt.Errorf("status code=%d body=%q", rh.StatusCode, bodys(rh.Body))
 	}
-	if res == nil {
-		if err := jsonDec(rh.Body, res); err != nil {
+
+	// Extract response body
+	if bodyResponse != nil {
+		if err := jsonDec(rh.Body, bodyResponse); err != nil {
 			return nil, err
 		}
 	}
+
 	return rh, nil
 }
 
