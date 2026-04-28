@@ -1,6 +1,8 @@
 package main
 
-import "os"
+import (
+	"os"
+)
 
 var rootCmd = commandsGroup{
 	command{Name: "init", Func: initCmdG.Run},
@@ -9,6 +11,7 @@ var rootCmd = commandsGroup{
 	command{Name: "config", Func: configCmdG.Run},
 	command{Name: "simpl-services", Func: simplServicesCmdG.Run},
 	command{Name: "simpl-services-fe", Func: simplServicesFeCmdG.Run},
+	command{Name: "api", Func: simplApiCmdG.Run},
 }
 
 var initCmdG = commandsGroup{
@@ -45,6 +48,10 @@ var simplServicesCmdG = commandsGroup{
 
 var simplServicesFeCmdG = commandsGroup{
 	SimplServicesFeUpCmd,
+}
+
+var simplApiCmdG = commandsGroup{
+	ApiKeypairsSearchCmd,
 }
 
 func main() {

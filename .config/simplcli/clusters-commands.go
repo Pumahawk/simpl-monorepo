@@ -312,9 +312,11 @@ func WaitAllServiceAuthorityUp() error {
 		}
 	}
 
+	apiError := &simpl.ApiError{}
+
 	log.Printf("Check authority already initializated")
 	ok, err := authClient.KeypairsActive()
-	if err != nil && !errors.Is(err, simpl.NotFound) {
+	if err != nil && !errors.As(err, &apiError) {
 		log.Fatalf("unable to check initialization: %s", err)
 	}
 	if ok {

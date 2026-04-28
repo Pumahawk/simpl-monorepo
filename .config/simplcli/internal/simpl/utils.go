@@ -55,12 +55,8 @@ func request(method, url string, bodyRequest any, bodyResponse any) (*http.Respo
 	defer rh.Body.Close()
 
 	// Check response code
-	if rh.StatusCode == 404 {
-		return rh, fmt.Errorf("status code %d: %w", rh.StatusCode, NotFound)
-	} else if rh.StatusCode < 200 || rh.StatusCode >= 300 {
-		return rh, fmt.Errorf("status code %d, body=%q", rh.StatusCode, bodys(rh.Body))
-	} else if rh.StatusCode >= 500 {
-		return rh, fmt.Errorf("status code=%d body=%q", rh.StatusCode, bodys(rh.Body))
+	if apiErr := CheckApiError(rh); apiErr != nil {
+		return rh, apiErr
 	}
 
 	// Extract response body
