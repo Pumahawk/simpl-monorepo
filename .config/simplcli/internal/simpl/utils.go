@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"reflect"
+	"strconv"
 )
 
 // Generic function for check healt
@@ -82,4 +85,44 @@ func bodys(r io.Reader) string {
 		return fmt.Sprintf("err=%q", err.Error())
 	}
 	return string(b)
+}
+
+func searchApi(page, size int, rawUrl string, filters any, bodyResponse any) (*http.Response, error) {
+	u, err := url.Parse(rawUrl)
+	if err != nil {
+		panic(err)
+	}
+
+	q := u.Query()
+	q.Add("page", strconv.Itoa(page))
+	q.Add("size", strconv.Itoa(size))
+	if filters != nil {
+		queryFilters(q, filters)
+	}
+	u.RawQuery = q.Encode()
+
+	return request("GET", u.String(), nil, bodyResponse)
+}
+
+func queryFilters(values url.Values, filters any) {
+	v := reflect.ValueOf(filters)
+	if v.Kind() == reflect.Pointer {
+		v = v.Elem()
+	}
+	t := v.Type()
+	if v.Kind() != reflect.Struct {
+		panic(fmt.Errorf("unsupported type filters %T", filters))
+	}
+	for i := range v.NumField() {
+		fv := v.Field(i)
+		ft := t.Field(i)
+		name := ft.Tag.Get("search")
+		if name == "" {
+			name = ft.Name
+		}
+		value := fv.String()
+		if value != "" {
+			values.Add(name, value)
+		}
+	}
 }

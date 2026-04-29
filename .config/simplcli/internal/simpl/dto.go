@@ -1,7 +1,5 @@
 package simpl
 
-import "net/url"
-
 // Check health DTO
 type healtResponseDto struct {
 	Status string `json:"status"`
@@ -21,14 +19,7 @@ type GenerateKeypairResponseDto struct {
 }
 
 type KeypairsSearch struct {
-	Id   string
-	Name string
-}
-
-func (k *KeypairsSearch) Query(values url.Values) {
-	if k.Name != "" {
-		values.Add("name", k.Name)
-	}
+	Name string `search:"name"`
 }
 
 type KeypairsResponseDto struct {
