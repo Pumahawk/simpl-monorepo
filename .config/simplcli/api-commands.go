@@ -42,17 +42,25 @@ func searchBaseCmd[T any, R any](search T, searchFunc SearchFunc[T, R], s []stri
 		log.Fatalf("unable to make search: %s", err)
 	}
 
+	// Get printable fields, default print all fields
+	rf := reflect.ValueOf(r).Elem().FieldByName("Items")
+	rt := rf.Type().Elem()
+	structFields := getFieldsName(rt)
+	fields := make([]string, 0, len(structFields))
+	if len(fieldsArgs) == 0 {
+		fields = structFields
+	} else {
+		for _, fn := range fieldsArgs {
+			if slices.Contains(structFields, fn) {
+				fields = append(fields, fn)
+			}
+		}
+	}
+
+	// Print table view of fields
 	fmt.Printf("page: %d\n", *page)
 	fmt.Printf("size: %d\n", *size)
 	w := tabwriter.NewWriter(os.Stdout, 6, 2, 2, ' ', 0)
-	rf := reflect.ValueOf(r).Elem().FieldByName("Items")
-	rt := rf.Type().Elem()
-	var fields []string
-	for i := 0; i < rt.NumField(); i++ {
-		if len(fieldsArgs) == 0 || slices.Contains(fieldsArgs, rt.Field(i).Name) {
-			fields = append(fields, rt.Field(i).Name)
-		}
-	}
 	w.Write([]byte(strings.Join(fields, "\t") + "\n"))
 	for i := 0; i < rf.Len(); i++ {
 		item := rf.Index(i)
@@ -69,6 +77,7 @@ func searchBaseCmd[T any, R any](search T, searchFunc SearchFunc[T, R], s []stri
 		w.Write([]byte(strings.Join(itemsS, "\t") + "\n"))
 	}
 	w.Flush()
+
 	return 0
 }
 
@@ -93,4 +102,18 @@ func searchFlag(fl *flag.FlagSet, prefix string, search any) (*int, *int) {
 	page := fl.Int("page", 0, "")
 	size := fl.Int("size", 10, "")
 	return page, size
+}
+
+func getFieldsName(t reflect.Type) []string {
+	if t.Kind() == reflect.Pointer {
+		t = t.Elem()
+	}
+	if t.Kind() != reflect.Struct {
+		panic("only supported valid struct")
+	}
+	f := make([]string, 0, t.NumField())
+	for i := 0; i < t.NumField(); i++ {
+		f = append(f, t.Field(i).Name)
+	}
+	return f
 }
