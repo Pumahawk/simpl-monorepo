@@ -34,3 +34,19 @@ type KeypairsItemResponseDto struct {
 	PublicKey         string `json:"publicKey"`
 	Csr               string `json:"csr"`
 }
+
+type ParticipantsSearch struct {
+	Organization string `search:"organization"`
+}
+
+type ParticipantsResponseDto struct {
+	Items []ParticipantsItemResponseDto `json:"items"`
+}
+
+type ParticipantsItemResponseDto struct {
+	Id                string `json:"id"`
+	Organization      string `json:"organization"`
+	CreationTimestamp string `json:"creationTimestamp"`
+	UpdateTimestamp   string `json:"updateTimestamp"`
+	TierOnePublicKey  string `json:"tierOnePublicKey"`
+}

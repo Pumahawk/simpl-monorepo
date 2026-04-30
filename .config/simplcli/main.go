@@ -52,6 +52,7 @@ var simplServicesFeCmdG = commandsGroup{
 
 var simplApiCmdG = commandsGroup{
 	ApiKeypairsSearchCmd,
+	ApiParticipantsSearchCmd,
 }
 
 func main() {

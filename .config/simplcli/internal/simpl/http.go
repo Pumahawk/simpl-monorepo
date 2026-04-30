@@ -36,3 +36,12 @@ func (c *Client) Keypairs(page, size int, search *KeypairsSearch) (*KeypairsResp
 	}
 	return r, nil
 }
+
+func (c *Client) Participants(page, size int, search *ParticipantsSearch) (*ParticipantsResponseDto, error) {
+	url := c.identityProviderUrl + "/tier1/v2/participants"
+	r := &ParticipantsResponseDto{}
+	if _, err := searchApi(page, size, url, search, r); err != nil {
+		return nil, err
+	}
+	return r, nil
+}

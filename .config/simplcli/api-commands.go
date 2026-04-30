@@ -24,6 +24,16 @@ var ApiKeypairsSearchCmd = command{
 	},
 }
 
+var ApiParticipantsSearchCmd = command{
+	Name: "participants:search",
+	Func: func(s ...string) int8 {
+		// Set search parameters with flags
+		search := &simpl.ParticipantsSearch{}
+		c := simpl.NewAuthorityClient()
+		return searchBaseCmd(search, c.Participants, s)
+	},
+}
+
 func searchBaseCmd[T any, R any](search T, searchFunc SearchFunc[T, R], s []string) int8 {
 	// Set search parameters with flags
 	fs := flag.NewFlagSet("", flag.ExitOnError)
