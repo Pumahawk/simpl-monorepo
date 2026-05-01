@@ -21,6 +21,7 @@ var GitlabPipelinesCmd = Command{
 		fl.StringVar(&search.Status, "status", "", "")
 		fl.StringVar(&search.Page, "page", "", "")
 		fl.StringVar(&search.PerPage, "size", "", "")
+		structFlag(fl, search)
 		fl.Parse(args)
 		projectId := fl.Arg(0)
 
