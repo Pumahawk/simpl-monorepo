@@ -4,30 +4,22 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/Pumahawk/simpl-monorepo/internal/gitlab"
 )
 
-var GitlabPipelinesCmd = Command{
+var GitlabPipelinesCmd = Command[*gitlab.PipelinesResponseDto]{
 	Name: "pip",
-	Run: func(c *Command, args []string) int {
+	Run: func(c *Command[*gitlab.PipelinesResponseDto], args []string) (*gitlab.PipelinesResponseDto, error) {
 		search := &gitlab.SearchPipeline{}
-		fields := ""
 
 		fl := flag.NewFlagSet("", flag.ExitOnError)
-		fl.StringVar(&fields, "f", "", "")
-		fl.StringVar(&search.Ref, "ref", "", "")
-		fl.StringVar(&search.Status, "status", "", "")
-		fl.StringVar(&search.Page, "page", "", "")
-		fl.StringVar(&search.PerPage, "size", "", "")
 		structFlag(fl, search)
 		fl.Parse(args)
 		projectId := fl.Arg(0)
 
 		if projectId == "" {
-			fmt.Fprintln(os.Stderr, "missing project id")
-			return 1
+			return nil, fmt.Errorf("missing project id")
 		}
 
 		res, err := gitlabClient.Pipelines(prIds.Get(projectId), search)
@@ -35,46 +27,31 @@ var GitlabPipelinesCmd = Command{
 			log.Fatalf("error get project %s: %s", projectId, err)
 		}
 
-		vw := StdTableWriter()
-		vw.RenderList(&RenderOpt{
-			Fields: getFields(fields),
-		}, res)
-
-		return 0
+		return res, nil
 	},
 }
 
-var GitlabPipelineCmd = Command{
+var GitlabPipelineCmd = Command[*gitlab.PipelineResponseDto]{
 	Name: "pipd",
-	Run: func(c *Command, args []string) int {
-		fields := ""
-
+	Run: func(c *Command[*gitlab.PipelineResponseDto], args []string) (*gitlab.PipelineResponseDto, error) {
 		fl := flag.NewFlagSet("", flag.ExitOnError)
-		fl.StringVar(&fields, "f", "", "")
 		fl.Parse(args)
 		projectId := fl.Arg(0)
 		pipelineId := fl.Arg(1)
 
 		if projectId == "" {
-			fmt.Fprintln(os.Stderr, "missing project id")
-			return 1
+			return nil, fmt.Errorf("missing project id")
 		}
 
 		if pipelineId == "" {
-			fmt.Fprintln(os.Stderr, "missing pipeline id")
-			return 1
+			return nil, fmt.Errorf("missing pipeline id")
 		}
 
 		r, err := gitlabClient.Pipeline(prIds.Get(projectId), pipelineId)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "unable to retrieve pipeline %q project %q", pipelineId, projectId)
-			return 1
+			return nil, fmt.Errorf("unable to retrieve pipeline %q project %q", pipelineId, projectId)
 		}
 
-		wm := StdTableWriter()
-		wm.RenderValue(&RenderOpt{
-			Fields: getFields(fields),
-		}, r)
-		return 0
+		return r, nil
 	},
 }
