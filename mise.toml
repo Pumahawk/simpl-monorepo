@@ -11,9 +11,11 @@ kubens = "0.9.5"
 minikube = "1.37.0"
 yq = "4.47.2"
 gomplate = "5.0.0"
+go = "1.25.4"
 
 [shell_alias]
 path_fe = "rg -n --no-heading path: $(fd route  | grep microfe)"
+cli = "mise run -q cli"
 
 [vars]
 pathSimplRepo = "./simpl-repo"
@@ -1070,6 +1072,20 @@ git submodule update simpl-repo/docs/charts/
 mise run cluster:authority-install-or-upgrade
 """
 
+[tasks."cli"]
+raw = true
+shell = "bash -ec"
+run = """
+if [ ! -f simplcli/simplcli ]; then
+  >&2 echo "simplcli not found. Build simplcli"
+  env -C simplcli go build ./cmd/simplcli
+fi
+./simplcli/simplcli
+"""
+
+[tasks."cli:build"]
+shell = "bash -ec"
+run = "env -C simplcli go build ./cmd/simplcli"
 
 [env]
 PROJECT_RELEASE_VERSION = "monorepo-dev"
