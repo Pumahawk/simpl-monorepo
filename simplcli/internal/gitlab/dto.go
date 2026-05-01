@@ -13,8 +13,9 @@ type PipelinesResponseDto struct {
 
 type PipelineResponseItemDto struct {
 	Id        int    `json:"id"`
-	Iid       int    `json:"iid"`
+	Name      string `json:"name"`
 	ProjectId int    `json:"project_id"`
+	Iid       int    `json:"iid"`
 	Sha       string `json:"sha"`
 	Ref       string `json:"ref"`
 	Status    string `json:"status"`
@@ -22,7 +23,6 @@ type PipelineResponseItemDto struct {
 	CreatedAt string `json:"created_at"`
 	UpdatedAt string `json:"updated_at"`
 	WebUrl    string `json:"web_url"`
-	Name      string `json:"name"`
 }
 
 type PipelineResponseDto struct {

@@ -3,30 +3,78 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"sort"
+	"sync"
 
 	"github.com/Pumahawk/simpl-monorepo/internal/gitlab"
 )
 
-var GitlabPipelinesCmd = Command[*gitlab.PipelinesResponseDto]{
+var GitlabPipelinesCmd = Command[[]gitlab.PipelineResponseItemDto]{
 	Name: "pip",
-	Run: func(c *Command[*gitlab.PipelinesResponseDto], args []string) (*gitlab.PipelinesResponseDto, error) {
+	Run: func(c *Command[[]gitlab.PipelineResponseItemDto], args []string) ([]gitlab.PipelineResponseItemDto, error) {
 		search := &gitlab.SearchPipeline{}
 
 		fl := flag.NewFlagSet("", flag.ExitOnError)
 		structFlag(fl, search)
 		fl.Parse(args)
-		projectId := fl.Arg(0)
+		projectIds := fl.Args()
 
-		if projectId == "" {
-			return nil, fmt.Errorf("missing project id")
+		if len(projectIds) == 0 {
+			return nil, fmt.Errorf("missing project ids")
 		}
 
-		res, err := gitlabClient.Pipelines(prIds.Get(projectId), search)
-		if err != nil {
-			return nil, fmt.Errorf("error get project %s: %s", projectId, err)
+		// Prepare response object container
+		type resTy struct {
+			name string
+			rs   *gitlab.PipelinesResponseDto
+			err  error
+		}
+		wg := sync.WaitGroup{}
+		ress := make([]*resTy, 0, len(projectIds))
+
+		// Retrieve all pipelines async
+		for _, projectId := range projectIds {
+			res := &resTy{}
+			res.name = projectId
+			ress = append(ress, res)
+			wg.Add(1)
+			go func(projectId string) {
+				defer wg.Done()
+				res.rs, res.err = gitlabClient.Pipelines(prIds.Get(projectId), search)
+			}(projectId)
+		}
+		wg.Wait()
+
+		// Prepare items size slice
+		size := 0
+		for _, r := range ress {
+			if r.rs != nil {
+				size += len(r.rs.Items)
+			}
+		}
+		items := make([]gitlab.PipelineResponseItemDto, 0, size)
+
+		// Collect all response items
+		// Rewrite pipeline name with project name.
+		for _, r := range ress {
+			if r.err != nil {
+				fmt.Fprintf(os.Stderr, "projectId %s: %s\n", r.name, r.err)
+			}
+			if r.rs != nil {
+				for _, item := range r.rs.Items {
+					item.Name = r.name
+					items = append(items, item)
+				}
+			}
 		}
 
-		return res, nil
+		// Sort items by updated_at
+		sort.Slice(items, func(i, j int) bool {
+			return items[i].UpdatedAt > items[j].UpdatedAt
+		})
+
+		return items, nil
 	},
 }
 
