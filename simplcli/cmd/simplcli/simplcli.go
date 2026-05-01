@@ -36,7 +36,7 @@ func main() {
 	}
 
 	vw := StdTableWriter()
-	vw.RenderList(&RenderOpt{
+	vw.Render(&RenderOpt{
 		Fields: getFields(fields),
 	}, res)
 

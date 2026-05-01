@@ -22,6 +22,29 @@ type RenderOpt struct {
 	Fields []string
 }
 
+func (t *TableView) Render(opt *RenderOpt, model any) error {
+	// Validation model, retrieve slice
+	rv := reflect.ValueOf(model)
+	if rv.Kind() == reflect.Pointer {
+		rv = rv.Elem()
+	}
+
+	switch rv.Kind() {
+	case reflect.Struct:
+		if rv.Kind() == reflect.Struct {
+			rt := rv.Type()
+			if _, ok := rt.FieldByName("Items"); ok {
+				return t.RenderList(opt, model)
+			} else {
+				return t.RenderValue(opt, model)
+			}
+		}
+	case reflect.Slice:
+		return t.RenderList(opt, model)
+	}
+	return fmt.Errorf("unsuppported model")
+}
+
 func (t *TableView) RenderList(opt *RenderOpt, model any) error {
 	// Validation model, retrieve slice
 	rv := reflect.ValueOf(model)
