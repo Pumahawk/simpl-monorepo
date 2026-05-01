@@ -3,7 +3,10 @@ package main
 import "os"
 
 var pipelinesCmds = CommandGroup("",
-	CommandGroup("gl", GitlabPipelinesCmd),
+	CommandGroup("gl",
+		GitlabPipelinesCmd,
+		GitlabPipelineCmd,
+	),
 )
 
 func main() {

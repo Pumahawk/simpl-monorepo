@@ -22,7 +22,7 @@ type RenderOpt struct {
 	Fields []string
 }
 
-func (t *TableView) Render(opt *RenderOpt, model any) error {
+func (t *TableView) RenderList(opt *RenderOpt, model any) error {
 	// Validation model, retrieve slice
 	rv := reflect.ValueOf(model)
 	if rv.Kind() == reflect.Pointer {
@@ -74,4 +74,44 @@ func (t *TableView) Render(opt *RenderOpt, model any) error {
 	}
 
 	return t.w.Flush()
+}
+
+func (t *TableView) RenderValue(opt *RenderOpt, model any) error {
+	// Validation model
+	rv := reflect.ValueOf(model)
+	if rv.Kind() == reflect.Pointer {
+		rv = rv.Elem()
+	}
+	if rv.Kind() != reflect.Struct {
+		return fmt.Errorf("unsupported type %s", rv.Kind())
+	}
+
+	// Retrieve header
+	rt := rv.Type()
+	var fields []string
+	if opt != nil {
+		fields = opt.Fields
+	}
+	if len(fields) == 0 {
+		for i := range rt.NumField() {
+			fields = append(fields, rt.Field(i).Name)
+		}
+	}
+
+	// Retrieve and print body
+	for _, f := range fields {
+		if ft, ok := rt.FieldByName(f); ok {
+			if !rv.FieldByName(f).IsZero() {
+				name := ft.Name
+				value := rv.FieldByName(f)
+				fmts := "%s\t%v\n"
+				if value.Kind() == reflect.String {
+					fmts = "%s\t%q\n"
+				}
+				fmt.Fprintf(t.w, fmts, name, value.Interface())
+			}
+		}
+	}
+	t.w.Flush()
+	return nil
 }

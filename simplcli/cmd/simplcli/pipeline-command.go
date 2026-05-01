@@ -29,16 +29,51 @@ var GitlabPipelinesCmd = Command{
 			return 1
 		}
 
-		res, err := gitlabClient.Project(prIds.Get(projectId), search)
+		res, err := gitlabClient.Pipelines(prIds.Get(projectId), search)
 		if err != nil {
 			log.Fatalf("error get project %s: %s", projectId, err)
 		}
 
 		vw := StdTableWriter()
-		vw.Render(&RenderOpt{
+		vw.RenderList(&RenderOpt{
 			Fields: getFields(fields),
 		}, res)
 
+		return 0
+	},
+}
+
+var GitlabPipelineCmd = Command{
+	Name: "pipd",
+	Run: func(c *Command, args []string) int {
+		fields := ""
+
+		fl := flag.NewFlagSet("", flag.ExitOnError)
+		fl.StringVar(&fields, "f", "", "")
+		fl.Parse(args)
+		projectId := fl.Arg(0)
+		pipelineId := fl.Arg(1)
+
+		if projectId == "" {
+			fmt.Fprintln(os.Stderr, "missing project id")
+			return 1
+		}
+
+		if pipelineId == "" {
+			fmt.Fprintln(os.Stderr, "missing pipeline id")
+			return 1
+		}
+
+		r, err := gitlabClient.Pipeline(prIds.Get(projectId), pipelineId)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "unable to retrieve pipeline %q project %q", pipelineId, projectId)
+			return 1
+		}
+
+		wm := StdTableWriter()
+		wm.RenderValue(&RenderOpt{
+			Fields: getFields(fields),
+		}, r)
 		return 0
 	},
 }

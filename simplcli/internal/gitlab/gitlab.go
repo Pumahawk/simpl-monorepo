@@ -8,7 +8,7 @@ type Client struct {
 	BaseUrl string
 }
 
-func (c *Client) Project(id string, search *SearchPipeline) (*PipelineResponseDto, error) {
+func (c *Client) Pipelines(id string, search *SearchPipeline) (*PipelinesResponseDto, error) {
 	rawUrl, err := url.JoinPath(c.BaseUrl, "projects", url.PathEscape(id), "pipelines")
 	if err != nil {
 		panic(err)
@@ -19,7 +19,22 @@ func (c *Client) Project(id string, search *SearchPipeline) (*PipelineResponseDt
 	if err != nil {
 		return nil, err
 	}
-	return &PipelineResponseDto{
+	return &PipelinesResponseDto{
 		Items: items,
 	}, nil
+}
+
+func (c *Client) Pipeline(projectId, pipelineId string) (*PipelineResponseDto, error) {
+	rawUrl, err := url.JoinPath(c.BaseUrl, "projects", url.PathEscape(projectId), "pipelines", url.PathEscape(pipelineId))
+	if err != nil {
+		panic(err)
+	}
+
+	res := &PipelineResponseDto{}
+	_, err = request("GET", rawUrl, nil, res)
+	if err != nil {
+		return nil, err
+	}
+
+	return res, nil
 }
