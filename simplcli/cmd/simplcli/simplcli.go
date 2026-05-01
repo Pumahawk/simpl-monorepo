@@ -13,6 +13,7 @@ var pipelinesCmds = CommandGroup("",
 		&GitlabPipelinesCmd,
 		&GitlabPipelineCmd,
 		&GitlabPipelineJobsCmd,
+		&JobLogCmd,
 	),
 	CommandGroup("info",
 		&InfoProjectIdsCmd,
@@ -36,7 +37,7 @@ func main() {
 		v = v.Elem()
 	}
 	if v.Kind() == reflect.Int {
-		os.Exit(*(v.Interface().(*int)))
+		os.Exit(v.Interface().(int))
 	}
 
 	vw := StdTableWriter()

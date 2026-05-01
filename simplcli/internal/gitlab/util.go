@@ -28,7 +28,7 @@ func searchQuery(values url.Values, search any) {
 	}
 }
 
-func searchApi(_ *Client, uri string, search any, response any) error {
+func searchApi(c *Client, uri string, search any, response any) error {
 	if search != nil {
 		u, _ := url.Parse(uri)
 		q := u.Query()
@@ -36,7 +36,7 @@ func searchApi(_ *Client, uri string, search any, response any) error {
 		u.RawQuery = q.Encode()
 		uri = u.String()
 	}
-	r, err := http.NewRequest("GET", uri, nil)
+	r, err := c.NewRequest("GET", uri, nil)
 	if err != nil {
 		panic(err)
 	}
@@ -57,7 +57,7 @@ func searchApi(_ *Client, uri string, search any, response any) error {
 	return nil
 }
 
-func request(method string, rawUrl string, body any, response any) (*http.Response, error) {
+func request(c *Client, method string, rawUrl string, body any, response any) (*http.Response, error) {
 	//Prepare request
 	var rqb io.Reader
 	if body != nil {
@@ -67,7 +67,7 @@ func request(method string, rawUrl string, body any, response any) (*http.Respon
 		}
 		rqb = bytes.NewBuffer(bs)
 	}
-	rq, err := http.NewRequest(method, rawUrl, rqb)
+	rq, err := c.NewRequest(method, rawUrl, rqb)
 	if err != nil {
 		return nil, err
 	}
