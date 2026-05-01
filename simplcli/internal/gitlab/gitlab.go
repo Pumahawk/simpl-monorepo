@@ -38,3 +38,19 @@ func (c *Client) Pipeline(projectId, pipelineId string) (*PipelineResponseDto, e
 
 	return res, nil
 }
+
+func (c *Client) PipelineJobs(projectId, pipelineId string, search *SearchPipelineJob) (*PipelineJobsResponseDto, error) {
+	rawUrl, err := url.JoinPath(c.BaseUrl, "projects", url.PathEscape(projectId), "pipelines", url.PathEscape(pipelineId), "jobs")
+	if err != nil {
+		panic(err)
+	}
+
+	items := make([]PipelineJobsResponseItemDto, 0, 10)
+	err = searchApi(c, rawUrl, search, &items)
+	if err != nil {
+		return nil, err
+	}
+	return &PipelineJobsResponseDto{
+		Items: items,
+	}, nil
+}

@@ -46,3 +46,34 @@ type PipelineResponseDto struct {
 	QueuedDuration int    `json:"queued_duration"`
 	Archived       bool   `json:"archived"`
 }
+
+type SearchPipelineJob struct {
+	Page    string `search:"page"`
+	PerPage string `search:"per_page"`
+	Scope   string `search:"scope"`
+}
+
+type PipelineJobsResponseDto struct {
+	Items []PipelineJobsResponseItemDto
+}
+
+type PipelineJobsResponseItemDto struct {
+	Id                int     `json:"id"`
+	Name              string  `json:"name"`
+	Status            string  `json:"status"`
+	Ref               string  `json:"ref"`
+	Archived          bool    `json:"archived"`
+	Source            string  `json:"source"`
+	AllowFailure      bool    `json:"allow_failure"`
+	CreatedAt         string  `json:"created_at"`
+	StartedAt         string  `json:"started_at"`
+	FinishedAt        string  `json:"finished_at"`
+	ErasedAt          string  `json:"erased_at"`
+	Duration          float32 `json:"duration"`
+	QueuedDuration    float32 `json:"queued_duration"`
+	ArtifactsExpireAt string  `json:"artifacts_expire_at"`
+	Stage             string  `json:"stage"`
+	FailureReason     string  `json:"failure_reason"`
+	Tag               bool    `json:"tag"`
+	WebUrl            string  `json:"web_url"`
+}
