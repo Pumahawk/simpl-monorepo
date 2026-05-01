@@ -13,6 +13,9 @@ var pipelinesCmds = CommandGroup("",
 		&GitlabPipelinesCmd,
 		&GitlabPipelineCmd,
 	),
+	CommandGroup("info",
+		&InfoProjectIdsCmd,
+	),
 )
 
 func main() {
