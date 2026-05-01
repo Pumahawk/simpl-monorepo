@@ -15,7 +15,7 @@ go = "1.25.4"
 
 [shell_alias]
 path_fe = "rg -n --no-heading path: $(fd route  | grep microfe)"
-cli = "mise run -q cli"
+cli = "mise run -q cli --"
 
 [vars]
 pathSimplRepo = "./simpl-repo"
