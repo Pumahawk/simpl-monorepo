@@ -7,12 +7,13 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/Pumahawk/simpl-monorepo/internal/cmd"
 	"github.com/Pumahawk/simpl-monorepo/internal/gitlab"
 )
 
-var GitlabPipelinesCmd = Command[[]gitlab.PipelineResponseItemDto]{
+var GitlabPipelinesCmd = cmd.Command[[]gitlab.PipelineResponseItemDto]{
 	Name: "pip",
-	Run: func(c *Command[[]gitlab.PipelineResponseItemDto], args []string) ([]gitlab.PipelineResponseItemDto, error) {
+	Run: func(c *cmd.Command[[]gitlab.PipelineResponseItemDto], args []string) ([]gitlab.PipelineResponseItemDto, error) {
 		search := &gitlab.SearchPipeline{}
 
 		fl := flag.NewFlagSet("", flag.ExitOnError)
@@ -78,9 +79,9 @@ var GitlabPipelinesCmd = Command[[]gitlab.PipelineResponseItemDto]{
 	},
 }
 
-var GitlabPipelineCmd = Command[*gitlab.PipelineResponseDto]{
+var GitlabPipelineCmd = cmd.Command[*gitlab.PipelineResponseDto]{
 	Name: "pipd",
-	Run: func(c *Command[*gitlab.PipelineResponseDto], args []string) (*gitlab.PipelineResponseDto, error) {
+	Run: func(c *cmd.Command[*gitlab.PipelineResponseDto], args []string) (*gitlab.PipelineResponseDto, error) {
 		fl := flag.NewFlagSet("", flag.ExitOnError)
 		fl.Parse(args)
 		projectId := fl.Arg(0)
@@ -103,9 +104,9 @@ var GitlabPipelineCmd = Command[*gitlab.PipelineResponseDto]{
 	},
 }
 
-var GitlabPipelineJobsCmd = Command[any]{
+var GitlabPipelineJobsCmd = cmd.Command[any]{
 	Name: "pipj",
-	Run: func(c *Command[any], args []string) (any, error) {
+	Run: func(c *cmd.Command[any], args []string) (any, error) {
 		search := &gitlab.SearchPipelineJob{}
 
 		fl := flag.NewFlagSet("", flag.ExitOnError)

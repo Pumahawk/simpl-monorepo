@@ -6,16 +6,18 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+
+	"github.com/Pumahawk/simpl-monorepo/internal/cmd"
 )
 
-var pipelinesCmds = CommandGroup("",
-	CommandGroup("gl",
+var pipelinesCmds = cmd.CommandGroup("",
+	cmd.CommandGroup("gl",
 		&GitlabPipelinesCmd,
 		&GitlabPipelineCmd,
 		&GitlabPipelineJobsCmd,
 		&JobLogCmd,
 	),
-	CommandGroup("info",
+	cmd.CommandGroup("info",
 		&InfoProjectIdsCmd,
 	),
 )
@@ -27,7 +29,7 @@ func main() {
 	fl.Parse(os.Args[1:])
 
 	res, err := pipelinesCmds.CRun(fl.Args())
-	if err != nil && !errors.Is(err, MissingCommand) {
+	if err != nil && !errors.Is(err, cmd.MissingCommand) {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}

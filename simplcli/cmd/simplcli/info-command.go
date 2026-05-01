@@ -2,6 +2,8 @@ package main
 
 import (
 	"sort"
+
+	"github.com/Pumahawk/simpl-monorepo/internal/cmd"
 )
 
 type info struct {
@@ -9,9 +11,9 @@ type info struct {
 	Id   string
 }
 
-var InfoProjectIdsCmd = Command[[]info]{
+var InfoProjectIdsCmd = cmd.Command[[]info]{
 	Name: "pr",
-	Run: func(c *Command[[]info], args []string) ([]info, error) {
+	Run: func(c *cmd.Command[[]info], args []string) ([]info, error) {
 		infos := make([]info, 0, len(prIds))
 		for k, v := range prIds {
 			infos = append(infos, info{k, v})

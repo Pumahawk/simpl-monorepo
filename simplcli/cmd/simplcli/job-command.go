@@ -4,11 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/Pumahawk/simpl-monorepo/internal/cmd"
 )
 
-var JobLogCmd = Command[int]{
+var JobLogCmd = cmd.Command[int]{
 	Name: "jobl",
-	Run: func(c *Command[int], args []string) (int, error) {
+	Run: func(c *cmd.Command[int], args []string) (int, error) {
 
 		fl := flag.NewFlagSet("", flag.ExitOnError)
 		fl.Parse(args)
