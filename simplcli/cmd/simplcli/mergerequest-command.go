@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -38,24 +39,28 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 			r   *gitlab.PipelineJobsResponseDto
 			err error
 		}
-		plsjl := make([]*plsj, 0, len(pls.Items))
+		plsjl := make(chan plsj)
 		wg := sync.WaitGroup{}
 		for _, pl := range pls.Items {
 			wg.Add(1)
-			plsjs := &plsj{
-				p: &pl,
-			}
-			plsjl = append(plsjl, plsjs)
-			go func() {
+			go func(pl *gitlab.PipelineResponseItemDto) {
 				defer wg.Done()
-				plsjs.r, plsjs.err = gitlabClient.PipelineJobs(projectId, strconv.Itoa(plsjs.p.Id), &gitlab.SearchPipelineJob{})
-			}()
+				r, err := gitlabClient.PipelineJobs(projectId, strconv.Itoa(pl.Id), &gitlab.SearchPipelineJob{})
+				plsjl <- plsj{
+					p:   pl,
+					r:   r,
+					err: err,
+				}
+			}(&pl)
 		}
-		wg.Wait()
+		go func() {
+			defer close(plsjl)
+			wg.Wait()
+		}()
 
 		// Map model
 		model := make([]MRChPipeline, 0, len(pls.Items))
-		for _, res := range plsjl {
+		for res := range plsjl {
 			if res.err != nil {
 				fmt.Fprintf(os.Stderr, "unable to retrieve jobs pipeline %q\n", res.p.Id)
 			} else if res.r != nil {
@@ -76,11 +81,16 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 				model = append(model, MRChPipeline{
 					Id:         res.p.Id,
 					Status:     res.p.Status,
+					UpdatedAt:  res.p.UpdatedAt,
 					Jobs:       jobs,
 					JobsErrors: strings.Join(jobses, ","),
 				})
 			}
 		}
+
+		sort.Slice(model, func(i, j int) bool {
+			return model[i].UpdatedAt < model[j].UpdatedAt
+		})
 
 		return MergeRequestCheckModel(model), nil
 	},
@@ -91,6 +101,7 @@ type MergeRequestCheckModel []MRChPipeline
 type MRChPipeline struct {
 	Id         int // pipelineId
 	Status     string
+	UpdatedAt  string
 	Jobs       string // jobs count ex: 10/12
 	JobsErrors string // jobs error names separated by comma, ex: [job1:job1Id],[job3:job3Id],[job6:job6Id]
 }
