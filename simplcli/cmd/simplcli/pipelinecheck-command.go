@@ -21,7 +21,7 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 		fs := flag.NewFlagSet("", flag.ExitOnError)
 		structFlag(fs, search)
 		fs.Parse(args)
-		projectIds := fs.Args()
+		projectIds := prIdsDemux.demux(fs.Args())
 
 		if len(projectIds) == 0 {
 			return nil, fmt.Errorf("missing projectId")

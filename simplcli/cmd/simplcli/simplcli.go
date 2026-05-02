@@ -22,6 +22,7 @@ var pipelinesCmds = cmd.CommandGroup("",
 	),
 	cmd.CommandGroup("info",
 		&InfoProjectIdsCmd,
+		&InfoProjectGroupsCmd,
 	),
 )
 

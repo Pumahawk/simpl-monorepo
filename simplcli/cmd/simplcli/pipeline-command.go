@@ -19,7 +19,7 @@ var GitlabPipelinesCmd = cmd.Command[[]gitlab.PipelineResponseItemDto]{
 		fl := flag.NewFlagSet("", flag.ExitOnError)
 		structFlag(fl, search)
 		fl.Parse(args)
-		projectIds := fl.Args()
+		projectIds := prIdsDemux.demux(fl.Args())
 
 		if len(projectIds) == 0 {
 			return nil, fmt.Errorf("missing project ids")

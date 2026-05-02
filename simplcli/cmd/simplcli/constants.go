@@ -1,5 +1,34 @@
 package main
 
+var prIdsDemux = projectIdsDemux{
+	"microbe": {
+		"authentication-provider",
+		"identity-provider",
+		"onboarding",
+		"security-attributes-provider",
+		"tier1-gateway",
+		"tier2-gateway",
+		"users-roles",
+	},
+	"microfe": {
+		"fe-authentication-provider",
+		"fe-identity-provider",
+		"fe-onboarding",
+		"fe-security-attribute-provider",
+		"fe-users-and-roles",
+	},
+	"lib": {
+		"common",
+		"eidas-keycloak",
+		"eidas-node",
+		"keycloak-authenticator",
+		"simpl-http-client",
+	},
+	"misc": {
+		"tier2-proxy",
+	},
+}
+
 var prIds = projectNameSvT{
 	// Backend Common
 	"common": "796",
