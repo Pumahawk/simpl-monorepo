@@ -1,25 +1,19 @@
-package main
+package vw
 
 import (
 	"fmt"
-	"os"
+	"io"
 	"reflect"
 	"strings"
 	"text/tabwriter"
 )
 
 type TableView struct {
-	w *tabwriter.Writer
+	w io.Writer
 }
 
-func StdTableWriter() TableView {
-	w := os.Stdout
-	tw := tabwriter.NewWriter(w, 5, 2, 2, ' ', 0)
-	return TableView{tw}
-}
-
-type RenderOpt struct {
-	Fields []string
+func NewTableWriter(w io.Writer) *TableView {
+	return &TableView{w}
 }
 
 func (t *TableView) Render(opt *RenderOpt, model any) error {
@@ -46,6 +40,7 @@ func (t *TableView) Render(opt *RenderOpt, model any) error {
 }
 
 func (t *TableView) RenderList(opt *RenderOpt, model any) error {
+	tw := tabwriter.NewWriter(t.w, 5, 2, 2, ' ', 0)
 	// Validation model, retrieve slice
 	rv := reflect.ValueOf(model)
 	if rv.Kind() == reflect.Pointer {
@@ -77,7 +72,7 @@ func (t *TableView) RenderList(opt *RenderOpt, model any) error {
 	}
 
 	// Write table header
-	t.w.Write([]byte(strings.Join(fields, "\t") + "\n"))
+	tw.Write([]byte(strings.Join(fields, "\t") + "\n"))
 
 	// Write table body
 	for i := range rv.Len() {
@@ -93,13 +88,15 @@ func (t *TableView) RenderList(opt *RenderOpt, model any) error {
 				row = append(row, fmt.Sprintf(fmts, value))
 			}
 		}
-		t.w.Write([]byte(strings.Join(row, "\t") + "\n"))
+		tw.Write([]byte(strings.Join(row, "\t") + "\n"))
 	}
 
-	return t.w.Flush()
+	return tw.Flush()
 }
 
 func (t *TableView) RenderValue(opt *RenderOpt, model any) error {
+	tw := tabwriter.NewWriter(t.w, 5, 2, 2, ' ', 0)
+
 	// Validation model
 	rv := reflect.ValueOf(model)
 	if rv.Kind() == reflect.Pointer {
@@ -131,10 +128,10 @@ func (t *TableView) RenderValue(opt *RenderOpt, model any) error {
 				if value.Kind() == reflect.String {
 					fmts = "%s\t%q\n"
 				}
-				fmt.Fprintf(t.w, fmts, name, value.Interface())
+				fmt.Fprintf(tw, fmts, name, value.Interface())
 			}
 		}
 	}
-	t.w.Flush()
+	tw.Flush()
 	return nil
 }
