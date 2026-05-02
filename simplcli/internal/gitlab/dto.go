@@ -92,11 +92,11 @@ type SearchRegistry struct {
 	Status             string `search:"status"`
 }
 
-type RegistrysResponseDto struct {
-	Items []RegistrysResponseItemDto
+type RegistryResponseDto struct {
+	Items []RegistryResponseItemDto
 }
 
-type RegistrysResponseItemDto struct {
+type RegistryResponseItemDto struct {
 	Id          int    `json:"id"`
 	Name        string `json:"name"`
 	Version     string `json:"version"`
