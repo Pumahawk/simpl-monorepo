@@ -29,37 +29,46 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 
 		// Retrieve all pipelines and jobs async
 		type plsj struct {
-			p   *gitlab.PipelineResponseItemDto
-			r   *gitlab.PipelineJobsResponseDto
-			err error
+			projectName string
+			p           *gitlab.PipelineResponseItemDto
+			r           *gitlab.PipelineJobsResponseDto
+			err         error
 		}
 		plsjl := make(chan plsj)
 		wg := sync.WaitGroup{}
 		for _, projectId := range projectIds {
+			projectName := projectId
 			projectId := prIds.Get(projectId)
+			// Get pipeline informations
 			wg.Go(func() {
 				pls, err := gitlabClient.Pipelines(projectId, search)
 				if err != nil {
 					plsjl <- plsj{
-						p:   nil,
-						r:   nil,
-						err: fmt.Errorf("get pipelinese projectId=%q: %w", projectId, err),
+						projectName: projectName,
+						p:           nil,
+						r:           nil,
+						err:         fmt.Errorf("get pipelinese projectId=%q: %w", projectId, err),
 					}
 					return
 				}
+
 				for _, _pl := range pls.Items {
 					pl := &_pl
+					// Get job informations
 					wg.Go(func() {
 						r, err := gitlabClient.PipelineJobs(projectId, strconv.Itoa(pl.Id), &gitlab.SearchPipelineJob{})
 						plsjl <- plsj{
-							p:   pl,
-							r:   r,
-							err: err,
+							projectName: projectName,
+							p:           pl,
+							r:           r,
+							err:         err,
 						}
 					})
 				}
 			})
 		}
+
+		// Wait all goroutines end and close channel
 		go func() {
 			defer close(plsjl)
 			wg.Wait()
@@ -67,7 +76,7 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 
 		// Map model
 		model := make([]MRChPipeline, 0, 50)
-		for res := range plsjl {
+		for res := range plsjl { // Channel closed by dedicated goroutine
 			if res.p == nil || res.err != nil {
 				if res.p == nil {
 					fmt.Fprintf(os.Stderr, "unable to retrieve pipeline: %s\n", res.err)
@@ -91,6 +100,7 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 				jobs := fmt.Sprintf("%d/%d", jobsok, jobst)
 				model = append(model, MRChPipeline{
 					Id:         res.p.Id,
+					Project:    res.projectName,
 					Status:     res.p.Status,
 					Ref:        res.p.Ref,
 					Source:     res.p.Source,
@@ -113,6 +123,7 @@ type MergeRequestCheckModel []MRChPipeline
 
 type MRChPipeline struct {
 	Id         int // pipelineId
+	Project    string
 	Status     string
 	Ref        string
 	Source     string
