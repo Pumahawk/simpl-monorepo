@@ -17,23 +17,17 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 	Name: "check",
 	Run: func(c *cmd.Command[MergeRequestCheckModel], args []string) (MergeRequestCheckModel, error) {
 		search := &gitlab.SearchPipeline{}
-		projectId := ""
 
 		fs := flag.NewFlagSet("", flag.ExitOnError)
 		structFlag(fs, search)
 		fs.Parse(args)
-		projectId = prIds.Get(fs.Arg(0))
+		projectIds := fs.Args()
 
-		if projectId == "" {
+		if len(projectIds) == 0 {
 			return nil, fmt.Errorf("missing projectId")
 		}
 
-		pls, err := gitlabClient.Pipelines(projectId, search)
-		if err != nil {
-			return nil, fmt.Errorf("get pipelinese projectId=%q: %w", projectId, err)
-		}
-
-		// Retrieve all pipeline jobs async
+		// Retrieve all pipelines and jobs async
 		type plsj struct {
 			p   *gitlab.PipelineResponseItemDto
 			r   *gitlab.PipelineJobsResponseDto
@@ -41,17 +35,30 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 		}
 		plsjl := make(chan plsj)
 		wg := sync.WaitGroup{}
-		for _, pl := range pls.Items {
-			wg.Add(1)
-			go func(pl *gitlab.PipelineResponseItemDto) {
-				defer wg.Done()
-				r, err := gitlabClient.PipelineJobs(projectId, strconv.Itoa(pl.Id), &gitlab.SearchPipelineJob{})
-				plsjl <- plsj{
-					p:   pl,
-					r:   r,
-					err: err,
+		for _, projectId := range projectIds {
+			projectId := prIds.Get(projectId)
+			wg.Go(func() {
+				pls, err := gitlabClient.Pipelines(projectId, search)
+				if err != nil {
+					plsjl <- plsj{
+						p:   nil,
+						r:   nil,
+						err: fmt.Errorf("get pipelinese projectId=%q: %w", projectId, err),
+					}
+					return
 				}
-			}(&pl)
+				for _, _pl := range pls.Items {
+					pl := &_pl
+					wg.Go(func() {
+						r, err := gitlabClient.PipelineJobs(projectId, strconv.Itoa(pl.Id), &gitlab.SearchPipelineJob{})
+						plsjl <- plsj{
+							p:   pl,
+							r:   r,
+							err: err,
+						}
+					})
+				}
+			})
 		}
 		go func() {
 			defer close(plsjl)
@@ -59,11 +66,15 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 		}()
 
 		// Map model
-		model := make([]MRChPipeline, 0, len(pls.Items))
+		model := make([]MRChPipeline, 0, 50)
 		for res := range plsjl {
-			if res.err != nil {
-				fmt.Fprintf(os.Stderr, "unable to retrieve jobs pipeline %q\n", res.p.Id)
-			} else if res.r != nil {
+			if res.p == nil || res.err != nil {
+				if res.p == nil {
+					fmt.Fprintf(os.Stderr, "unable to retrieve pipeline: %s\n", res.err)
+				} else {
+					fmt.Fprintf(os.Stderr, "unable to retrieve pipeline jobs %q\n: %s", res.p.Id, res.err)
+				}
+			} else {
 				// Count all success and failed jobs
 				// Collect failed job names
 				jobst := len(res.r.Items)
@@ -81,6 +92,8 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 				model = append(model, MRChPipeline{
 					Id:         res.p.Id,
 					Status:     res.p.Status,
+					Ref:        res.p.Ref,
+					Source:     res.p.Source,
 					UpdatedAt:  res.p.UpdatedAt,
 					Jobs:       jobs,
 					JobsErrors: strings.Join(jobses, ","),
@@ -101,6 +114,8 @@ type MergeRequestCheckModel []MRChPipeline
 type MRChPipeline struct {
 	Id         int // pipelineId
 	Status     string
+	Ref        string
+	Source     string
 	UpdatedAt  string
 	Jobs       string // jobs count ex: 10/12
 	JobsErrors string // jobs error names separated by comma, ex: [job1:job1Id],[job3:job3Id],[job6:job6Id]
