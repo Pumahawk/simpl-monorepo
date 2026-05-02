@@ -8,7 +8,52 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"strconv"
+	"strings"
 )
+
+type searchTags struct {
+	Name    string
+	Default reflect.Value
+}
+
+func getSearchTags(field reflect.StructField) searchTags {
+	tagSearch := field.Tag.Get("search")
+	tags := strings.Split(tagSearch, ",")
+	name := tags[0]
+	tagm := make(map[string]string)
+	for _, t := range tags[1:] {
+		kv := strings.Split(t, ":")
+		k := kv[0]
+		v := strings.Join(kv[1:], ":")
+		tagm[k] = v
+	}
+	value := reflect.New(field.Type).Elem()
+	if def, ok := tagm["def"]; ok {
+		switch field.Type.Kind() {
+		case reflect.String:
+			value = reflect.ValueOf(def)
+		case reflect.Int:
+			value = strconfOrPanic(def, strconv.Atoi)
+		case reflect.Float64:
+			value = strconfOrPanic(def, func(def string) (float64, error) { return strconv.ParseFloat(def, 64) })
+		case reflect.Float32:
+			value = strconfOrPanic(def, func(def string) (float32, error) { v, err := strconv.ParseFloat(def, 32); return float32(v), err })
+		}
+	}
+	return searchTags{
+		Name:    name,
+		Default: value,
+	}
+}
+
+func strconfOrPanic[T any](str string, parser func(string) (T, error)) reflect.Value {
+	v, err := parser(str)
+	if err != nil {
+		panic(err)
+	}
+	return reflect.ValueOf(v)
+}
 
 func searchQuery(values url.Values, search any) {
 	v := reflect.ValueOf(search)
@@ -20,10 +65,16 @@ func searchQuery(values url.Values, search any) {
 	}
 	t := v.Type()
 	for i := 0; i < t.NumField(); i++ {
-		if !v.Field(i).IsZero() {
-			name := t.Field(i).Tag.Get("search")
-			value := v.Field(i).Interface()
-			values.Add(name, fmt.Sprintf("%v", value))
+		tags := getSearchTags(t.Field(i))
+		name := tags.Name
+		var valueV reflect.Value
+		if v.Field(i).IsZero() {
+			valueV = tags.Default
+		} else {
+			valueV = v.Field(i)
+		}
+		if !valueV.IsZero() {
+			values.Add(name, fmt.Sprintf("%v", valueV.Interface()))
 		}
 	}
 }
