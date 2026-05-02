@@ -22,6 +22,9 @@ var pipelinesCmds = cmd.CommandGroup("",
 	cmd.CommandGroup("info",
 		&InfoProjectIdsCmd,
 	),
+	cmd.CommandGroup("mr",
+		&MergeRequestCheckCmd,
+	),
 )
 
 var views = map[string]vw.View{
