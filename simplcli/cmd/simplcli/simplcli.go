@@ -18,12 +18,10 @@ var pipelinesCmds = cmd.CommandGroup("",
 		&GitlabPipelineJobsCmd,
 		&JobLogCmd,
 		&GitlabRegistryCmd,
+		&MergeRequestCheckCmd,
 	),
 	cmd.CommandGroup("info",
 		&InfoProjectIdsCmd,
-	),
-	cmd.CommandGroup("mr",
-		&MergeRequestCheckCmd,
 	),
 )
 
