@@ -77,3 +77,30 @@ type PipelineJobsResponseItemDto struct {
 	Tag               bool    `json:"tag"`
 	WebUrl            string  `json:"web_url"`
 }
+
+type SearchRegistry struct {
+	Page    string `search:"page"`
+	PerPage string `search:"per_page"`
+
+	Id                 string `search:"id"`
+	OrderBy            string `search:"order_by"`
+	Sort               string `search:"sort,def:desc"`
+	PackageType        string `search:"package_type"`
+	PackageName        string `search:"package_name"`
+	PackageVersion     string `search:"package_version"`
+	IncludeVersionless bool   `search:"include_versionless"`
+	Status             string `search:"status"`
+}
+
+type RegistrysResponseDto struct {
+	Items []RegistrysResponseItemDto
+}
+
+type RegistrysResponseItemDto struct {
+	Id          int    `json:"id"`
+	Name        string `json:"name"`
+	Version     string `json:"version"`
+	PackageType string `json:"package_type"`
+	CreatedAt   string `json:"created_at"`
+	CreatorId   int    `json:"creator_id"`
+}

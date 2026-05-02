@@ -110,3 +110,20 @@ func (c *Client) JobLog(projectId, jobId string) ([]byte, error) {
 	}
 	return bf.Bytes(), nil
 }
+
+func (c *Client) Registry(projectId string, search *SearchRegistry) (*RegistrysResponseDto, error) {
+	rawUrl, err := url.JoinPath(c.BaseUrl, "projects", url.PathEscape(projectId), "packages")
+	if err != nil {
+		panic(err)
+	}
+
+	items := make([]RegistrysResponseItemDto, 0, 10)
+	err = searchApi(c, rawUrl, search, &items)
+	if err != nil {
+		return nil, err
+	}
+
+	return &RegistrysResponseDto{
+		Items: items,
+	}, nil
+}
