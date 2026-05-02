@@ -12,7 +12,7 @@ import (
 )
 
 var GitlabPipelinesCmd = cmd.Command[[]gitlab.PipelineResponseItemDto]{
-	Name: "pip",
+	Name: "pipeline:search",
 	Run: func(c *cmd.Command[[]gitlab.PipelineResponseItemDto], args []string) ([]gitlab.PipelineResponseItemDto, error) {
 		search := &gitlab.SearchPipeline{}
 
@@ -80,7 +80,7 @@ var GitlabPipelinesCmd = cmd.Command[[]gitlab.PipelineResponseItemDto]{
 }
 
 var GitlabPipelineCmd = cmd.Command[*gitlab.PipelineResponseDto]{
-	Name: "pipd",
+	Name: "pipelines:details",
 	Run: func(c *cmd.Command[*gitlab.PipelineResponseDto], args []string) (*gitlab.PipelineResponseDto, error) {
 		fl := flag.NewFlagSet("", flag.ExitOnError)
 		fl.Parse(args)
@@ -105,7 +105,7 @@ var GitlabPipelineCmd = cmd.Command[*gitlab.PipelineResponseDto]{
 }
 
 var GitlabPipelineJobsCmd = cmd.Command[any]{
-	Name: "pipj",
+	Name: "pipelines:jobs",
 	Run: func(c *cmd.Command[any], args []string) (any, error) {
 		search := &gitlab.SearchPipelineJob{}
 

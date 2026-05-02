@@ -9,7 +9,7 @@ import (
 )
 
 var GitlabRegistryCmd = cmd.Command[any]{
-	Name: "reg",
+	Name: "registry:search",
 	Run: func(c *cmd.Command[any], args []string) (any, error) {
 		search := &gitlab.SearchRegistry{}
 

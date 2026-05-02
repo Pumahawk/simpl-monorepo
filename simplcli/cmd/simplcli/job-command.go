@@ -9,7 +9,7 @@ import (
 )
 
 var JobLogCmd = cmd.Command[int]{
-	Name: "jobl",
+	Name: "jobs:logs",
 	Run: func(c *cmd.Command[int], args []string) (int, error) {
 
 		fl := flag.NewFlagSet("", flag.ExitOnError)

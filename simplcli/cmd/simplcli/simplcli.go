@@ -12,7 +12,7 @@ import (
 )
 
 var pipelinesCmds = cmd.CommandGroup("",
-	cmd.CommandGroup("gl",
+	cmd.CommandGroup("gitlab",
 		&GitlabPipelinesCmd,
 		&GitlabPipelineCmd,
 		&GitlabPipelineJobsCmd,

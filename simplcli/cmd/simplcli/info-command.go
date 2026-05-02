@@ -12,7 +12,7 @@ type info struct {
 }
 
 var InfoProjectIdsCmd = cmd.Command[[]info]{
-	Name: "pr",
+	Name: "projects",
 	Run: func(c *cmd.Command[[]info], args []string) ([]info, error) {
 		infos := make([]info, 0, len(prIds))
 		for k, v := range prIds {

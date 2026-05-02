@@ -14,7 +14,7 @@ import (
 )
 
 var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
-	Name: "pip:check",
+	Name: "pipeline:check",
 	Run: func(c *cmd.Command[MergeRequestCheckModel], args []string) (MergeRequestCheckModel, error) {
 		search := &gitlab.SearchPipeline{}
 
