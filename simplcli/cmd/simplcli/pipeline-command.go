@@ -12,7 +12,7 @@ import (
 )
 
 var GitlabPipelinesCmd = cmd.Command[[]gitlab.PipelineResponseItemDto]{
-	Name: "pipeline:search",
+	Name: "pipelines:search",
 	Run: func(c *cmd.Command[[]gitlab.PipelineResponseItemDto], args []string) ([]gitlab.PipelineResponseItemDto, error) {
 		search := &gitlab.SearchPipeline{}
 
@@ -32,33 +32,29 @@ var GitlabPipelinesCmd = cmd.Command[[]gitlab.PipelineResponseItemDto]{
 			err  error
 		}
 		wg := sync.WaitGroup{}
-		ress := make([]*resTy, 0, len(projectIds))
+		ress := make(chan resTy)
 
 		// Retrieve all pipelines async
 		for _, projectId := range projectIds {
-			res := &resTy{}
-			res.name = projectId
-			ress = append(ress, res)
-			wg.Add(1)
-			go func(projectId string) {
-				defer wg.Done()
-				res.rs, res.err = gitlabClient.Pipelines(prIds.Get(projectId), search)
-			}(projectId)
+			name := projectId
+			wg.Go(func() {
+				rs, err := gitlabClient.Pipelines(prIds.Get(projectId), search)
+				ress <- resTy{
+					name: name,
+					rs:   rs,
+					err:  err,
+				}
+			})
 		}
-		wg.Wait()
-
-		// Prepare items size slice
-		size := 0
-		for _, r := range ress {
-			if r.rs != nil {
-				size += len(r.rs.Items)
-			}
-		}
-		items := make([]gitlab.PipelineResponseItemDto, 0, size)
+		go func() {
+			defer close(ress)
+			wg.Wait()
+		}()
 
 		// Collect all response items
 		// Rewrite pipeline name with project name.
-		for _, r := range ress {
+		items := make([]gitlab.PipelineResponseItemDto, 0, len(projectIds)*20)
+		for r := range ress {
 			if r.err != nil {
 				fmt.Fprintf(os.Stderr, "projectId %s: %s\n", r.name, r.err)
 			}
