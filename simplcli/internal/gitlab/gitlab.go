@@ -127,3 +127,20 @@ func (c *Client) Registry(projectId string, search *SearchRegistry) (*RegistryRe
 		Items: items,
 	}, nil
 }
+
+func (c *Client) MergeRequests(projectId string, search *SearchMergeRequest) (*MergeRequestResponseDto, error) {
+	rawUrl, err := url.JoinPath(c.BaseUrl, "projects", url.PathEscape(projectId), "merge_requests")
+	if err != nil {
+		panic(err)
+	}
+
+	items := make([]MergeRequestResponseItemDto, 0, 10)
+	err = searchApi(c, rawUrl, search, &items)
+	if err != nil {
+		return nil, err
+	}
+
+	return &MergeRequestResponseDto{
+		Items: items,
+	}, nil
+}
