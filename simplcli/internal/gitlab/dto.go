@@ -3,8 +3,22 @@ package gitlab
 type SearchPipeline struct {
 	Page    string `search:"page"`
 	PerPage string `search:"per_page"`
-	Ref     string `search:"ref"`
-	Status  string `search:"status"`
+
+	Id            string `search:"id"`
+	Name          string `search:"name"`
+	OrderBy       string `search:"order_by"`
+	Ref           string `search:"ref"`
+	Scope         string `search:"scope"`
+	Sha           string `search:"sha"`
+	Sort          string `search:"sort"`
+	Source        string `search:"source"`
+	Status        string `search:"status"`
+	UpdatedAfter  string `search:"updated_after"`
+	UpdatedBefore string `search:"updated_before"`
+	CreatedAfter  string `search:"created_after"`
+	CreatedBefore string `search:"created_before"`
+	Username      string `search:"username"`
+	YamlErrors    bool   `search:"yaml_errors"`
 }
 
 type PipelinesResponseDto struct {
@@ -50,7 +64,9 @@ type PipelineResponseDto struct {
 type SearchPipelineJob struct {
 	Page    string `search:"page"`
 	PerPage string `search:"per_page"`
-	Scope   string `search:"scope"`
+
+	PipelineId string `search:"pipeline_id"`
+	Scope      string `search:"scope"`
 }
 
 type PipelineJobsResponseDto struct {
