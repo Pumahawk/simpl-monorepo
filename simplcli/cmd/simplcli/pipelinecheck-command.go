@@ -107,6 +107,7 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 					UpdatedAt:  res.p.UpdatedAt,
 					Jobs:       jobs,
 					JobsErrors: strings.Join(jobses, ","),
+					WebUrl:     res.p.WebUrl,
 				})
 			}
 		}
@@ -130,4 +131,5 @@ type MRChPipeline struct {
 	UpdatedAt  string
 	Jobs       string // jobs count ex: 10/12
 	JobsErrors string // jobs error names separated by comma, ex: [job1:job1Id],[job3:job3Id],[job6:job6Id]
+	WebUrl     string
 }
