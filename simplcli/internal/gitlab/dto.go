@@ -362,7 +362,7 @@ type PipelineInfoDto struct {
 	Duration       int                           `json:"duration"`
 	DetailedStatus MergeRequestDetailedStatusDto `json:"detailed_status"`
 	CreatedAt      string                        `json:"created_at"`
-	Coverage       float64                       `json:"coverage"`
+	Coverage       string                        `json:"coverage"`
 	CommittedAt    string                        `json:"committed_at"`
 	BeforeSha      string                        `json:"before_sha"`
 }
