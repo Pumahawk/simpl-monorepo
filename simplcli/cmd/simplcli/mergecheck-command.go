@@ -181,15 +181,16 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 				}
 				jobs := fmt.Sprintf("%d/%d", jobsok, jobst)
 				model = append(model, MRChPipeline{
-					Id:           res.md.Id,
-					Project:      res.projectName,
-					State:        res.md.State,
-					MergeStatus:  res.md.MergeStatus,
-					TargetBranch: res.md.TargetBranch,
-					UpdatedAt:    res.md.UpdatedAt,
-					Jobs:         jobs,
-					JobsErrors:   strings.Join(jobses, ","),
-					WebUrl:       res.md.WebUrl,
+					Id:            res.md.Id,
+					Project:       res.projectName,
+					PipelineState: res.md.State,
+					Pipeline:      res.p.Status,
+					MergeStatus:   res.md.MergeStatus,
+					TargetBranch:  res.md.TargetBranch,
+					UpdatedAt:     res.md.UpdatedAt,
+					Jobs:          jobs,
+					JobsErrors:    strings.Join(jobses, ","),
+					WebUrl:        res.md.WebUrl,
 				})
 			}
 		}
@@ -205,13 +206,14 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 type MergeRequestCheckModel []MRChPipeline
 
 type MRChPipeline struct {
-	Id           int // pipelineId
-	Project      string
-	State        string
-	MergeStatus  string
-	TargetBranch string
-	UpdatedAt    string
-	Jobs         string // jobs count ex: 10/12
-	JobsErrors   string // jobs error names separated by comma, ex: [job1:job1Id],[job3:job3Id],[job6:job6Id]
-	WebUrl       string
+	Id            int // pipelineId
+	Project       string
+	PipelineState string
+	Pipeline      string
+	MergeStatus   string
+	TargetBranch  string
+	UpdatedAt     string
+	Jobs          string // jobs count ex: 10/12
+	JobsErrors    string // jobs error names separated by comma, ex: [job1:job1Id],[job3:job3Id],[job6:job6Id]
+	WebUrl        string
 }
