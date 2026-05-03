@@ -47,9 +47,9 @@ var GitlabPipelineCmd = cmd.Command[*gitlab.PipelineResponseDto]{
 	},
 }
 
-var GitlabPipelineJobsCmd = cmd.Command[any]{
+var GitlabPipelineJobsCmd = cmd.Command[*gitlab.PipelineJobsResponseDto]{
 	Name: "pipelines:jobs",
-	Run: func(c *cmd.Command[any], args []string) (any, error) {
+	Run: func(c *cmd.Command[*gitlab.PipelineJobsResponseDto], args []string) (*gitlab.PipelineJobsResponseDto, error) {
 		search := &gitlab.SearchPipelineJob{}
 
 		fl := flag.NewFlagSet("", flag.ExitOnError)
@@ -86,5 +86,30 @@ var GitlabMergeRequestsCmd = SearchMultiProjectAsyncCmd[gitlab.SearchMergeReques
 	},
 	SortFunc: func(mrrid []gitlab.MergeRequestsResponseItemDto, i, j int) bool {
 		return mrrid[i].UpdatedAt < mrrid[j].UpdatedAt
+	},
+}
+
+var GitLabMergeRequestCmd = cmd.Command[*gitlab.MergeRequestResponseDto]{
+	Name: "merge:details",
+	Run: func(c *cmd.Command[*gitlab.MergeRequestResponseDto], args []string) (*gitlab.MergeRequestResponseDto, error) {
+		fl := flag.NewFlagSet("", flag.ExitOnError)
+		fl.Parse(args)
+		projectId := fl.Arg(0)
+		mergeRequestId := fl.Arg(1)
+
+		if projectId == "" {
+			return nil, fmt.Errorf("missing project id")
+		}
+
+		if mergeRequestId == "" {
+			return nil, fmt.Errorf("missing merge request id")
+		}
+
+		r, err := gitlabClient.MergeRequest(prIds.Get(projectId), mergeRequestId)
+		if err != nil {
+			return nil, fmt.Errorf("unable to retrieve merger request %q project %q: %w", mergeRequestId, projectId, err)
+		}
+
+		return r, nil
 	},
 }
