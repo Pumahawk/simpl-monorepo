@@ -15,7 +15,7 @@ go = "1.25.4"
 
 [shell_alias]
 path_fe = "rg -n --no-heading path: $(fd route  | grep microfe)"
-cli = "mise run -q cli --"
+cli = "mise run --raw -q cli --"
 
 [vars]
 pathSimplRepo = "./simpl-repo"
@@ -1086,6 +1086,10 @@ fi
 [tasks."cli:build"]
 shell = "bash -ec"
 run = "env -C simplcli go build ./cmd/simplcli"
+
+[tasks."merge-requests:check"]
+shell = "bash -ec"
+run = "mise run cli --quiet --raw -- gitlab merge:check -state opened"
 
 [env]
 PROJECT_RELEASE_VERSION = "monorepo-dev"
