@@ -75,16 +75,16 @@ var GitlabPipelineJobsCmd = cmd.Command[any]{
 	},
 }
 
-var GitlabMergeRequestsCmd = SearchMultiProjectAsyncCmd[gitlab.SearchMergeRequest, struct{}, gitlab.MergeRequestResponseItemDto]{
+var GitlabMergeRequestsCmd = SearchMultiProjectAsyncCmd[gitlab.SearchMergeRequest, struct{}, gitlab.MergeRequestsResponseItemDto]{
 	Name: "merge:search",
-	ApiFunc: func(projectId string, _ struct{}, search *gitlab.SearchMergeRequest) ([]gitlab.MergeRequestResponseItemDto, error) {
+	ApiFunc: func(projectId string, _ struct{}, search *gitlab.SearchMergeRequest) ([]gitlab.MergeRequestsResponseItemDto, error) {
 		r, err := gitlabClient.MergeRequests(projectId, search)
 		if err != nil {
 			return nil, err
 		}
 		return r.Items, nil
 	},
-	SortFunc: func(mrrid []gitlab.MergeRequestResponseItemDto, i, j int) bool {
+	SortFunc: func(mrrid []gitlab.MergeRequestsResponseItemDto, i, j int) bool {
 		return mrrid[i].UpdatedAt < mrrid[j].UpdatedAt
 	},
 }
