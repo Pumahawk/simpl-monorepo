@@ -7,7 +7,7 @@ import (
 )
 
 var gitlabClient = gitlab.Client{
-	BaseUrl: "https://code.europa.eu/api/v4",
+	BaseUrl: "https://code.europa.eu",
 	TokenFunc: func() (string, error) {
 		t, _ := os.LookupEnv("GITLAB_TOKEN")
 		return t, nil

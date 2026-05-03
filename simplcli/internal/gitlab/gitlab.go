@@ -37,7 +37,7 @@ func (c *Client) NewRequest(method, url string, body io.Reader) (*http.Request, 
 }
 
 func (c *Client) Pipelines(id string, search *SearchPipeline) (*PipelinesResponseDto, error) {
-	rawUrl, err := url.JoinPath(c.BaseUrl, "projects", url.PathEscape(id), "pipelines")
+	rawUrl, err := url.JoinPath(c.BaseUrl, "/api/v4", "projects", url.PathEscape(id), "pipelines")
 	if err != nil {
 		panic(err)
 	}
@@ -53,7 +53,7 @@ func (c *Client) Pipelines(id string, search *SearchPipeline) (*PipelinesRespons
 }
 
 func (c *Client) Pipeline(projectId, pipelineId string) (*PipelineResponseDto, error) {
-	rawUrl, err := url.JoinPath(c.BaseUrl, "projects", url.PathEscape(projectId), "pipelines", url.PathEscape(pipelineId))
+	rawUrl, err := url.JoinPath(c.BaseUrl, "/api/v4", "projects", url.PathEscape(projectId), "pipelines", url.PathEscape(pipelineId))
 	if err != nil {
 		panic(err)
 	}
@@ -68,7 +68,7 @@ func (c *Client) Pipeline(projectId, pipelineId string) (*PipelineResponseDto, e
 }
 
 func (c *Client) PipelineJobs(projectId, pipelineId string, search *SearchPipelineJob) (*PipelineJobsResponseDto, error) {
-	rawUrl, err := url.JoinPath(c.BaseUrl, "projects", url.PathEscape(projectId), "pipelines", url.PathEscape(pipelineId), "jobs")
+	rawUrl, err := url.JoinPath(c.BaseUrl, "/api/v4", "projects", url.PathEscape(projectId), "pipelines", url.PathEscape(pipelineId), "jobs")
 	if err != nil {
 		panic(err)
 	}
@@ -84,7 +84,7 @@ func (c *Client) PipelineJobs(projectId, pipelineId string, search *SearchPipeli
 }
 
 func (c *Client) JobLog(projectId, jobId string) ([]byte, error) {
-	rawUrl, err := url.JoinPath(c.BaseUrl, "projects", url.PathEscape(projectId), "jobs", url.PathEscape(jobId), "trace")
+	rawUrl, err := url.JoinPath(c.BaseUrl, "/api/v4", "projects", url.PathEscape(projectId), "jobs", url.PathEscape(jobId), "trace")
 	if err != nil {
 		panic(err)
 	}
@@ -112,7 +112,7 @@ func (c *Client) JobLog(projectId, jobId string) ([]byte, error) {
 }
 
 func (c *Client) Registry(projectId string, search *SearchRegistry) (*RegistryResponseDto, error) {
-	rawUrl, err := url.JoinPath(c.BaseUrl, "projects", url.PathEscape(projectId), "packages")
+	rawUrl, err := url.JoinPath(c.BaseUrl, "/api/v4", "projects", url.PathEscape(projectId), "packages")
 	if err != nil {
 		panic(err)
 	}
@@ -129,7 +129,7 @@ func (c *Client) Registry(projectId string, search *SearchRegistry) (*RegistryRe
 }
 
 func (c *Client) MergeRequests(projectId string, search *SearchMergeRequest) (*MergeRequestsResponseDto, error) {
-	rawUrl, err := url.JoinPath(c.BaseUrl, "projects", url.PathEscape(projectId), "merge_requests")
+	rawUrl, err := url.JoinPath(c.BaseUrl, "/api/v4", "projects", url.PathEscape(projectId), "merge_requests")
 	if err != nil {
 		panic(err)
 	}
@@ -146,7 +146,7 @@ func (c *Client) MergeRequests(projectId string, search *SearchMergeRequest) (*M
 }
 
 func (c *Client) MergeRequest(projectId, mergeRequestId string) (*MergeRequestResponseDto, error) {
-	rawUrl, err := url.JoinPath(c.BaseUrl, "projects", url.PathEscape(projectId), "merge_requests", url.PathEscape(mergeRequestId))
+	rawUrl, err := url.JoinPath(c.BaseUrl, "/api/v4", "projects", url.PathEscape(projectId), "merge_requests", url.PathEscape(mergeRequestId))
 	if err != nil {
 		panic(err)
 	}
@@ -160,7 +160,7 @@ func (c *Client) MergeRequest(projectId, mergeRequestId string) (*MergeRequestRe
 }
 
 func (c *Client) JobRetry(projectId, jobId string) (*JobRetryResponseDto, error) {
-	rawUrl, err := url.JoinPath(c.BaseUrl, "projects", url.PathEscape(projectId), "jobs", url.PathEscape(jobId), "retry")
+	rawUrl, err := url.JoinPath(c.BaseUrl, "/api/v4", "projects", url.PathEscape(projectId), "jobs", url.PathEscape(jobId), "retry")
 	if err != nil {
 		panic(err)
 	}
