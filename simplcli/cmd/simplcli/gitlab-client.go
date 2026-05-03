@@ -17,8 +17,9 @@ var gitlabClient = gitlab.Client{
 
 var fortifyClient = fortify.Client{
 	BaseUrl: "https://api.emea.fortify.com",
-	TokenFunc: func() (string, error) {
+	TokenFunc: func() (fortify.AuthData, error) {
+		u, _ := os.LookupEnv("FORTIFY_USER")
 		t, _ := os.LookupEnv("FORTIFY_TOKEN")
-		return t, nil
+		return fortify.AuthData{Token: t, User: u}, nil
 	},
 }
