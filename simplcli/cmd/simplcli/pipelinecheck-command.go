@@ -11,12 +11,13 @@ import (
 
 	"github.com/Pumahawk/simpl-monorepo/internal/cmd"
 	"github.com/Pumahawk/simpl-monorepo/internal/gitlab"
+	"github.com/Pumahawk/simpl-monorepo/internal/log"
 )
 
 var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
-	Name: "pipelines:check",
+	Name: "merge:check",
 	Run: func(c *cmd.Command[MergeRequestCheckModel], args []string) (MergeRequestCheckModel, error) {
-		search := &gitlab.SearchPipeline{}
+		search := &gitlab.SearchMergeRequest{}
 
 		fs := flag.NewFlagSet("", flag.ExitOnError)
 		structFlag(fs, search)
@@ -29,54 +30,135 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 
 		// Retrieve all pipelines and jobs async
 		type plsj struct {
+			projectId   string
 			projectName string
-			p           *gitlab.PipelineResponseItemDto
+			ms          *gitlab.MergeRequestsResponseItemDto
+			md          *gitlab.MergeRequestResponseDto
+			p           *gitlab.PipelineInfoDto
 			r           *gitlab.PipelineJobsResponseDto
 			err         error
 		}
-		plsjl := make(chan plsj)
-		wg := sync.WaitGroup{}
-		for _, projectId := range projectIds {
-			projectName := projectId
-			projectId := prIds.Get(projectId)
-			// Get pipeline informations
-			wg.Go(func() {
-				pls, err := gitlabClient.Pipelines(projectId, search)
-				if err != nil {
-					plsjl <- plsj{
-						projectName: projectName,
-						p:           nil,
-						r:           nil,
-						err:         fmt.Errorf("get pipelinese projectId=%q: %w", projectId, err),
-					}
-					return
-				}
 
-				for _, _pl := range pls.Items {
-					pl := &_pl
-					// Get job informations
-					wg.Go(func() {
-						r, err := gitlabClient.PipelineJobs(projectId, strconv.Itoa(pl.Id), &gitlab.SearchPipelineJob{})
-						plsjl <- plsj{
-							projectName: projectName,
-							p:           pl,
-							r:           r,
-							err:         err,
-						}
-					})
-				}
-			})
-		}
+		// Each goroutines have and internal waitgroup and a channel.
+		// Wait all goroutines terminations before close channel.
 
-		// Wait all goroutines end and close channel
+		// Define channels in pipe
+		mergeRequestsC := make(chan *plsj, 10)
+		mergeRequestDetailsC := make(chan *plsj, 10)
+		pipelinesC := make(chan *plsj, 10)
+		jobsC := make(chan *plsj, 10)
+
+		// Find all merge requests by projectsid (close chan mergerequestsc).
 		go func() {
-			defer close(plsjl)
-			wg.Wait()
+			log.Debug("start routine find all merge requests")
+			defer close(mergeRequestsC)
+			wgi := sync.WaitGroup{}
+			for _, projectId := range projectIds {
+				projectName := projectId
+				projectId := prIds.Get(projectId)
+				wgi.Go(func() {
+					log.Debug("start routine find merge requests projectId=%s projectName=%q", projectId, projectName)
+					mrs, err := gitlabClient.MergeRequests(projectId, search)
+					if err != nil {
+						mergeRequestsC <- &plsj{
+							projectName: projectName,
+							projectId:   projectId,
+							err:         fmt.Errorf("get pipelinese projectId=%q: %w", projectId, err),
+						}
+						return
+					}
+					for _, mr := range mrs.Items {
+						mergeRequest := mr
+						mergeRequestsC <- &plsj{
+							projectName: projectName,
+							projectId:   projectId,
+							ms:          &mergeRequest,
+						}
+					}
+					log.Debug("end routine find merge requests projectId=%s projectName=%q", projectId, projectName)
+				})
+			}
+			wgi.Wait()
+			log.Debug("end routine find all merge requests")
+		}()
+
+		// Find all merge request details, range over chan mergeRequestsC, close chan mergeRequestDetailsC.
+		go func() {
+			log.Debug("start routine getmerge request detail")
+			defer close(mergeRequestDetailsC)
+			wgi := sync.WaitGroup{}
+			for mr := range mergeRequestsC {
+				wgi.Go(func() {
+					if mr.err != nil {
+						mergeRequestDetailsC <- mr
+						return
+					}
+					log.Debug("start routine get merge request detail %d", mr.ms.Id)
+					mrId := mr.ms.Iid
+					md, err := gitlabClient.MergeRequest(mr.projectId, strconv.Itoa(mrId))
+					if err != nil {
+						mr.err = fmt.Errorf("get merge request retail projectId=%q, mergeRequestId=%d: %w", mr.projectName, mrId, err)
+					} else {
+						mr.md = md
+					}
+					mergeRequestDetailsC <- mr
+					log.Debug("done routine get merge request detail %d", mr.ms.Id)
+				})
+			}
+			wgi.Wait()
+			log.Debug("end routine getmerge request detail")
+		}()
+
+		// Find all pipelines, range over chan mergeRequestDetailsC, close chan pipelinesC.
+		go func() {
+			log.Debug("start routine get pipeline request detail")
+			defer close(pipelinesC)
+			wgi := sync.WaitGroup{}
+			for row := range mergeRequestDetailsC {
+				wgi.Go(func() {
+					if row.err != nil {
+						pipelinesC <- row
+						return
+					}
+					log.Debug("start routine get pipeline request detail %d", row.md.HeadPipeline.Id)
+					row.p = &row.md.HeadPipeline
+					pipelinesC <- row
+					log.Debug("end routine get pipeline request detail %d", row.md.HeadPipeline.Id)
+				})
+			}
+			wgi.Wait()
+			log.Debug("end routine get pipeline request detail")
+		}()
+
+		// Find all pipelines, range over chan pipelinesC, close chan jobsC.
+		go func() {
+			log.Debug("start routine get job request detail")
+			defer close(jobsC)
+			wgi := sync.WaitGroup{}
+			for row := range pipelinesC {
+				wgi.Go(func() {
+					if row.err != nil {
+						jobsC <- row
+						return
+					}
+					log.Debug("start routine get job request detail %d", row.p.Id)
+					r, err := gitlabClient.PipelineJobs(row.projectId, strconv.Itoa(row.p.Id), &gitlab.SearchPipelineJob{})
+					if err != nil {
+						row.err = fmt.Errorf(":%w", err)
+					} else {
+						row.r = r
+					}
+					jobsC <- row
+					log.Debug("end routine get job request detail %d", row.p.Id)
+				})
+			}
+			wgi.Wait()
+			log.Debug("end routine get job request detail")
 		}()
 
 		// Map model
 		model := make([]MRChPipeline, 0, 50)
-		for res := range plsjl { // Channel closed by dedicated goroutine
+		for res := range jobsC { // Channel closed by dedicated goroutine
 			if res.p == nil || res.err != nil {
 				if res.p == nil {
 					fmt.Fprintf(os.Stderr, "unable to retrieve pipeline: %s\n", res.err)
