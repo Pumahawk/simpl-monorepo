@@ -42,29 +42,23 @@ func (p projectIdsDemux) demux(v []string) []string {
 	return strs
 }
 
-type SearchMultiProjectAsyncCmd[S any, T any] struct {
+type SearchMultiProjectAsyncCmd[S any, F any, T any] struct {
 	Name        string
 	Search      S
-	FlagsSetter func(*flag.FlagSet)
-	Validator   func() error
+	Flags       F
+	Validator   func(F) error
 	RowConsumer func(string, *T)
 	SortFunc    func([]T, int, int) bool
-	ApiFunc     func(self *SearchMultiProjectAsyncCmd[S, T], projectId string, search *S) ([]T, error)
+	ApiFunc     func(projectId string, flags F, search *S) ([]T, error)
 }
 
-func (s *SearchMultiProjectAsyncCmd[S, T]) CName() string {
+func (s *SearchMultiProjectAsyncCmd[S, F, T]) CName() string {
 	return s.Name
 }
-func (s *SearchMultiProjectAsyncCmd[S, T]) CRun(args []string) (any, error) {
-	var search *S
-	searchT := reflect.TypeOf(s.Search)
-	reflect.ValueOf(&search).Elem().Set(reflect.New(searchT))
-
+func (s *SearchMultiProjectAsyncCmd[S, F, T]) CRun(args []string) (any, error) {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
-	structFlag(fl, search)
-	if s.FlagsSetter != nil {
-		s.FlagsSetter(fl)
-	}
+	structFlag(fl, &s.Search)
+	structFlag(fl, &s.Flags)
 	fl.Parse(args)
 	projectIds := prIdsDemux.demux(fl.Args())
 
@@ -73,7 +67,7 @@ func (s *SearchMultiProjectAsyncCmd[S, T]) CRun(args []string) (any, error) {
 	}
 
 	if s.Validator != nil {
-		if err := s.Validator(); err != nil {
+		if err := s.Validator(s.Flags); err != nil {
 			return nil, err
 		}
 	}
@@ -92,7 +86,7 @@ func (s *SearchMultiProjectAsyncCmd[S, T]) CRun(args []string) (any, error) {
 		projectId = prIds.Get(projectId)
 		name := projectId
 		wg.Go(func() {
-			rs, err := s.ApiFunc(s, projectId, search)
+			rs, err := s.ApiFunc(projectId, s.Flags, &s.Search)
 			ress <- resTy{
 				name: name,
 				rs:   rs,

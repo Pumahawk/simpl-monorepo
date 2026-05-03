@@ -3,75 +3,22 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
-	"sort"
-	"sync"
 
 	"github.com/Pumahawk/simpl-monorepo/internal/cmd"
 	"github.com/Pumahawk/simpl-monorepo/internal/gitlab"
 )
 
-var GitlabPipelinesCmd = cmd.Command[[]gitlab.PipelineResponseItemDto]{
+var GitlabPipelinesCmd = SearchMultiProjectAsyncCmd[gitlab.SearchPipeline, struct{}, gitlab.PipelineResponseItemDto]{
 	Name: "pipelines:search",
-	Run: func(c *cmd.Command[[]gitlab.PipelineResponseItemDto], args []string) ([]gitlab.PipelineResponseItemDto, error) {
-		search := &gitlab.SearchPipeline{}
-
-		fl := flag.NewFlagSet("", flag.ExitOnError)
-		structFlag(fl, search)
-		fl.Parse(args)
-		projectIds := prIdsDemux.demux(fl.Args())
-
-		if len(projectIds) == 0 {
-			return nil, fmt.Errorf("missing project ids")
+	ApiFunc: func(projectId string, flags struct{}, search *gitlab.SearchPipeline) ([]gitlab.PipelineResponseItemDto, error) {
+		r, err := gitlabClient.Pipelines(projectId, search)
+		if err != nil {
+			return nil, err
 		}
-
-		// Prepare response object container
-		type resTy struct {
-			name string
-			rs   *gitlab.PipelinesResponseDto
-			err  error
-		}
-		wg := sync.WaitGroup{}
-		ress := make(chan resTy)
-
-		// Retrieve all pipelines async
-		for _, projectId := range projectIds {
-			name := projectId
-			wg.Go(func() {
-				rs, err := gitlabClient.Pipelines(prIds.Get(projectId), search)
-				ress <- resTy{
-					name: name,
-					rs:   rs,
-					err:  err,
-				}
-			})
-		}
-		go func() {
-			defer close(ress)
-			wg.Wait()
-		}()
-
-		// Collect all response items
-		// Rewrite pipeline name with project name.
-		items := make([]gitlab.PipelineResponseItemDto, 0, len(projectIds)*20)
-		for r := range ress {
-			if r.err != nil {
-				fmt.Fprintf(os.Stderr, "projectId %s: %s\n", r.name, r.err)
-			}
-			if r.rs != nil {
-				for _, item := range r.rs.Items {
-					item.Name = r.name
-					items = append(items, item)
-				}
-			}
-		}
-
-		// Sort items by updated_at
-		sort.Slice(items, func(i, j int) bool {
-			return items[i].UpdatedAt > items[j].UpdatedAt
-		})
-
-		return items, nil
+		return r.Items, nil
+	},
+	SortFunc: func(prid []gitlab.PipelineResponseItemDto, i, j int) bool {
+		return prid[i].UpdatedAt < prid[j].UpdatedAt
 	},
 }
 
@@ -128,13 +75,16 @@ var GitlabPipelineJobsCmd = cmd.Command[any]{
 	},
 }
 
-var GitlabMergeRequestsCmd = SearchMultiProjectAsyncCmd[gitlab.SearchMergeRequest, gitlab.MergeRequestResponseItemDto]{
+var GitlabMergeRequestsCmd = SearchMultiProjectAsyncCmd[gitlab.SearchMergeRequest, struct{}, gitlab.MergeRequestResponseItemDto]{
 	Name: "merge:search",
-	ApiFunc: func(self *SearchMultiProjectAsyncCmd[gitlab.SearchMergeRequest, gitlab.MergeRequestResponseItemDto], projectId string, search *gitlab.SearchMergeRequest) ([]gitlab.MergeRequestResponseItemDto, error) {
+	ApiFunc: func(projectId string, _ struct{}, search *gitlab.SearchMergeRequest) ([]gitlab.MergeRequestResponseItemDto, error) {
 		r, err := gitlabClient.MergeRequests(projectId, search)
 		if err != nil {
 			return nil, err
 		}
 		return r.Items, nil
+	},
+	SortFunc: func(mrrid []gitlab.MergeRequestResponseItemDto, i, j int) bool {
+		return mrrid[i].UpdatedAt < mrrid[j].UpdatedAt
 	},
 }
