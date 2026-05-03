@@ -166,7 +166,7 @@ type MergeRequestResponseItemDto struct {
 	Iid                         int                     `json:"iid"`
 	ApprovalsBeforeMerge        int                     `json:"approvals_before_merge"`
 	Assignee                    UserInfoDto             `json:"assignee"`
-	Assignees                   UserInfoDto             `json:"assignees"`
+	Assignees                   []UserInfoDto           `json:"assignees"`
 	Author                      UserInfoDto             `json:"author"`
 	BlockingDiscussionsResolved bool                    `json:"blocking_discussions_resolved"`
 	ClosedAt                    string                  `json:"closed_at"`

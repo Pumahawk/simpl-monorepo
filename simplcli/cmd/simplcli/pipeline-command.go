@@ -127,3 +127,14 @@ var GitlabPipelineJobsCmd = cmd.Command[any]{
 		return r, nil
 	},
 }
+
+var GitlabMergeRequestsCmd = SearchMultiProjectAsyncCmd[gitlab.SearchMergeRequest, gitlab.MergeRequestResponseItemDto]{
+	Name: "merge:search",
+	ApiFunc: func(self *SearchMultiProjectAsyncCmd[gitlab.SearchMergeRequest, gitlab.MergeRequestResponseItemDto], projectId string, search *gitlab.SearchMergeRequest) ([]gitlab.MergeRequestResponseItemDto, error) {
+		r, err := gitlabClient.MergeRequests(projectId, search)
+		if err != nil {
+			return nil, err
+		}
+		return r.Items, nil
+	},
+}
