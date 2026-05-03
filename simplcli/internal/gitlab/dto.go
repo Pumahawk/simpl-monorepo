@@ -1,5 +1,7 @@
 package gitlab
 
+import "fmt"
+
 type SearchPipeline struct {
 	Page    string `search:"page"`
 	PerPage string `search:"per_page"`
@@ -222,6 +224,10 @@ type UserInfoDto struct {
 	WebUrl    string `json:"web_url"`
 }
 
+func (u UserInfoDto) String() string {
+	return fmt.Sprintf("%s [%s]", u.Name, u.Username)
+}
+
 type MilestoneInfoDto struct {
 	Id          int    `json:"id"`
 	Iid         int    `json:"iid"`
@@ -236,9 +242,17 @@ type MilestoneInfoDto struct {
 	WebUrl      string `json:"web_url"`
 }
 
+func (m MilestoneInfoDto) String() string {
+	return fmt.Sprintf("%d", m.Id)
+}
+
 type TaskCompletionStatusDto struct {
 	Count          int `json:"count"`
 	CompletedCount int `json:"completed_count"`
+}
+
+func (t TaskCompletionStatusDto) String() string {
+	return fmt.Sprintf("(%d/%d)", t.CompletedCount, t.Count)
 }
 
 type TimeStatsDto struct {
@@ -248,8 +262,16 @@ type TimeStatsDto struct {
 	HumanTotalTimeSpent string `json:"human_total_time_spent"`
 }
 
+func (t TimeStatsDto) String() string {
+	return fmt.Sprintf("%s/%s", t.HumanTimeEstimate, t.HumanTotalTimeSpent)
+}
+
 type ReferencesDto struct {
 	Short    string `json:"short"`
 	Relative string `json:"relative"`
 	Full     string `json:"full"`
+}
+
+func (r ReferencesDto) String() string {
+	return fmt.Sprintf("%s", r.Short)
 }
