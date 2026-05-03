@@ -403,3 +403,8 @@ type LabelsDto struct {
 	Name            string `json:"name"`
 	TextColor       string `json:"text_color"`
 }
+
+type JobRetryResponseDto struct {
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+}

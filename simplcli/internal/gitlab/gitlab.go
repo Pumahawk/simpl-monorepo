@@ -158,3 +158,17 @@ func (c *Client) MergeRequest(projectId, mergeRequestId string) (*MergeRequestRe
 	}
 	return res, nil
 }
+
+func (c *Client) JobRetry(projectId, jobId string) (*JobRetryResponseDto, error) {
+	rawUrl, err := url.JoinPath(c.BaseUrl, "projects", url.PathEscape(projectId), "jobs", url.PathEscape(jobId), "retry")
+	if err != nil {
+		panic(err)
+	}
+
+	res := &JobRetryResponseDto{}
+	_, err = request(c, "POST", rawUrl, nil, res)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
