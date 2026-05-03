@@ -1,9 +1,9 @@
 package fortify
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 )
@@ -18,7 +18,6 @@ type TokenFunc = func() (AuthData, error)
 type Client struct {
 	BaseUrl   string
 	TokenFunc TokenFunc
-	token     tokenDto
 }
 
 type tokenDto struct {
@@ -28,8 +27,13 @@ type tokenDto struct {
 	Scope       string `json:"scope"`
 }
 
-func (c *Client) newRequest(method string, url string, body io.Reader) (*http.Request, error) {
-	r, err := http.NewRequest(method, url, body)
+func (c *Client) newRequest(method string, url string, body any) (*http.Request, error) {
+	bj := &bytes.Buffer{}
+	err := json.NewEncoder(bj).Encode(body)
+	if err != nil {
+		return nil, err
+	}
+	r, err := http.NewRequest(method, url, bj)
 	if err != nil {
 		return nil, err
 	}
@@ -39,6 +43,27 @@ func (c *Client) newRequest(method string, url string, body io.Reader) (*http.Re
 	}
 	r.Header.Add("Authorization", token)
 	return r, err
+}
+
+func (c *Client) doRequest(r *http.Request, responseBody any) (*http.Response, error) {
+	cl := http.Client{}
+	res, err := cl.Do(r)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode < 200 || res.StatusCode >= 300 {
+		return nil, fmt.Errorf("status_code=%d", res.StatusCode)
+	}
+
+	if responseBody != nil {
+		err = json.NewDecoder(res.Body).Decode(responseBody)
+		if err != nil {
+			return res, fmt.Errorf("unmashal body: %w", err)
+		}
+	}
+	return res, nil
 }
 
 func (c *Client) tokenize() (string, error) {
@@ -77,4 +102,28 @@ func (c *Client) tokenize() (string, error) {
 	}
 
 	return "Bearer " + tk.AccessToken, nil
+}
+
+func (c *Client) MarkFalsePositive(releaseId string) error {
+	rawUrl, err := url.JoinPath(c.BaseUrl, "/api/v3/releases/", url.PathEscape(releaseId), "/vulnerabilities/bulk-edit")
+	if err != nil {
+		return fmt.Errorf("url generation: %w", err)
+	}
+	body := &MarkFalsePositive{
+		DeveloperStatus:           "Will Not Fix",
+		AuditorStatus:             "Not an Issue",
+		IncludeAllVulnerabilities: true,
+	}
+
+	req, err := c.newRequest("POST", rawUrl, body)
+	if err != nil {
+		return fmt.Errorf("create request: %w", err)
+	}
+
+	_, err = c.doRequest(req, nil)
+	if err != nil {
+		return fmt.Errorf("do request: %w", err)
+	}
+
+	return nil
 }
