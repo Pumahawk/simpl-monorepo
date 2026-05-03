@@ -13,7 +13,7 @@ type AuthData struct {
 	User  string
 }
 
-type TokenFunc = func() (AuthData, error)
+type TokenFunc = func() (*AuthData, error)
 
 type Client struct {
 	BaseUrl   string
@@ -47,6 +47,7 @@ func (c *Client) newRequest(method string, url string, body any) (*http.Request,
 
 func (c *Client) doRequest(r *http.Request, responseBody any) (*http.Response, error) {
 	cl := http.Client{}
+	r.Header.Add("Content-Type", "application/json")
 	res, err := cl.Do(r)
 	if err != nil {
 		return nil, err
