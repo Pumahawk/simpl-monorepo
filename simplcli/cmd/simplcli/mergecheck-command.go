@@ -184,6 +184,7 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 					Id:           res.md.Id,
 					Project:      res.projectName,
 					State:        res.md.State,
+					MergeStatus:  res.md.MergeStatus,
 					TargetBranch: res.md.TargetBranch,
 					UpdatedAt:    res.md.UpdatedAt,
 					Jobs:         jobs,
@@ -207,6 +208,7 @@ type MRChPipeline struct {
 	Id           int // pipelineId
 	Project      string
 	State        string
+	MergeStatus  string
 	TargetBranch string
 	UpdatedAt    string
 	Jobs         string // jobs count ex: 10/12
