@@ -14,6 +14,9 @@ import (
 	"github.com/Pumahawk/simpl-monorepo/internal/gitlab"
 )
 
+// Autoheal merge requests given multiple project ids.
+// Find opened merge request with head piplined failed with fortify error.
+// Try to mark false positives on fortify and restart gitlab job.
 var GitlabAutoHealMergeCmd = cmd.Command[[]GitlabAutoHealMergeCmdModel]{
 	Name: "autoheal:merge",
 	Run: func(c *cmd.Command[[]GitlabAutoHealMergeCmdModel], args []string) ([]GitlabAutoHealMergeCmdModel, error) {
@@ -28,6 +31,7 @@ var GitlabAutoHealMergeCmd = cmd.Command[[]GitlabAutoHealMergeCmdModel]{
 			return nil, fmt.Errorf("missing project id")
 		}
 
+		//  Get opened merge requests given multiple projects
 		type mergeRequestsT struct {
 			prId   string
 			prName string
@@ -59,6 +63,7 @@ var GitlabAutoHealMergeCmd = cmd.Command[[]GitlabAutoHealMergeCmdModel]{
 			wg.Wait()
 		}()
 
+		// Get merge request details to extract the head pipeline
 		type pipelinesT struct {
 			prId   string
 			prName string
@@ -84,6 +89,7 @@ var GitlabAutoHealMergeCmd = cmd.Command[[]GitlabAutoHealMergeCmdModel]{
 			wg.Wait()
 		}()
 
+		// Extraction of all jobs from head pipeline
 		type jobsT struct {
 			prId   string
 			prName string
@@ -112,6 +118,7 @@ var GitlabAutoHealMergeCmd = cmd.Command[[]GitlabAutoHealMergeCmdModel]{
 			wg.Wait()
 		}()
 
+		// Retrieve fortify releaseId form job's log
 		type fortiFyRefT struct {
 			prId   string
 			prName string
@@ -147,6 +154,7 @@ var GitlabAutoHealMergeCmd = cmd.Command[[]GitlabAutoHealMergeCmdModel]{
 			wg.Wait()
 		}()
 
+		// Mark false positive on fortify
 		type fortifyFPT struct {
 			prId   string
 			prName string
@@ -173,6 +181,7 @@ var GitlabAutoHealMergeCmd = cmd.Command[[]GitlabAutoHealMergeCmdModel]{
 			wg.Wait()
 		}()
 
+		// Restart fortify in head pipeline job
 		type fortifyFinalT struct {
 			prId   string
 			prName string
@@ -200,6 +209,7 @@ var GitlabAutoHealMergeCmd = cmd.Command[[]GitlabAutoHealMergeCmdModel]{
 			wg.Wait()
 		}()
 
+		// Generate report
 		ret := make([]GitlabAutoHealMergeCmdModel, 0, 10)
 		for v := range fortifyFinalC {
 			ret = append(ret, GitlabAutoHealMergeCmdModel{
