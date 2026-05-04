@@ -6,7 +6,20 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
 )
+
+// Force a pause of fortify requests to avoid status_code=429
+var concurrentHttpRequest = make(chan any)
+
+func init() {
+	go func() {
+		for {
+			concurrentHttpRequest <- 0
+			<-time.After(5 * time.Second)
+		}
+	}()
+}
 
 type AuthData struct {
 	Token string
@@ -46,6 +59,10 @@ func (c *Client) newRequest(method string, url string, body any) (*http.Request,
 }
 
 func (c *Client) doRequest(r *http.Request, responseBody any) (*http.Response, error) {
+
+	// forify doesnt accept muplice requests. Force a pause
+	<-concurrentHttpRequest
+
 	cl := http.Client{}
 	r.Header.Add("Content-Type", "application/json")
 	res, err := cl.Do(r)
