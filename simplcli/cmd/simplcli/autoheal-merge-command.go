@@ -104,7 +104,9 @@ var GitlabAutoHealMergeCmd = cmd.Command[[]GitlabAutoHealMergeCmdModel]{
 				prName := pl.prName
 				plId := strconv.Itoa(pl.r.Id)
 				wg.Go(func() {
-					r, err := gitlabClient.PipelineJobs(prId, plId, &gitlab.SearchPipelineJob{})
+					r, err := gitlabClient.PipelineJobs(prId, plId, &gitlab.SearchPipelineJob{
+						Scope: "failed",
+					})
 					if err != nil {
 						fmt.Fprintf(os.Stderr, "unable to retrieve jobs projectId=%q pipelineId=%q: %s\n", prId, plId, err)
 						return
