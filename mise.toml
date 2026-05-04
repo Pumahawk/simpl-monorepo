@@ -1093,7 +1093,7 @@ run = "mise run cli --quiet --raw -- gitlab merge:check -state opened"
 
 [tasks."merge-requests:autoheal"]
 shell = "bash -ec"
-run = "mise run cli --quiet --raw -- cli gitlab merge:check -state=opened"
+run = "mise run cli --quiet --raw -- gitlab autoheal:merge"
 
 [env]
 PROJECT_RELEASE_VERSION = "monorepo-dev"
