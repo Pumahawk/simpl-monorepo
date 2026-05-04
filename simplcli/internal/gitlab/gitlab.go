@@ -67,6 +67,23 @@ func (c *Client) Pipeline(projectId, pipelineId string) (*PipelineResponseDto, e
 	return res, nil
 }
 
+func (c *Client) PipelineAttributes(projectId, pipelineId string) (*PipelineAttributesResponseDto, error) {
+	rawUrl, err := url.JoinPath(c.BaseUrl, "/api/v4", "projects", url.PathEscape(projectId), "pipelines", url.PathEscape(pipelineId), "variables")
+	if err != nil {
+		panic(err)
+	}
+
+	res := make([]PipelineAttributesItemResponseDto, 0, 10)
+	_, err = request(c, "GET", rawUrl, nil, &res)
+	if err != nil {
+		return nil, err
+	}
+
+	return &PipelineAttributesResponseDto{
+		Items: res,
+	}, nil
+}
+
 func (c *Client) PipelineJobs(projectId, pipelineId string, search *SearchPipelineJob) (*PipelineJobsResponseDto, error) {
 	rawUrl, err := url.JoinPath(c.BaseUrl, "/api/v4", "projects", url.PathEscape(projectId), "pipelines", url.PathEscape(pipelineId), "jobs")
 	if err != nil {

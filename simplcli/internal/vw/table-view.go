@@ -16,6 +16,10 @@ func NewTableWriter(w io.Writer) *TableView {
 	return &TableView{w}
 }
 
+func (t *TableView) newTavWriter() *tabwriter.Writer {
+	return tabwriter.NewWriter(t.w, 5, 2, 2, ' ', 0)
+}
+
 func (t *TableView) Render(opt *RenderOpt, model any) error {
 	// Validation model, retrieve slice
 	rv := reflect.ValueOf(model)
@@ -25,14 +29,7 @@ func (t *TableView) Render(opt *RenderOpt, model any) error {
 
 	switch rv.Kind() {
 	case reflect.Struct:
-		if rv.Kind() == reflect.Struct {
-			rt := rv.Type()
-			if _, ok := rt.FieldByName("Items"); ok {
-				return t.RenderList(opt, model)
-			} else {
-				return t.RenderValue(opt, model)
-			}
-		}
+		return t.RenderValue(opt, model)
 	case reflect.Slice:
 		return t.RenderList(opt, model)
 	}
@@ -40,7 +37,7 @@ func (t *TableView) Render(opt *RenderOpt, model any) error {
 }
 
 func (t *TableView) RenderList(opt *RenderOpt, model any) error {
-	tw := tabwriter.NewWriter(t.w, 5, 2, 2, ' ', 0)
+	tw := t.newTavWriter()
 	// Validation model, retrieve slice
 	rv := reflect.ValueOf(model)
 	if rv.Kind() == reflect.Pointer {
@@ -95,7 +92,7 @@ func (t *TableView) RenderList(opt *RenderOpt, model any) error {
 }
 
 func (t *TableView) RenderValue(opt *RenderOpt, model any) error {
-	tw := tabwriter.NewWriter(t.w, 5, 2, 2, ' ', 0)
+	tw := t.newTavWriter()
 
 	// Validation model
 	rv := reflect.ValueOf(model)
@@ -124,11 +121,23 @@ func (t *TableView) RenderValue(opt *RenderOpt, model any) error {
 			if !rv.FieldByName(f).IsZero() {
 				name := ft.Name
 				value := rv.FieldByName(f)
-				fmts := "%s\t%v\n"
-				if value.Kind() == reflect.String {
-					fmts = "%s\t%q\n"
+				if value.Kind() == reflect.Pointer {
+					value = value.Elem()
 				}
-				fmt.Fprintf(tw, fmts, name, value.Interface())
+				fmts := "%s\t%v\n"
+				switch value.Kind() {
+				case reflect.String:
+					fmts = "%s\t%q\n"
+					fmt.Fprintf(tw, fmts, name, value.Interface())
+				case reflect.Slice:
+					fmt.Fprintf(t.w, "[[%s]]\n", name)
+					t.RenderList(opt, value.Interface())
+				case reflect.Struct:
+					fmt.Fprintf(t.w, "[%s]\n", name)
+					t.RenderValue(opt, value.Interface())
+				default:
+					fmt.Fprintf(tw, fmts, name, value.Interface())
+				}
 			}
 		}
 	}

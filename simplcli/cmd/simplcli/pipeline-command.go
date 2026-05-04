@@ -22,9 +22,15 @@ var GitlabPipelinesCmd = SearchMultiProjectAsyncCmd[gitlab.SearchPipeline, struc
 	},
 }
 
-var GitlabPipelineCmd = cmd.Command[*gitlab.PipelineResponseDto]{
+type GitlabPipelineModel struct {
+	Details    *gitlab.PipelineResponseDto
+	Attributes []gitlab.PipelineAttributesItemResponseDto
+}
+
+var GitlabPipelineCmd = cmd.Command[*GitlabPipelineModel]{
 	Name: "pipelines:details",
-	Run: func(c *cmd.Command[*gitlab.PipelineResponseDto], args []string) (*gitlab.PipelineResponseDto, error) {
+	Run: func(c *cmd.Command[*GitlabPipelineModel], args []string) (*GitlabPipelineModel, error) {
+
 		fl := flag.NewFlagSet("", flag.ExitOnError)
 		fl.Parse(args)
 		projectId := fl.Arg(0)
@@ -38,12 +44,47 @@ var GitlabPipelineCmd = cmd.Command[*gitlab.PipelineResponseDto]{
 			return nil, fmt.Errorf("missing pipeline id")
 		}
 
-		r, err := gitlabClient.Pipeline(prIds.Get(projectId), pipelineId)
-		if err != nil {
-			return nil, fmt.Errorf("unable to retrieve pipeline %q project %q: %w", pipelineId, projectId, err)
+		type getPipelineResult struct {
+			r *gitlab.PipelineResponseDto
+			error
+		}
+		getPipelineResultC := make(chan getPipelineResult, 1)
+		go func() {
+			r, err := gitlabClient.Pipeline(prIds.Get(projectId), pipelineId)
+			if err != nil {
+				getPipelineResultC <- getPipelineResult{nil, fmt.Errorf("unable to retrieve pipeline %q project %q: %w", pipelineId, projectId, err)}
+			} else {
+				getPipelineResultC <- getPipelineResult{r, nil}
+			}
+		}()
+
+		type getPipelineAttributesResult struct {
+			r *gitlab.PipelineAttributesResponseDto
+			error
+		}
+		getPipelineAttributesResultC := make(chan getPipelineAttributesResult, 1)
+		go func() {
+			r, err := gitlabClient.PipelineAttributes(prIds.Get(projectId), pipelineId)
+			if err != nil {
+				getPipelineAttributesResultC <- getPipelineAttributesResult{nil, fmt.Errorf("unable to retrieve pipeline %q attributes project %q: %w", pipelineId, projectId, err)}
+			} else {
+				getPipelineAttributesResultC <- getPipelineAttributesResult{r, nil}
+			}
+		}()
+
+		details := <-getPipelineResultC
+		attributes := <-getPipelineAttributesResultC
+		if err := details.error; err != nil {
+			return nil, err
+		}
+		if err := attributes.error; err != nil {
+			return nil, err
 		}
 
-		return r, nil
+		return &GitlabPipelineModel{
+			Details:    details.r,
+			Attributes: attributes.r.Items,
+		}, nil
 	},
 }
 

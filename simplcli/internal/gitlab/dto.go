@@ -63,6 +63,16 @@ type PipelineResponseDto struct {
 	Archived       bool   `json:"archived"`
 }
 
+type PipelineAttributesResponseDto struct {
+	Items []PipelineAttributesItemResponseDto
+}
+
+type PipelineAttributesItemResponseDto struct {
+	Key          string `json:"key"`
+	VariableType string `json:"variable_type"`
+	Value        string `json:"value"`
+}
+
 type SearchPipelineJob struct {
 	Page    string `search:"page"`
 	PerPage string `search:"per_page"`
