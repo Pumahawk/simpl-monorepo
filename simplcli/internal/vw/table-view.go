@@ -29,26 +29,19 @@ func (t *TableView) Render(opt *RenderOpt, model any) error {
 
 	switch rv.Kind() {
 	case reflect.Struct:
-		return t.RenderValue(opt, model)
+		return t.renderStruct(opt, model)
 	case reflect.Slice:
-		return t.RenderList(opt, model)
+		return t.renderList(opt, model)
 	}
 	return fmt.Errorf("unsuppported model")
 }
 
-func (t *TableView) RenderList(opt *RenderOpt, model any) error {
+func (t *TableView) renderList(opt *RenderOpt, model any) error {
 	tw := t.newTavWriter()
 	// Validation model, retrieve slice
 	rv := reflect.ValueOf(model)
 	if rv.Kind() == reflect.Pointer {
 		rv = rv.Elem()
-	}
-	if rv.Kind() == reflect.Struct {
-		t := rv.Type()
-		if _, ok := t.FieldByName("Items"); !ok {
-			return fmt.Errorf("struct doesn't contains Items field")
-		}
-		rv = rv.FieldByName("Items")
 	}
 	if rv.Kind() != reflect.Slice {
 		return fmt.Errorf("not supported kind %s", rv.Kind())
@@ -91,7 +84,7 @@ func (t *TableView) RenderList(opt *RenderOpt, model any) error {
 	return tw.Flush()
 }
 
-func (t *TableView) RenderValue(opt *RenderOpt, model any) error {
+func (t *TableView) renderStruct(opt *RenderOpt, model any) error {
 	tw := t.newTavWriter()
 
 	// Validation model
@@ -131,10 +124,10 @@ func (t *TableView) RenderValue(opt *RenderOpt, model any) error {
 					fmt.Fprintf(tw, fmts, name, value.Interface())
 				case reflect.Slice:
 					fmt.Fprintf(t.w, "[[%s]]\n", name)
-					t.RenderList(opt, value.Interface())
+					t.renderList(opt, value.Interface())
 				case reflect.Struct:
 					fmt.Fprintf(t.w, "[%s]\n", name)
-					t.RenderValue(opt, value.Interface())
+					t.renderStruct(opt, value.Interface())
 				default:
 					fmt.Fprintf(tw, fmts, name, value.Interface())
 				}
