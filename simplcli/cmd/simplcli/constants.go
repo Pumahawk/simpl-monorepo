@@ -27,6 +27,11 @@ var prIdsDemux = projectIdsDemux{
 	"misc": {
 		"tier2-proxy",
 	},
+	"charts": {
+		"ch-authority",
+		"ch-consumer",
+		"ch-provider",
+	},
 }
 
 var prIds = projectNameSvT{
@@ -106,4 +111,16 @@ var prIds = projectNameSvT{
 	// Backend Users roles
 	"users-roles": "771",
 	"usr":         "771",
+
+	// Chart authority
+	"ch-authority": "1402",
+	"ch-auth":      "1402",
+
+	// Chart consumer
+	"ch-consumer": "1404",
+	"ch-con":      "1404",
+
+	// Chart consumer
+	"ch-provider": "1403",
+	"ch-pro":      "1403",
 }
