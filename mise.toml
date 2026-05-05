@@ -1095,6 +1095,10 @@ run = "mise run cli --quiet --raw -- gitlab merge:check -state opened"
 shell = "bash -ec"
 run = "mise run cli --quiet --raw -- gitlab autoheal:merge"
 
+[tasks."fortify:false-positive"]
+shell = "bash -ec"
+run = "mise run cli --quiet --raw -- fortify false-positive"
+
 [env]
 PROJECT_RELEASE_VERSION = "monorepo-dev"
 KUBECONFIG = "{{config_root}}/.config/.kube/config"
