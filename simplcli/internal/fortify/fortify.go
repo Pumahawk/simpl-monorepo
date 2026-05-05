@@ -29,8 +29,10 @@ type AuthData struct {
 type TokenFunc = func() (*AuthData, error)
 
 type Client struct {
-	BaseUrl   string
-	TokenFunc TokenFunc
+	BaseUrl     string
+	TokenFunc   TokenFunc
+	token       *tokenDto
+	tokenExpire time.Time
 }
 
 type tokenDto struct {
@@ -50,11 +52,6 @@ func (c *Client) newRequest(method string, url string, body any) (*http.Request,
 	if err != nil {
 		return nil, err
 	}
-	token, err := c.tokenize()
-	if err != nil {
-		return nil, fmt.Errorf("new request tokenization : %w", err)
-	}
-	r.Header.Add("Authorization", token)
 	return r, err
 }
 
@@ -62,6 +59,12 @@ func (c *Client) doRequest(r *http.Request, responseBody any) (*http.Response, e
 
 	// forify doesnt accept muplice requests. Force a pause
 	<-concurrentHttpRequest
+
+	token, err := c.tokenize()
+	if err != nil {
+		return nil, fmt.Errorf("new request tokenization : %w", err)
+	}
+	r.Header.Add("Authorization", token)
 
 	cl := http.Client{}
 	r.Header.Add("Content-Type", "application/json")
@@ -87,6 +90,10 @@ func (c *Client) doRequest(r *http.Request, responseBody any) (*http.Response, e
 func (c *Client) tokenize() (string, error) {
 	if c.TokenFunc == nil {
 		return "", fmt.Errorf("not found token function for fortify client")
+	}
+
+	if c.token != nil && time.Now().Before(c.tokenExpire) {
+		return c.token.AccessToken, nil
 	}
 
 	auth, err := c.TokenFunc()
@@ -118,6 +125,9 @@ func (c *Client) tokenize() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("token unmashal: %w", err)
 	}
+
+	c.token = tk
+	c.tokenExpire = time.Now().Add(time.Second * time.Duration(tk.ExpiresIn))
 
 	return "Bearer " + tk.AccessToken, nil
 }
