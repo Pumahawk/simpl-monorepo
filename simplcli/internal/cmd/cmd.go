@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 )
 
@@ -31,11 +32,27 @@ func (c *Command[T]) CRun(args []string) (any, error) {
 }
 
 type CommandGroup struct {
-	Name     string
-	Commands []CommandW
+	Name        string
+	Commands    []CommandW
+	FlagFunc    func(*flag.FlagSet)
+	FlagValFunc func() error
 }
 
 func (c *CommandGroup) CRun(args []string) (any, error) {
+	fs := flag.NewFlagSet("", flag.ExitOnError)
+	if c.FlagFunc != nil {
+		c.FlagFunc(fs)
+	}
+
+	fs.Parse(args)
+	args = fs.Args()
+
+	if c.FlagValFunc() != nil {
+		if err := c.FlagValFunc(); err != nil {
+			return nil, err
+		}
+	}
+
 	if len(args) > 0 {
 		for _, c := range c.Commands {
 			if c.CName() == args[0] {
