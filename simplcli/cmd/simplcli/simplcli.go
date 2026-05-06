@@ -30,6 +30,9 @@ var pipelinesCmds = cmd.CommandGroup("",
 		&InfoProjectIdsCmd,
 		&InfoProjectGroupsCmd,
 	),
+	cmd.CommandGroup("api",
+		&SimplApiTokenizeCmd,
+	),
 )
 
 var views = map[string]vw.View{
