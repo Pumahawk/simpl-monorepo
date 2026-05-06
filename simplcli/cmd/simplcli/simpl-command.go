@@ -21,18 +21,9 @@ var SimplApiTokenizeCmd = cmd.Command[int]{
 			return 1, err
 		}
 
-		client := &simpl.Client{
-			BaseUrl: sacf.Server,
-			AuthFunc: func() (*simpl.AuthInfo, error) {
-				return &simpl.AuthInfo{
-					Username:  sacf.User,
-					Passaword: sacf.Pass,
-					Realm:     sacf.Realm,
-				}, nil
-			},
-		}
+		cl := sacf.NewClient()
 
-		token, err := client.Tokenize()
+		token, err := cl.Tokenize()
 		if err != nil {
 			return 1, fmt.Errorf("unable to tokenize server=%q, user=%q: %w", sacf.Server, sacf.User, err)
 		}
@@ -54,52 +45,12 @@ var SimplApiEchoCmd = cmd.Command[*simpl.EchoResponseDto]{
 		sacf := simplApiCommonFlags(fl)
 		fl.Parse(args)
 
+		cl := sacf.NewClient()
+
 		if err := simplApiCommonFlagsValidator(sacf); err != nil {
 			return nil, err
 		}
 
-		client := &simpl.Client{
-			BaseUrl: sacf.Server,
-			AuthFunc: func() (*simpl.AuthInfo, error) {
-				return &simpl.AuthInfo{
-					Username:  sacf.User,
-					Passaword: sacf.Pass,
-					Realm:     sacf.Realm,
-				}, nil
-			},
-		}
-		return client.Echo()
+		return cl.Echo()
 	},
-}
-
-type simplACFT struct {
-	User   string
-	Pass   string
-	Server string
-	Realm  string
-}
-
-func simplApiCommonFlags(fs *flag.FlagSet) *simplACFT {
-	sacf := &simplACFT{}
-	structFlag(fs, sacf)
-	return sacf
-}
-
-func simplApiCommonFlagsValidator(simplApiCommonFlags *simplACFT) error {
-	if simplApiCommonFlags.User == "" {
-		return fmt.Errorf("missing user flag")
-	}
-
-	if simplApiCommonFlags.Pass == "" {
-		return fmt.Errorf("missing pass flag")
-	}
-
-	if simplApiCommonFlags.Server == "" {
-		return fmt.Errorf("missing server flag")
-	}
-
-	if simplApiCommonFlags.Realm == "" {
-		return fmt.Errorf("missing realm flag")
-	}
-	return nil
 }
