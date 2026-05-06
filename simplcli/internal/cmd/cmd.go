@@ -47,7 +47,7 @@ func (c *CommandGroup) CRun(args []string) (any, error) {
 	fs.Parse(args)
 	args = fs.Args()
 
-	if c.FlagValFunc() != nil {
+	if c.FlagValFunc != nil {
 		if err := c.FlagValFunc(); err != nil {
 			return nil, err
 		}
@@ -70,5 +70,5 @@ func (c *CommandGroup) CRun(args []string) (any, error) {
 }
 
 func (c *CommandGroup) CName() string {
-	return ""
+	return c.Name
 }

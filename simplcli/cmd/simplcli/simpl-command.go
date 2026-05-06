@@ -18,8 +18,11 @@ var simplCmdG = &cmd.CommandGroup{
 		&SimplApiEchoCmd,
 	},
 	FlagFunc: func(fs *flag.FlagSet) {
-		sacf := &simplACFT{}
-		structFlag(fs, sacf)
+		fs.StringVar(&sacf.User, "user", "", "")
+		fs.StringVar(&sacf.Pass, "pass", "password", "")
+		fs.StringVar(&sacf.BaseUrl, "baseurl", "http://localhost:8100", "")
+		fs.StringVar(&sacf.Realm, "realm", "authority", "")
+
 	},
 	FlagValFunc: func() error {
 		if sacf.User == "" {
@@ -30,7 +33,7 @@ var simplCmdG = &cmd.CommandGroup{
 			return fmt.Errorf("missing pass flag")
 		}
 
-		if sacf.Server == "" {
+		if sacf.BaseUrl == "" {
 			return fmt.Errorf("missing server flag")
 		}
 
@@ -49,7 +52,7 @@ var SimplApiTokenizeCmd = cmd.Command[int]{
 
 		token, err := cl.Tokenize()
 		if err != nil {
-			return 1, fmt.Errorf("unable to tokenize server=%q, user=%q: %w", sacf.Server, sacf.User, err)
+			return 1, fmt.Errorf("unable to tokenize server=%q, user=%q: %w", sacf.BaseUrl, sacf.User, err)
 		}
 
 		_, err = os.Stdout.Write([]byte(token.AccessToken))

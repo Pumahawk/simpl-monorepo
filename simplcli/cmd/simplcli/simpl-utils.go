@@ -5,15 +5,15 @@ import (
 )
 
 type simplACFT struct {
-	User   string
-	Pass   string
-	Server string
-	Realm  string
+	User    string
+	Pass    string
+	BaseUrl string
+	Realm   string
 }
 
 func (s *simplACFT) NewClient() *simpl.Client {
 	return &simpl.Client{
-		BaseUrl: s.Server,
+		BaseUrl: s.BaseUrl,
 		AuthFunc: func() (*simpl.AuthInfo, error) {
 			return &simpl.AuthInfo{
 				Username:  s.User,
