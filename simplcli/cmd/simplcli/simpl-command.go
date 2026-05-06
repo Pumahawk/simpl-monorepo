@@ -3,14 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"github.com/Pumahawk/simpl-monorepo/internal/cmd"
 	"github.com/Pumahawk/simpl-monorepo/internal/simpl"
 )
 
-var SimplApiTokenizeCmd = cmd.Command[*simpl.TokenizeResponseDto]{
+var SimplApiTokenizeCmd = cmd.Command[int]{
 	Name: "tokenize",
-	Run: func(c *cmd.Command[*simpl.TokenizeResponseDto], args []string) (*simpl.TokenizeResponseDto, error) {
+	Run: func(c *cmd.Command[int], args []string) (int, error) {
 
 		var user string
 		var pass string
@@ -25,19 +26,19 @@ var SimplApiTokenizeCmd = cmd.Command[*simpl.TokenizeResponseDto]{
 		fl.Parse(args)
 
 		if user == "" {
-			return nil, fmt.Errorf("missing user flag")
+			return 1, fmt.Errorf("missing user flag")
 		}
 
 		if pass == "" {
-			return nil, fmt.Errorf("missing pass flag")
+			return 1, fmt.Errorf("missing pass flag")
 		}
 
 		if server == "" {
-			return nil, fmt.Errorf("missing server flag")
+			return 1, fmt.Errorf("missing server flag")
 		}
 
 		if realm == "" {
-			return nil, fmt.Errorf("missing realm flag")
+			return 1, fmt.Errorf("missing realm flag")
 		}
 
 		client := &simpl.Client{
@@ -53,9 +54,14 @@ var SimplApiTokenizeCmd = cmd.Command[*simpl.TokenizeResponseDto]{
 
 		token, err := client.Tokenize()
 		if err != nil {
-			return nil, fmt.Errorf("unable to tokenize server=%q, user=%q: %w", server, user, err)
+			return 1, fmt.Errorf("unable to tokenize server=%q, user=%q: %w", server, user, err)
 		}
 
-		return token, nil
+		_, err = os.Stdout.Write([]byte(token.AccessToken))
+		if err != nil {
+			return 1, fmt.Errorf("unable to write to stdout")
+		}
+
+		return 0, nil
 	},
 }
