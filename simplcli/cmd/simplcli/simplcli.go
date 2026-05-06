@@ -11,30 +11,44 @@ import (
 	"github.com/Pumahawk/simpl-monorepo/internal/vw"
 )
 
-var pipelinesCmds = cmd.CommandGroup("",
-	cmd.CommandGroup("gitlab",
-		&GitlabPipelinesCmd,
-		&GitlabPipelineCmd,
-		&GitlabPipelineJobsCmd,
-		&JobLogCmd,
-		&GitlabRegistryCmd,
-		&GitlabMergeRequestsCmd,
-		&GitLabMergeRequestCmd,
-		&MergeRequestCheckCmd,
-		&GitlabAutoHealMergeCmd,
-	),
-	cmd.CommandGroup("fortify",
-		&FortifyFalsePositiveCmd,
-	),
-	cmd.CommandGroup("info",
-		&InfoProjectIdsCmd,
-		&InfoProjectGroupsCmd,
-	),
-	cmd.CommandGroup("api",
-		&SimplApiTokenizeCmd,
-		&SimplApiEchoCmd,
-	),
-)
+var pipelinesCmds = &cmd.CommandGroup{
+	Commands: []cmd.CommandW{
+		&cmd.CommandGroup{
+			Name: "gitlab",
+			Commands: []cmd.CommandW{
+				&GitlabPipelinesCmd,
+				&GitlabPipelineCmd,
+				&GitlabPipelineJobsCmd,
+				&JobLogCmd,
+				&GitlabRegistryCmd,
+				&GitlabMergeRequestsCmd,
+				&GitLabMergeRequestCmd,
+				&MergeRequestCheckCmd,
+				&GitlabAutoHealMergeCmd,
+			},
+		},
+		&cmd.CommandGroup{
+			Name: "fortify",
+			Commands: []cmd.CommandW{
+				&FortifyFalsePositiveCmd,
+			},
+		},
+		&cmd.CommandGroup{
+			Name: "info",
+			Commands: []cmd.CommandW{
+				&InfoProjectIdsCmd,
+				&InfoProjectGroupsCmd,
+			},
+		},
+		&cmd.CommandGroup{
+			Name: "api",
+			Commands: []cmd.CommandW{
+				&SimplApiTokenizeCmd,
+				&SimplApiEchoCmd,
+			},
+		},
+	},
+}
 
 var views = map[string]vw.View{
 	"table": vw.NewTableWriter(os.Stdout),

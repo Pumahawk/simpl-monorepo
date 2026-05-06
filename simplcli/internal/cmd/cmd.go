@@ -30,24 +30,28 @@ func (c *Command[T]) CRun(args []string) (any, error) {
 	return c.Run(c, args)
 }
 
-func CommandGroup(name string, commands ...CommandW) CommandW {
-	return &Command[any]{
-		Name: name,
-		Run: func(c *Command[any], args []string) (any, error) {
-			if len(args) > 0 {
-				for _, c := range commands {
-					if c.CName() == args[0] {
-						return c.CRun(args[1:])
-					}
-				}
-				return nil, fmt.Errorf("command %q not found\n", args[0])
-			} else {
-				fmt.Printf("commands:\n")
-				for _, c := range commands {
-					fmt.Printf("%s\n", c.CName())
-				}
-				return nil, MissingCommand
+type CommandGroup struct {
+	Name     string
+	Commands []CommandW
+}
+
+func (c *CommandGroup) CRun(args []string) (any, error) {
+	if len(args) > 0 {
+		for _, c := range c.Commands {
+			if c.CName() == args[0] {
+				return c.CRun(args[1:])
 			}
-		},
+		}
+		return nil, fmt.Errorf("command %q not found\n", args[0])
+	} else {
+		fmt.Printf("commands:\n")
+		for _, c := range c.Commands {
+			fmt.Printf("%s\n", c.CName())
+		}
+		return nil, MissingCommand
 	}
+}
+
+func (c *CommandGroup) CName() string {
+	return ""
 }
