@@ -1,9 +1,6 @@
 package main
 
 import (
-	"flag"
-	"fmt"
-
 	"github.com/Pumahawk/simpl-monorepo/internal/simpl"
 )
 
@@ -26,29 +23,4 @@ func (s *simplACFT) NewClient() *simpl.Client {
 		},
 	}
 
-}
-
-func simplApiCommonFlags(fs *flag.FlagSet) *simplACFT {
-	sacf := &simplACFT{}
-	structFlag(fs, sacf)
-	return sacf
-}
-
-func simplApiCommonFlagsValidator(simplApiCommonFlags *simplACFT) error {
-	if simplApiCommonFlags.User == "" {
-		return fmt.Errorf("missing user flag")
-	}
-
-	if simplApiCommonFlags.Pass == "" {
-		return fmt.Errorf("missing pass flag")
-	}
-
-	if simplApiCommonFlags.Server == "" {
-		return fmt.Errorf("missing server flag")
-	}
-
-	if simplApiCommonFlags.Realm == "" {
-		return fmt.Errorf("missing realm flag")
-	}
-	return nil
 }

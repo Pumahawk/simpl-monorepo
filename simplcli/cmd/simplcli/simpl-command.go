@@ -9,17 +9,41 @@ import (
 	"github.com/Pumahawk/simpl-monorepo/internal/simpl"
 )
 
+var sacf = &simplACFT{}
+
+var simplCmdG = &cmd.CommandGroup{
+	Name: "api",
+	Commands: []cmd.CommandW{
+		&SimplApiTokenizeCmd,
+		&SimplApiEchoCmd,
+	},
+	FlagFunc: func(fs *flag.FlagSet) {
+		sacf := &simplACFT{}
+		structFlag(fs, sacf)
+	},
+	FlagValFunc: func() error {
+		if sacf.User == "" {
+			return fmt.Errorf("missing user flag")
+		}
+
+		if sacf.Pass == "" {
+			return fmt.Errorf("missing pass flag")
+		}
+
+		if sacf.Server == "" {
+			return fmt.Errorf("missing server flag")
+		}
+
+		if sacf.Realm == "" {
+			return fmt.Errorf("missing realm flag")
+		}
+		return nil
+	},
+}
+
 var SimplApiTokenizeCmd = cmd.Command[int]{
 	Name: "tokenize",
 	Run: func(c *cmd.Command[int], args []string) (int, error) {
-
-		fl := flag.NewFlagSet("", flag.ExitOnError)
-		sacf := simplApiCommonFlags(fl)
-		fl.Parse(args)
-
-		if err := simplApiCommonFlagsValidator(sacf); err != nil {
-			return 1, err
-		}
 
 		cl := sacf.NewClient()
 
@@ -40,17 +64,7 @@ var SimplApiTokenizeCmd = cmd.Command[int]{
 var SimplApiEchoCmd = cmd.Command[*simpl.EchoResponseDto]{
 	Name: "echo",
 	Run: func(c *cmd.Command[*simpl.EchoResponseDto], args []string) (*simpl.EchoResponseDto, error) {
-
-		fl := flag.NewFlagSet("", flag.ExitOnError)
-		sacf := simplApiCommonFlags(fl)
-		fl.Parse(args)
-
 		cl := sacf.NewClient()
-
-		if err := simplApiCommonFlagsValidator(sacf); err != nil {
-			return nil, err
-		}
-
 		return cl.Echo()
 	},
 }

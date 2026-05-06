@@ -40,13 +40,7 @@ var pipelinesCmds = &cmd.CommandGroup{
 				&InfoProjectGroupsCmd,
 			},
 		},
-		&cmd.CommandGroup{
-			Name: "api",
-			Commands: []cmd.CommandW{
-				&SimplApiTokenizeCmd,
-				&SimplApiEchoCmd,
-			},
-		},
+		simplCmdG,
 	},
 }
 
