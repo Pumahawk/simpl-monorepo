@@ -32,6 +32,7 @@ var pipelinesCmds = cmd.CommandGroup("",
 	),
 	cmd.CommandGroup("api",
 		&SimplApiTokenizeCmd,
+		&SimplApiEchoCmd,
 	),
 )
 
