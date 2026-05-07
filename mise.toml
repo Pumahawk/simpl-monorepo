@@ -1103,6 +1103,14 @@ run = "mise run cli --quiet --raw -- fortify false-positive"
 shell = "bash -ec"
 run = "mise run cli --quiet --raw -- gitlab registry:search"
 
+[tasks."api:echo-authority"]
+shell = "bash -ec"
+run = "mise run cli --quiet --raw -- api echo"
+
+[tasks."api:echo-consumer"]
+shell = "bash -ec"
+run = "mise run cli --quiet --raw -- api -realm consumer -baseurl http://localhost:8200 -user a.w echo"
+
 [env]
 PROJECT_RELEASE_VERSION = "monorepo-dev"
 KUBECONFIG = "{{config_root}}/.config/.kube/config"
