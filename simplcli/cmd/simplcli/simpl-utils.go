@@ -11,12 +11,16 @@ type simplACFT struct {
 	Realm   string
 }
 
-func (s *simplACFT) NewClient() *simpl.Client {
+func (s *simplACFT) NewClient(defUsr string) *simpl.Client {
+	user := s.User
+	if user == "" {
+		user = defUsr
+	}
 	return &simpl.Client{
 		BaseUrl: s.BaseUrl,
 		AuthFunc: func() (*simpl.AuthInfo, error) {
 			return &simpl.AuthInfo{
-				Username:  s.User,
+				Username:  user,
 				Passaword: s.Pass,
 				Realm:     s.Realm,
 			}, nil

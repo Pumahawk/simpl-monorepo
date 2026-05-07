@@ -18,16 +18,13 @@ var simplCmdG = &cmd.CommandGroup{
 		&SimplApiEchoCmd,
 	},
 	FlagFunc: func(fs *flag.FlagSet) {
-		fs.StringVar(&sacf.User, "user", "", "")
+		fs.StringVar(&sacf.User, "user", "", "") // Default user is defined to the API level
 		fs.StringVar(&sacf.Pass, "pass", "password", "")
 		fs.StringVar(&sacf.BaseUrl, "baseurl", "http://localhost:8100", "")
 		fs.StringVar(&sacf.Realm, "realm", "authority", "")
 
 	},
 	FlagValFunc: func() error {
-		if sacf.User == "" {
-			return fmt.Errorf("missing user flag")
-		}
 
 		if sacf.Pass == "" {
 			return fmt.Errorf("missing pass flag")
@@ -48,7 +45,7 @@ var SimplApiTokenizeCmd = cmd.Command[int]{
 	Name: "tokenize",
 	Run: func(c *cmd.Command[int], args []string) (int, error) {
 
-		cl := sacf.NewClient()
+		cl := sacf.NewClient("m.m")
 
 		token, err := cl.Tokenize()
 		if err != nil {
@@ -67,7 +64,7 @@ var SimplApiTokenizeCmd = cmd.Command[int]{
 var SimplApiEchoCmd = cmd.Command[*simpl.EchoResponseDto]{
 	Name: "echo",
 	Run: func(c *cmd.Command[*simpl.EchoResponseDto], args []string) (*simpl.EchoResponseDto, error) {
-		cl := sacf.NewClient()
+		cl := sacf.NewClient("m.m")
 		return cl.Echo()
 	},
 }
