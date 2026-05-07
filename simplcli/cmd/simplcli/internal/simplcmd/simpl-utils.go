@@ -1,4 +1,4 @@
-package main
+package simplcmd
 
 import (
 	"github.com/Pumahawk/simpl-monorepo/internal/simpl"

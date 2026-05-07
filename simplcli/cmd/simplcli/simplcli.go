@@ -7,6 +7,7 @@ import (
 	"os"
 	"reflect"
 
+	"github.com/Pumahawk/simpl-monorepo/cmd/simplcli/internal/simplcmd"
 	"github.com/Pumahawk/simpl-monorepo/internal/cmd"
 	"github.com/Pumahawk/simpl-monorepo/internal/vw"
 )
@@ -40,7 +41,7 @@ var pipelinesCmds = &cmd.CommandGroup{
 				&InfoProjectGroupsCmd,
 			},
 		},
-		simplCmdG,
+		simplcmd.Cmd,
 	},
 }
 
