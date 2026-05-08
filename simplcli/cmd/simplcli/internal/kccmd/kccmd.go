@@ -16,7 +16,7 @@ var Cmd = &cmd.CommandGroup{
 	},
 	FlagFunc: func(fs *flag.FlagSet) {
 		fs.StringVar(&acf.User, "user", envOrDef("KCUSER", "admin"), "")
-		fs.StringVar(&acf.Pass, "pass", envOrDef("KCPASSOWRD", "admin"), "")
+		fs.StringVar(&acf.Pass, "pass", envOrDef("KCPASSWORD", "admin"), "")
 		fs.StringVar(&acf.BaseUrl, "baseurl", envOrDef("KCBASEURL", "http://localhost:8100/auth"), "")
 		fs.StringVar(&acf.Realm, "realm", envOrDef("KCREALM", "master"), "")
 	},
