@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Pumahawk/simpl-monorepo/internal/cmd"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/cmd"
 )
 
 type info struct {

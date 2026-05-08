@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Pumahawk/simpl-monorepo/internal/cmd"
-	"github.com/Pumahawk/simpl-monorepo/internal/simpl"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/cmd"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/simpl"
 )
 
 var SimplApiTokenizeCmd = cmd.Command[int]{

@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/Pumahawk/simpl-monorepo/internal/cmd"
-	"github.com/Pumahawk/simpl-monorepo/internal/gitlab"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/cmd"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/gitlab"
 )
 
 var GitlabPipelinesCmd = SearchMultiProjectAsyncCmd[gitlab.SearchPipeline, struct{}, gitlab.PipelineResponseItemDto]{

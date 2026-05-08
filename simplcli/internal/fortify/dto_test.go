@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/Pumahawk/simpl-monorepo/internal/fortify"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/fortify"
 )
 
 //go:embed dto-mock/MarkFalsePositive.json

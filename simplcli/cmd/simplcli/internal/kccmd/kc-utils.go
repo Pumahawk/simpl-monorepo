@@ -3,7 +3,7 @@ package kccmd
 import (
 	"os"
 
-	"github.com/Pumahawk/simpl-monorepo/internal/kc"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/kc"
 )
 
 type aCFT struct {

@@ -6,8 +6,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/Pumahawk/simpl-monorepo/internal/cmd"
-	"github.com/Pumahawk/simpl-monorepo/internal/gitlab"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/cmd"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/gitlab"
 )
 
 type GitlabRegistryItemModel struct {

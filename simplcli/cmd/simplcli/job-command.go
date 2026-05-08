@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Pumahawk/simpl-monorepo/internal/cmd"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/cmd"
 )
 
 var JobLogCmd = cmd.Command[int]{

@@ -1,7 +1,7 @@
 package simplcmd
 
 import (
-	"github.com/Pumahawk/simpl-monorepo/internal/simpl"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/simpl"
 )
 
 type simplACFT struct {

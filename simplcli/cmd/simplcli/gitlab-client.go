@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/Pumahawk/simpl-monorepo/internal/gitlab"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/gitlab"
 )
 
 var gitlabClient = gitlab.Client{

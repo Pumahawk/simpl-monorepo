@@ -10,8 +10,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Pumahawk/simpl-monorepo/internal/cmd"
-	"github.com/Pumahawk/simpl-monorepo/internal/gitlab"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/cmd"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/gitlab"
 )
 
 // Autoheal merge requests given multiple project ids.

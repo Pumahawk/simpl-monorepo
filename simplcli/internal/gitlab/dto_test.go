@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/Pumahawk/simpl-monorepo/internal/gitlab"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/gitlab"
 )
 
 //go:embed dto-mock/MergeRequestResponseDto.json

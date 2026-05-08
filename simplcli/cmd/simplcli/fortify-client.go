@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Pumahawk/simpl-monorepo/internal/fortify"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/fortify"
 )
 
 var fortifyClient = fortify.Client{

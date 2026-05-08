@@ -9,9 +9,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/Pumahawk/simpl-monorepo/internal/cmd"
-	"github.com/Pumahawk/simpl-monorepo/internal/gitlab"
-	"github.com/Pumahawk/simpl-monorepo/internal/log"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/cmd"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/gitlab"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/log"
 )
 
 var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
