@@ -1,8 +1,11 @@
 package kccmd
 
 import (
+	"bytes"
 	"flag"
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/cmd"
 	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/kc"
@@ -13,6 +16,7 @@ var Cmd = &cmd.CommandGroup{
 	Commands: []cmd.CommandW{
 		&RealmGetCmd,
 		&RealmLsCmd,
+		&RealmExportCmd,
 	},
 	FlagFunc: func(fs *flag.FlagSet) {
 		fs.StringVar(&acf.User, "user", envOrDef("KCUSER", "admin"), "")
@@ -55,5 +59,30 @@ var RealmGetCmd = cmd.Command[*kc.RealmResponseDto]{
 			return nil, fmt.Errorf("get realm %q: %w", realm, err)
 		}
 		return res, nil
+	},
+}
+var RealmExportCmd = cmd.Command[int]{
+	Name: "realms:export",
+	Run: func(c *cmd.Command[int], args []string) (int, error) {
+		opt := &kc.RealmExportOpt{}
+		fs := flag.NewFlagSet("", flag.ExitOnError)
+		fs.BoolVar(&opt.IncludeClients, "include-clients", false, "")
+		fs.BoolVar(&opt.ExportGroupsAndRoles, "export-groups-and-roles", false, "")
+		fs.Parse(args)
+
+		realm := fs.Arg(0)
+
+		if realm == "" {
+			return 1, fmt.Errorf("missing realm")
+		}
+
+		rs := acf.NewClient()
+		res, err := rs.RealmExport(realm, opt)
+		if err != nil {
+			return 1, fmt.Errorf("export realm %q: %w", realm, err)
+		}
+
+		io.Copy(os.Stdout, bytes.NewBuffer(res))
+		return 0, nil
 	},
 }

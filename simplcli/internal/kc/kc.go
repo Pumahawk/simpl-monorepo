@@ -1,11 +1,13 @@
 package kc
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 )
 
@@ -172,4 +174,45 @@ func (c *Client) Realm(realm string) (*RealmResponseDto, error) {
 		return nil, err
 	}
 	return resb, nil
+}
+
+type RealmExportOpt struct {
+	IncludeClients       bool
+	ExportGroupsAndRoles bool
+}
+
+func (c *Client) RealmExport(realm string, opt *RealmExportOpt) ([]byte, error) {
+	rawUrl, err := url.JoinPath(c.BaseUrl, "/admin/realms", url.PathEscape(realm), "partial-export")
+	if err != nil {
+		return nil, err
+	}
+
+	if opt != nil {
+		if u, err := url.Parse(rawUrl); err != nil {
+			panic(err)
+		} else {
+			q := u.Query()
+			q.Add("exportClients", strconv.FormatBool(opt.IncludeClients))
+			q.Add("exportGroupsAndRoles", strconv.FormatBool(opt.ExportGroupsAndRoles))
+			u.RawQuery = q.Encode()
+			rawUrl = u.String()
+		}
+	}
+
+	req, err := c.newRequest("POST", rawUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	resb := &bytes.Buffer{}
+	if _, err := io.Copy(resb, res.Body); err != nil {
+		return nil, err
+	}
+	return resb.Bytes(), nil
 }
