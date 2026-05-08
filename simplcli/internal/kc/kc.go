@@ -126,7 +126,31 @@ func (c *Client) doRequest(req *http.Request) (*http.Response, error) {
 	return res, nil
 }
 
-func (c *Client) Realms(realm string) (*RealmsResponseDto, error) {
+func (c *Client) Realms() ([]RealmsItemResponseDto, error) {
+	rawUrl, err := url.JoinPath(c.BaseUrl, "/admin/realms")
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := c.newRequest("GET", rawUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	resb := make([]RealmsItemResponseDto, 0)
+	if err := json.NewDecoder(res.Body).Decode(&resb); err != nil {
+		return nil, err
+	}
+	return resb, nil
+}
+
+func (c *Client) Realm(realm string) (*RealmResponseDto, error) {
 	rawUrl, err := url.JoinPath(c.BaseUrl, "realms", url.PathEscape(realm))
 	if err != nil {
 		return nil, err
@@ -143,7 +167,7 @@ func (c *Client) Realms(realm string) (*RealmsResponseDto, error) {
 	}
 	defer res.Body.Close()
 
-	resb := &RealmsResponseDto{}
+	resb := &RealmResponseDto{}
 	if err := json.NewDecoder(res.Body).Decode(resb); err != nil {
 		return nil, err
 	}

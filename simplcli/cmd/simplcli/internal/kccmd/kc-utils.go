@@ -1,6 +1,10 @@
 package kccmd
 
-import "github.com/Pumahawk/simpl-monorepo/internal/kc"
+import (
+	"os"
+
+	"github.com/Pumahawk/simpl-monorepo/internal/kc"
+)
 
 type aCFT struct {
 	User    string
@@ -21,5 +25,13 @@ func (s *aCFT) NewClient() *kc.Client {
 				Realm:     s.Realm,
 			}, nil
 		},
+	}
+}
+
+func envOrDef(key, def string) string {
+	if e, ok := os.LookupEnv(key); ok {
+		return e
+	} else {
+		return def
 	}
 }

@@ -26,5 +26,4 @@ func (s *simplACFT) NewClient(defUsr string) *simpl.Client {
 			}, nil
 		},
 	}
-
 }
