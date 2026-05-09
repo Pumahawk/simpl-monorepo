@@ -96,10 +96,6 @@ var RealmImportCmd = cmd.Command[int]{
 
 		realm := fs.Arg(0)
 
-		if realm == "" {
-			return 1, fmt.Errorf("missing realm")
-		}
-
 		doc := &bytes.Buffer{}
 		_, err := io.Copy(doc, os.Stdin)
 		if err != nil {
@@ -107,7 +103,7 @@ var RealmImportCmd = cmd.Command[int]{
 		}
 
 		rs := acf.NewClient()
-		err = rs.RealmImport(realm, doc.Bytes())
+		err = rs.RealmImport(doc.Bytes())
 		if err != nil {
 			return 1, fmt.Errorf("import realm %q: %w", realm, err)
 		}

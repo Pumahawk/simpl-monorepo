@@ -217,8 +217,8 @@ func (c *Client) RealmExport(realm string, opt *RealmExportOpt) ([]byte, error) 
 	return resb.Bytes(), nil
 }
 
-func (c *Client) RealmImport(realm string, content []byte) error {
-	rawUrl, err := url.JoinPath(c.BaseUrl, "/admin/realms", url.PathEscape(realm), "partialImport")
+func (c *Client) RealmImport(content []byte) error {
+	rawUrl, err := url.JoinPath(c.BaseUrl, "admin/realms")
 	if err != nil {
 		return err
 	}
