@@ -18,6 +18,7 @@ var Cmd = &cmd.CommandGroup{
 		&RealmLsCmd,
 		&RealmExportCmd,
 		&RealmImportCmd,
+		&RealmDeleteCmd,
 	},
 	FlagFunc: func(fs *flag.FlagSet) {
 		fs.StringVar(&acf.User, "user", envOrDef("KCUSER", "admin"), "")
@@ -62,6 +63,28 @@ var RealmGetCmd = cmd.Command[*kc.RealmResponseDto]{
 		return res, nil
 	},
 }
+
+var RealmDeleteCmd = cmd.Command[int]{
+	Name: "realms:delete",
+	Run: func(c *cmd.Command[int], args []string) (int, error) {
+		fs := flag.NewFlagSet("", flag.ExitOnError)
+		fs.Parse(args)
+
+		realm := fs.Arg(0)
+
+		if realm == "" {
+			return 1, fmt.Errorf("missing realm")
+		}
+
+		rs := acf.NewClient()
+		err := rs.RealmDelete(realm)
+		if err != nil {
+			return 1, fmt.Errorf("delete realm %q: %w", realm, err)
+		}
+		return 0, nil
+	},
+}
+
 var RealmExportCmd = cmd.Command[int]{
 	Name: "realms:export",
 	Run: func(c *cmd.Command[int], args []string) (int, error) {

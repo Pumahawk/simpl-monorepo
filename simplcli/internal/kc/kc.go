@@ -240,3 +240,23 @@ func (c *Client) RealmImport(content []byte) error {
 	}
 	return nil
 }
+
+func (c *Client) RealmDelete(realm string) error {
+	rawUrl, err := url.JoinPath(c.BaseUrl, "admin/realms", url.PathEscape(realm))
+	if err != nil {
+		return err
+	}
+
+	req, err := c.newRequest("DELETE", rawUrl, nil)
+	if err != nil {
+		return err
+	}
+
+	res, err := c.doRequest(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	return nil
+}
