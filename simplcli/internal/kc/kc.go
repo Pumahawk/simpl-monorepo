@@ -216,3 +216,27 @@ func (c *Client) RealmExport(realm string, opt *RealmExportOpt) ([]byte, error) 
 	}
 	return resb.Bytes(), nil
 }
+
+func (c *Client) RealmImport(realm string, content []byte) error {
+	rawUrl, err := url.JoinPath(c.BaseUrl, "/admin/realms", url.PathEscape(realm), "partialImport")
+	if err != nil {
+		return err
+	}
+
+	req, err := c.newRequest("POST", rawUrl, bytes.NewBuffer(content))
+	if err != nil {
+		return err
+	}
+
+	res, err := c.doRequest(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	resb := &bytes.Buffer{}
+	if _, err := io.Copy(resb, res.Body); err != nil {
+		return err
+	}
+	return nil
+}

@@ -17,6 +17,7 @@ var Cmd = &cmd.CommandGroup{
 		&RealmGetCmd,
 		&RealmLsCmd,
 		&RealmExportCmd,
+		&RealmImportCmd,
 	},
 	FlagFunc: func(fs *flag.FlagSet) {
 		fs.StringVar(&acf.User, "user", envOrDef("KCUSER", "admin"), "")
@@ -83,6 +84,34 @@ var RealmExportCmd = cmd.Command[int]{
 		}
 
 		io.Copy(os.Stdout, bytes.NewBuffer(res))
+		return 0, nil
+	},
+}
+
+var RealmImportCmd = cmd.Command[int]{
+	Name: "realms:import",
+	Run: func(c *cmd.Command[int], args []string) (int, error) {
+		fs := flag.NewFlagSet("", flag.ExitOnError)
+		fs.Parse(args)
+
+		realm := fs.Arg(0)
+
+		if realm == "" {
+			return 1, fmt.Errorf("missing realm")
+		}
+
+		doc := &bytes.Buffer{}
+		_, err := io.Copy(doc, os.Stdin)
+		if err != nil {
+			return 1, err
+		}
+
+		rs := acf.NewClient()
+		err = rs.RealmImport(realm, doc.Bytes())
+		if err != nil {
+			return 1, fmt.Errorf("import realm %q: %w", realm, err)
+		}
+
 		return 0, nil
 	},
 }
