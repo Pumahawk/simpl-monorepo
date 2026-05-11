@@ -16,6 +16,9 @@ go = "1.25.4"
 [shell_alias]
 path_fe = "rg -n --no-heading path: $(fd route  | grep microfe)"
 cli = "mise run --raw -q cli --"
+fmt = "mvnd spotless:apply"
+jbuild="mvnd clean install -Dmaven.test.skip"
+jbuildt="mvnd clean install"
 
 [vars]
 pathSimplRepo = "./simpl-repo"
