@@ -88,9 +88,9 @@ var GitlabPipelineCmd = cmd.Command[*GitlabPipelineModel]{
 	},
 }
 
-var GitlabPipelineJobsCmd = cmd.Command[*gitlab.PipelineJobsResponseDto]{
+var GitlabPipelineJobsCmd = cmd.Command[[]gitlab.PipelineJobsResponseItemDto]{
 	Name: "pipelines:jobs",
-	Run: func(c *cmd.Command[*gitlab.PipelineJobsResponseDto], args []string) (*gitlab.PipelineJobsResponseDto, error) {
+	Run: func(c *cmd.Command[[]gitlab.PipelineJobsResponseItemDto], args []string) ([]gitlab.PipelineJobsResponseItemDto, error) {
 		search := &gitlab.SearchPipelineJob{}
 
 		fl := flag.NewFlagSet("", flag.ExitOnError)
@@ -112,7 +112,7 @@ var GitlabPipelineJobsCmd = cmd.Command[*gitlab.PipelineJobsResponseDto]{
 			return nil, fmt.Errorf("unable to retrieve pipeline jobs %q project %q: %w", pipelineId, projectId, err)
 		}
 
-		return r, nil
+		return r.Items, nil
 	},
 }
 
