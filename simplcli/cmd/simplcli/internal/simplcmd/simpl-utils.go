@@ -5,11 +5,12 @@ import (
 )
 
 type simplACFT struct {
-	User    string
-	Pass    string
-	BaseUrl string
-	Realm   string
+	User  string
+	Pass  string
+	Realm string
 }
+
+var SimplEndpoint = &simpl.SingleAccessEndpoints{}
 
 func (s *simplACFT) NewClient(defUsr string) *simpl.Client {
 	user := s.User
@@ -17,7 +18,7 @@ func (s *simplACFT) NewClient(defUsr string) *simpl.Client {
 		user = defUsr
 	}
 	return &simpl.Client{
-		BaseUrl: s.BaseUrl,
+		Endpoints: SimplEndpoint,
 		AuthFunc: func() (*simpl.AuthInfo, error) {
 			return &simpl.AuthInfo{
 				Username:  user,

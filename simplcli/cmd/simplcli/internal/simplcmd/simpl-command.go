@@ -16,7 +16,7 @@ var SimplApiTokenizeCmd = cmd.Command[int]{
 
 		token, err := cl.Tokenize()
 		if err != nil {
-			return 1, fmt.Errorf("unable to tokenize server=%q, user=%q: %w", sacf.BaseUrl, sacf.User, err)
+			return 1, fmt.Errorf("unable to tokenize server=%q, user=%q: %w", SimplEndpoint.BaseUrl, sacf.User, err)
 		}
 
 		_, err = os.Stdout.Write([]byte(token.AccessToken))

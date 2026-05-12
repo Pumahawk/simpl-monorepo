@@ -9,6 +9,7 @@ import (
 
 	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/cmd"
 	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/kc"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/utils"
 )
 
 var Cmd = &cmd.CommandGroup{
@@ -21,10 +22,10 @@ var Cmd = &cmd.CommandGroup{
 		&RealmDeleteCmd,
 	},
 	FlagFunc: func(fs *flag.FlagSet) {
-		fs.StringVar(&acf.User, "user", envOrDef("KCUSER", "admin"), "")
-		fs.StringVar(&acf.Pass, "pass", envOrDef("KCPASSWORD", "admin"), "")
-		fs.StringVar(&acf.BaseUrl, "baseurl", envOrDef("KCBASEURL", "http://localhost:8100/auth"), "")
-		fs.StringVar(&acf.Realm, "realm", envOrDef("KCREALM", "master"), "")
+		fs.StringVar(&acf.User, "user", utils.EnvOrDef("KCUSER", "admin"), "")
+		fs.StringVar(&acf.Pass, "pass", utils.EnvOrDef("KCPASSWORD", "admin"), "")
+		fs.StringVar(&acf.BaseUrl, "baseurl", utils.EnvOrDef("KCBASEURL", "http://localhost:8100/auth"), "")
+		fs.StringVar(&acf.Realm, "realm", utils.EnvOrDef("KCREALM", "master"), "")
 	},
 }
 

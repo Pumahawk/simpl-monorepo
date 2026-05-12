@@ -1,8 +1,6 @@
 package kccmd
 
 import (
-	"os"
-
 	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/kc"
 )
 
@@ -25,13 +23,5 @@ func (s *aCFT) NewClient() *kc.Client {
 				Realm:     s.Realm,
 			}, nil
 		},
-	}
-}
-
-func envOrDef(key, def string) string {
-	if e, ok := os.LookupEnv(key); ok {
-		return e
-	} else {
-		return def
 	}
 }

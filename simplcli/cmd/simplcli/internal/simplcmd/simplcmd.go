@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/cmd"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/utils"
 )
 
 var sacf = &simplACFT{}
@@ -16,10 +17,10 @@ var Cmd = &cmd.CommandGroup{
 		&SimplApiEchoCmd,
 	},
 	FlagFunc: func(fs *flag.FlagSet) {
-		fs.StringVar(&sacf.User, "user", "", "") // Default user is defined to the API level
-		fs.StringVar(&sacf.Pass, "pass", "password", "")
-		fs.StringVar(&sacf.BaseUrl, "baseurl", "http://localhost:8100", "")
-		fs.StringVar(&sacf.Realm, "realm", "authority", "")
+		fs.StringVar(&sacf.User, "user", utils.EnvOrDef("SPUSER", ""), "") // Default user is defined to the API level
+		fs.StringVar(&sacf.Pass, "pass", utils.EnvOrDef("SPPASWORD", "password"), "")
+		fs.StringVar(&SimplEndpoint.BaseUrl, "baseurl", utils.EnvOrDef("SPBASEURL", "http://localhost:8100"), "")
+		fs.StringVar(&sacf.Realm, "realm", utils.EnvOrDef("SPREALM", "authority"), "")
 
 	},
 	FlagValFunc: func() error {
@@ -28,7 +29,7 @@ var Cmd = &cmd.CommandGroup{
 			return fmt.Errorf("missing pass flag")
 		}
 
-		if sacf.BaseUrl == "" {
+		if SimplEndpoint.BaseUrl == "" {
 			return fmt.Errorf("missing server flag")
 		}
 
