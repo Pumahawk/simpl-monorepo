@@ -14,3 +14,13 @@ type EchoResponseDto struct {
 	// "userIdentityAttributes": [],
 	// "identityAttributes": []
 }
+
+type KeyPairActiveDto struct {
+	Active            bool   `json:"active"`
+	CreationTimestamp string `json:"creationTimestamp"`
+	Csr               string `json:"csr"`
+	Id                string `json:"id"`
+	Name              string `json:"name"`
+	PrivateKey        string `json:"privateKey"`
+	PublicKey         string `json:"publicKey"`
+}

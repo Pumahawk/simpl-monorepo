@@ -36,3 +36,11 @@ var SimplApiEchoCmd = cmd.Command[*simpl.EchoResponseDto]{
 		return cl.Echo()
 	},
 }
+
+var KeypairActiveCmd = cmd.Command[*simpl.KeyPairActiveDto]{
+	Name: "kp-active",
+	Run: func(c *cmd.Command[*simpl.KeyPairActiveDto], args []string) (*simpl.KeyPairActiveDto, error) {
+		cl := sacf.NewClient("m.m")
+		return cl.KeypairActive()
+	},
+}

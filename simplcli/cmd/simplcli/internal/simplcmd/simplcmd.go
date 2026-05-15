@@ -15,6 +15,7 @@ var Cmd = &cmd.CommandGroup{
 	Commands: []cmd.CommandW{
 		&SimplApiTokenizeCmd,
 		&SimplApiEchoCmd,
+		&KeypairActiveCmd,
 	},
 	FlagFunc: func(fs *flag.FlagSet) {
 		fs.StringVar(&sacf.User, "user", utils.EnvOrDef("SPUSER", ""), "") // Default user is defined to the API level
