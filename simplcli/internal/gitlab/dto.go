@@ -418,3 +418,11 @@ type JobRetryResponseDto struct {
 	Id   int    `json:"id"`
 	Name string `json:"name"`
 }
+
+type CurrentUserDto struct {
+	Id       int    `json:"id"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Name     string `json:"name"`
+	State    string `json:"state"`
+}

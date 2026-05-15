@@ -189,3 +189,17 @@ func (c *Client) JobRetry(projectId, jobId string) (*JobRetryResponseDto, error)
 	}
 	return res, nil
 }
+
+func (c *Client) CurrentUser() (*CurrentUserDto, error) {
+	rawUrl, err := url.JoinPath(c.BaseUrl, "/api/v4", "user")
+	if err != nil {
+		panic(err)
+	}
+
+	user := &CurrentUserDto{}
+	if _, err := request(c, "GET", rawUrl, nil, user); err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
