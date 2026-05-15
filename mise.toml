@@ -19,6 +19,8 @@ cli = "mise run --raw -q cli --"
 fmt = "mvnd spotless:apply"
 jbuild="mvnd clean install -Dmaven.test.skip"
 jbuildt="mvnd clean install"
+pipes = "mise run --raw --quiet cli -- gitlab pipelines:search"
+mrcheck = "mise run --raw --quiet cli -- gitlab merge:check -state opened"
 
 [vars]
 pathSimplRepo = "./simpl-repo"
