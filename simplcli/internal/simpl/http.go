@@ -4,30 +4,17 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 )
 
 var DefaultEndpoint *SingleAccessEndpoints = &SingleAccessEndpoints{
 	BaseUrl: "http://localhost:8100",
 }
 
-type AuthFunc func() (*AuthInfo, error)
-
-type AuthInfo struct {
-	Realm     string
-	Username  string
-	Passaword string
-}
-
-type tokenInfo struct {
-	token  *TokenizeResponseDto
-	expire time.Time
-}
+type TokenFunc func() (string, error)
 
 type Client struct {
 	Endpoints Endpoints
-	AuthFunc  AuthFunc
-	token     *tokenInfo
+	TokenFunc TokenFunc
 }
 
 func (c *Client) edp() Endpoints {
@@ -44,33 +31,25 @@ type Endpoints interface {
 }
 
 type SingleAccessEndpoints struct {
-	BaseUrl string
+	BaseUrl                   string
+	KeycloakUrl               string
+	AuthenticationProviderUrl string
+}
+
+func (s *SingleAccessEndpoints) ordef(val, def string) string {
+	if val != "" {
+		return val
+	} else {
+		return def
+	}
 }
 
 func (s *SingleAccessEndpoints) Keycloak() string {
-	return s.BaseUrl + "/auth"
+	return s.BaseUrl + s.ordef(s.KeycloakUrl, "/auth")
 }
 
 func (s *SingleAccessEndpoints) AuthenticationProvider() string {
-	return s.BaseUrl + "/authApi"
-}
-
-func (c *Client) apiToken() (string, error) {
-	if c.token == nil || time.Now().Before(c.token.expire) {
-		tk, err := c.Tokenize()
-		if err != nil {
-			return "", err
-		}
-
-		expire := time.Now().Add(time.Duration(tk.ExpiresIn) * time.Second)
-
-		c.token = &tokenInfo{
-			token:  tk,
-			expire: expire,
-		}
-	}
-
-	return c.token.token.AccessToken, nil
+	return s.BaseUrl + s.ordef(s.AuthenticationProviderUrl, "/authApi")
 }
 
 func (c *Client) newRequest(method, url string, body io.Reader) (*http.Request, error) {
@@ -78,7 +57,7 @@ func (c *Client) newRequest(method, url string, body io.Reader) (*http.Request, 
 }
 
 func (c *Client) doRequest(req *http.Request) (*http.Response, error) {
-	token, err := c.apiToken()
+	token, err := c.TokenFunc()
 	if err != nil {
 		return nil, fmt.Errorf("tokenize error: %w", err)
 	}

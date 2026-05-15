@@ -15,6 +15,7 @@ type AuthFunc func() (*AuthInfo, error)
 
 type AuthInfo struct {
 	Realm     string
+	ClientId  string
 	Username  string
 	Passaword string
 }
@@ -43,7 +44,7 @@ type TokenizeResponseDto struct {
 
 func (c *Client) apiToken() (string, error) {
 	if c.token == nil || time.Now().Before(c.token.expire) {
-		tk, err := c.tokenize()
+		tk, err := c.Tokenize()
 		if err != nil {
 			return "", err
 		}
@@ -59,7 +60,7 @@ func (c *Client) apiToken() (string, error) {
 	return c.token.token.AccessToken, nil
 }
 
-func (c *Client) tokenize() (*TokenizeResponseDto, error) {
+func (c *Client) Tokenize() (*TokenizeResponseDto, error) {
 	if c.AuthFunc == nil {
 		return nil, fmt.Errorf("authentication function not defined")
 	}
@@ -79,7 +80,7 @@ func (c *Client) tokenize() (*TokenizeResponseDto, error) {
 	}
 
 	r, err := http.PostForm(rawUrl, url.Values{
-		"client_id":  {"admin-cli"},
+		"client_id":  {auth.ClientId},
 		"username":   {auth.Username},
 		"password":   {auth.Passaword},
 		"grant_type": {"password"},

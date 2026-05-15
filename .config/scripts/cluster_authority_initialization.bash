@@ -102,7 +102,7 @@ echo "KEYPAIR_ID=[$KEYPAIR_ID]"
 # DATASPACE
 ########################################
 
-if ! CSR_RESPONSE="$(curl -s -w "%{http_code}" -X PUT \
+if ! DATASPACE_RESPONSE="$(curl -s -w "%{http_code}" -X PUT \
 "$MICROSERVICE_AUTHENTICATION_PROVIDER_INTERNAL_URL/tier1/v2/identity/dataspace" -o /tmp/t > "$CURL_W_OUT" \
 --header 'Content-Type: application/json' \
 --data-raw '
@@ -123,7 +123,7 @@ echo "
 Description: Dataspace request
 Http response code: [$CURL_RESPONSE_CODE]
 Response Body:
-$CSR_RESPONSE
+$DATASPACE_RESPONSE
 ==========================
 "
 

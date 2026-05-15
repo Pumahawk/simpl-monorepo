@@ -19,8 +19,9 @@ var Cmd = &cmd.CommandGroup{
 	FlagFunc: func(fs *flag.FlagSet) {
 		fs.StringVar(&sacf.User, "user", utils.EnvOrDef("SPUSER", ""), "") // Default user is defined to the API level
 		fs.StringVar(&sacf.Pass, "pass", utils.EnvOrDef("SPPASWORD", "password"), "")
-		fs.StringVar(&SimplEndpoint.BaseUrl, "baseurl", utils.EnvOrDef("SPBASEURL", "http://localhost:8100"), "")
+		fs.StringVar(&sacf.BaseUrl, "baseurl", utils.EnvOrDef("SPBASEURL", "http://localhost:8100"), "")
 		fs.StringVar(&sacf.Realm, "realm", utils.EnvOrDef("SPREALM", "authority"), "")
+		fs.BoolVar(&sacf.KubeProxy, "kube", false, "")
 
 	},
 	FlagValFunc: func() error {
@@ -29,7 +30,7 @@ var Cmd = &cmd.CommandGroup{
 			return fmt.Errorf("missing pass flag")
 		}
 
-		if SimplEndpoint.BaseUrl == "" {
+		if sacf.BaseUrl == "" {
 			return fmt.Errorf("missing server flag")
 		}
 
