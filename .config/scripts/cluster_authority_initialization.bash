@@ -99,6 +99,39 @@ fi
 echo "KEYPAIR_ID=[$KEYPAIR_ID]"
 
 ########################################
+# DATASPACE
+########################################
+
+if ! CSR_RESPONSE="$(curl -s -w "%{http_code}" -X PUT \
+"$MICROSERVICE_AUTHENTICATION_PROVIDER_INTERNAL_URL/tier1/v2/identity/dataspace" -o /tmp/t > "$CURL_W_OUT" \
+--header 'Content-Type: application/json' \
+--data-raw '
+{
+    "name": "initialization-authority",
+    "contactEmail": "initialization@email.com"
+  }
+' && cat /tmp/t )"; then
+  CURL_EXIT_CODE=$?
+  echo "Error identity dataspace call. curl_exit_code=[$CURL_EXIT_CODE]"
+  exit 1
+fi
+
+CURL_RESPONSE_CODE="$(cat "$CURL_W_OUT")"
+
+echo "
+==========================
+Description: Dataspace request
+Http response code: [$CURL_RESPONSE_CODE]
+Response Body:
+$CSR_RESPONSE
+==========================
+"
+
+if [[ "$CURL_RESPONSE_CODE" -lt 200 || "$CURL_RESPONSE_CODE" -ge 300 ]]; then
+  exit 1
+fi
+
+########################################
 # CSR request
 ########################################
 
