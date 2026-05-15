@@ -18,14 +18,24 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 	Name: "merge:check",
 	Run: func(c *cmd.Command[MergeRequestCheckModel], args []string) (MergeRequestCheckModel, error) {
 		search := &gitlab.SearchMergeRequest{}
+		var my bool
 
 		fs := flag.NewFlagSet("", flag.ExitOnError)
 		structFlag(fs, search)
+		fs.BoolVar(&my, "my", false, "")
 		fs.Parse(args)
 		projectIds := prIdsDemux.demux(fs.Args())
 
 		if len(projectIds) == 0 {
 			return nil, fmt.Errorf("missing projectId")
+		}
+
+		if my {
+			u, err := gitlabClient.CurrentUser()
+			if err != nil {
+				return nil, fmt.Errorf("current user: %w", err)
+			}
+			search.AuthorUsername = u.Username
 		}
 
 		// Retrieve all pipelines and jobs async

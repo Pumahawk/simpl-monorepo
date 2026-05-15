@@ -8,9 +8,20 @@ import (
 	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/gitlab"
 )
 
-var GitlabPipelinesCmd = SearchMultiProjectAsyncCmd[gitlab.SearchPipeline, struct{}, gitlab.PipelineResponseItemDto]{
+type GitlabPipelinesArgs struct {
+	My bool
+}
+
+var GitlabPipelinesCmd = SearchMultiProjectAsyncCmd[gitlab.SearchPipeline, GitlabPipelinesArgs, gitlab.PipelineResponseItemDto]{
 	Name: "pipelines:search",
-	ApiFunc: func(projectId string, flags struct{}, search *gitlab.SearchPipeline) ([]gitlab.PipelineResponseItemDto, error) {
+	ApiFunc: func(projectId string, flags GitlabPipelinesArgs, search *gitlab.SearchPipeline) ([]gitlab.PipelineResponseItemDto, error) {
+		if flags.My {
+			user, err := gitlabClient.CurrentUser()
+			if err != nil {
+				return nil, fmt.Errorf("retrieve current user: %w", err)
+			}
+			search.Username = user.Username
+		}
 		r, err := gitlabClient.Pipelines(projectId, search)
 		if err != nil {
 			return nil, err
@@ -30,7 +41,6 @@ type GitlabPipelineModel struct {
 var GitlabPipelineCmd = cmd.Command[*GitlabPipelineModel]{
 	Name: "pipelines:details",
 	Run: func(c *cmd.Command[*GitlabPipelineModel], args []string) (*GitlabPipelineModel, error) {
-
 		fl := flag.NewFlagSet("", flag.ExitOnError)
 		fl.Parse(args)
 		projectId := fl.Arg(0)
