@@ -23,6 +23,8 @@ var Cmd = &cmd.CommandGroup{
 		fs.StringVar(&sacf.Pass, "pass", utils.EnvOrDef("SPPASWORD", "password"), "")
 		fs.StringVar(&sacf.BaseUrl, "baseurl", utils.EnvOrDef("SPBASEURL", "http://localhost:8100"), "")
 		fs.StringVar(&sacf.Realm, "realm", utils.EnvOrDef("SPREALM", "authority"), "")
+		fs.StringVar(&sacf.ClientId, "clientid", utils.EnvOrDef("SPCLIENTID", "frontend-cli"), "")
+		fs.StringVar(&sacf.Secret, "secret", utils.EnvOrDef("SPSECRET", ""), "")
 		fs.BoolVar(&sacf.KubeProxy, "kube", false, "")
 
 	},

@@ -54,7 +54,7 @@ var NewKeyPair = cmd.Command[[]simpl.GenerateKeyPairResponseDto]{
 			return nil, fmt.Errorf("missing keypair name")
 		}
 
-		cl := sacf.NewClient("m.t")
+		cl := sacf.NewClient("m.m")
 
 		type resT struct {
 			name string

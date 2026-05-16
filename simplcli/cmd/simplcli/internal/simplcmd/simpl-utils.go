@@ -13,6 +13,8 @@ type simplACFT struct {
 	Pass      string
 	Realm     string
 	BaseUrl   string
+	ClientId  string
+	Secret    string
 	KubeProxy bool
 }
 
@@ -61,11 +63,16 @@ func (s *simplACFT) newKeyCloakTokenizator(e simpl.Endpoints, defUsr string) *Ke
 			if user == "" {
 				user = defUsr
 			}
+			clientId := s.ClientId
+			if clientId == "" {
+				panic(fmt.Errorf("missing client id. bug."))
+			}
 			return &kc.AuthInfo{
 				Username:  user,
 				Passaword: s.Pass,
 				Realm:     s.Realm,
-				ClientId:  "frontend-cli",
+				ClientId:  clientId,
+				Secret:    s.Secret,
 			}, nil
 		},
 	}

@@ -16,6 +16,7 @@ type AuthFunc func() (*AuthInfo, error)
 type AuthInfo struct {
 	Realm     string
 	ClientId  string
+	Secret    string
 	Username  string
 	Passaword string
 }
@@ -79,12 +80,7 @@ func (c *Client) Tokenize() (*TokenizeResponseDto, error) {
 		return nil, err
 	}
 
-	r, err := http.PostForm(rawUrl, url.Values{
-		"client_id":  {auth.ClientId},
-		"username":   {auth.Username},
-		"password":   {auth.Passaword},
-		"grant_type": {"password"},
-	})
+	r, err := oauthRequest(rawUrl, auth)
 	if err != nil {
 		return nil, fmt.Errorf("postform token: %w", err)
 	}
@@ -216,6 +212,23 @@ func (c *Client) RealmExport(realm string, opt *RealmExportOpt) ([]byte, error) 
 		return nil, err
 	}
 	return resb.Bytes(), nil
+}
+
+func oauthRequest(rawUrl string, auth *AuthInfo) (resp *http.Response, err error) {
+	if auth.Secret != "" {
+		return http.PostForm(rawUrl, url.Values{
+			"client_id":     {auth.ClientId},
+			"client_secret": {auth.Secret},
+			"grant_type":    {"client_credentials"},
+		})
+	} else {
+		return http.PostForm(rawUrl, url.Values{
+			"client_id":  {auth.ClientId},
+			"username":   {auth.Username},
+			"password":   {auth.Passaword},
+			"grant_type": {"password"},
+		})
+	}
 }
 
 func (c *Client) RealmImport(content []byte) error {
