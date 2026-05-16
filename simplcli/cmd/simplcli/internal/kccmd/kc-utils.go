@@ -5,10 +5,11 @@ import (
 )
 
 type aCFT struct {
-	User    string
-	Pass    string
-	BaseUrl string
-	Realm   string
+	User     string
+	Pass     string
+	BaseUrl  string
+	Realm    string
+	ClientId string
 }
 
 var acf = &aCFT{}
@@ -21,6 +22,7 @@ func (s *aCFT) NewClient() *kc.Client {
 				Username:  s.User,
 				Passaword: s.Pass,
 				Realm:     s.Realm,
+				ClientId:  s.ClientId,
 			}, nil
 		},
 	}

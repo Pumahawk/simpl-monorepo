@@ -25,6 +25,7 @@ var Cmd = &cmd.CommandGroup{
 		fs.StringVar(&acf.User, "user", utils.EnvOrDef("KCUSER", "admin"), "")
 		fs.StringVar(&acf.Pass, "pass", utils.EnvOrDef("KCPASSWORD", "admin"), "")
 		fs.StringVar(&acf.BaseUrl, "baseurl", utils.EnvOrDef("KCBASEURL", "http://localhost:8100/auth"), "")
+		fs.StringVar(&acf.ClientId, "clientid", utils.EnvOrDef("KCCLIENTID", "admin-cli"), "")
 		fs.StringVar(&acf.Realm, "realm", utils.EnvOrDef("KCREALM", "master"), "")
 	},
 }
