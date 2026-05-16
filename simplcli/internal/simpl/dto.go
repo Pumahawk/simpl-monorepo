@@ -24,3 +24,15 @@ type KeyPairActiveDto struct {
 	PrivateKey        string `json:"privateKey"`
 	PublicKey         string `json:"publicKey"`
 }
+
+type GenerateKeyPairResponseDto struct {
+	CreationTimestamp string `json:"creationTimestamp"`
+	Name              string `json:"name"`
+	Active            bool   `json:"active"`
+	Id                string `json:"id"`
+	PublicKey         string `json:"publicKey"`
+}
+
+type GenerateKeyPairRequestDto struct {
+	Name string `json:"name"`
+}

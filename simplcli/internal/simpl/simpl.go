@@ -54,3 +54,28 @@ func (c *Client) KeypairActive() (*KeyPairActiveDto, error) {
 
 	return rb, nil
 }
+
+func (c *Client) GenerateKeyPair(name string) (*GenerateKeyPairResponseDto, error) {
+	rawUrl, err := url.JoinPath(c.edp().AuthenticationProvider(), "/tier1/v2/keypairs")
+	if err != nil {
+		return nil, err
+	}
+	rq, err := c.newRequest("POST", rawUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.doRequest(rq)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	rb := &GenerateKeyPairResponseDto{}
+	err = json.NewDecoder(res.Body).Decode(rb)
+	if err != nil {
+		return nil, err
+	}
+
+	return rb, nil
+}
