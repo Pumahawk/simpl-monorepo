@@ -274,3 +274,26 @@ func (c *Client) RealmDelete(realm string) error {
 
 	return nil
 }
+
+func (c *Client) Clients(realm string) ([]ClientItemDto, error) {
+	rawUrl, err := url.JoinPath(c.BaseUrl, "admin/realms", url.PathEscape(realm), "clients")
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := c.newRequest("GET", rawUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	res, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+
+	var clients []ClientItemDto
+	json.NewDecoder(res.Body).Decode(&clients)
+
+	return clients, nil
+}

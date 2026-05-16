@@ -12,3 +12,8 @@ type RealmsItemResponseDto struct {
 	Id    string `json:"Id"`
 	Realm string `json:"Realm"`
 }
+
+type ClientItemDto struct {
+	ClientId string `json:"clientId"`
+	Secret   string `json:"secret"`
+}
