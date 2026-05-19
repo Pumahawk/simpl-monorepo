@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"sync"
 	"time"
 )
 
 // Force a pause of fortify requests to avoid status_code=429
 var concurrentHttpRequest = make(chan any)
+var tokenSync = &sync.Mutex{}
 
 func init() {
 	go func() {
@@ -88,6 +90,9 @@ func (c *Client) doRequest(r *http.Request, responseBody any) (*http.Response, e
 }
 
 func (c *Client) tokenize() (string, error) {
+	tokenSync.Lock()
+	defer tokenSync.Unlock()
+
 	if c.TokenFunc == nil {
 		return "", fmt.Errorf("not found token function for fortify client")
 	}
