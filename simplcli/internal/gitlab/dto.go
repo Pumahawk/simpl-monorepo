@@ -426,3 +426,20 @@ type CurrentUserDto struct {
 	Name     string `json:"name"`
 	State    string `json:"state"`
 }
+
+type SearchTags struct {
+	Id        string `search:"id"`
+	OrderBy   string `search:"order_by"`
+	Page      int    `search:"page"`
+	PageToken string `search:"page_token"`
+	Search    string `search:"search"`
+	Sort      string `search:"sort"`
+}
+
+type TagItemDto struct {
+	Name      string `json:"name"`
+	Target    string `json:"target"`
+	Message   string `json:"message"`
+	Protected bool   `json:"protected"`
+	CreatedAt string `json:"created_at"`
+}

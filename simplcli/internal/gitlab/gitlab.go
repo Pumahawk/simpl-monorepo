@@ -203,3 +203,17 @@ func (c *Client) CurrentUser() (*CurrentUserDto, error) {
 
 	return user, nil
 }
+
+func (c *Client) Tags(projectId string, search *SearchTags) ([]TagItemDto, error) {
+	rawUrl, err := url.JoinPath(c.BaseUrl, "/api/v4", "projects", url.PathEscape(projectId), "repository/tags")
+	if err != nil {
+		return nil, err
+	}
+
+	var tags []TagItemDto
+	if err := searchApi(c, rawUrl, search, &tags); err != nil {
+		return nil, err
+	}
+
+	return tags, nil
+}

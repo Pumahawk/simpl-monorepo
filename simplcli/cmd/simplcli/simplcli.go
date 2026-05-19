@@ -27,6 +27,7 @@ var pipelinesCmds = &cmd.CommandGroup{
 				&GitLabMergeRequestCmd,
 				&MergeRequestCheckCmd,
 				&GitlabAutoHealMergeCmd,
+				&GitlabTagsCmd,
 			},
 		},
 		&cmd.CommandGroup{
