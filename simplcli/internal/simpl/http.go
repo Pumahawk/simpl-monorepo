@@ -1,6 +1,8 @@
 package simpl
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -28,12 +30,14 @@ func (c *Client) edp() Endpoints {
 type Endpoints interface {
 	Keycloak() string
 	AuthenticationProvider() string
+	IdentityProvider() string
 }
 
 type SingleAccessEndpoints struct {
 	BaseUrl                   string
 	KeycloakUrl               string
 	AuthenticationProviderUrl string
+	IdentityProviderUrl       string
 }
 
 func (s *SingleAccessEndpoints) ordef(val, def string) string {
@@ -52,8 +56,28 @@ func (s *SingleAccessEndpoints) AuthenticationProvider() string {
 	return s.BaseUrl + s.ordef(s.AuthenticationProviderUrl, "/authApi")
 }
 
-func (c *Client) newRequest(method, url string, body io.Reader) (*http.Request, error) {
-	return http.NewRequest(method, url, body)
+func (s *SingleAccessEndpoints) IdentityProvider() string {
+	return s.BaseUrl + s.ordef(s.IdentityProviderUrl, "/identityApi")
+}
+
+func (c *Client) newRequest(method, url string, body any) (*http.Request, error) {
+	var r io.Reader
+	if body != nil {
+		bf := &bytes.Buffer{}
+		if err := json.NewEncoder(bf).Encode(body); err != nil {
+			return nil, err
+		}
+		r = bf
+	}
+	rq, err := http.NewRequest(method, url, r)
+	if err != nil {
+		return nil, err
+	}
+
+	if r != nil {
+		rq.Header.Add("Content-Type", "application/json")
+	}
+	return rq, nil
 }
 
 func (c *Client) doRequest(req *http.Request) (*http.Response, error) {

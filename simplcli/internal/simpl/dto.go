@@ -36,3 +36,21 @@ type GenerateKeyPairResponseDto struct {
 type GenerateKeyPairRequestDto struct {
 	Name string `json:"name"`
 }
+
+type DataspaceUpdateDto struct {
+	Name         string `json:"name"`
+	ContactEmail string `json:"contactEmail"`
+}
+
+type CsrRequest struct {
+	CommonName         string `json:"commonName"`
+	Country            string `json:"country"`
+	Organization       string `json:"organization"`
+	OrganizationalUnit string `json:"organizationalUnit"`
+}
+
+type ParticipantCreateRequestDto struct {
+	Organization    string `json:"organization"`
+	ParticipantType string `json:"participantType"`
+	IsAuthority     bool   `json:"isAuthority"`
+}

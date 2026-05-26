@@ -60,7 +60,8 @@ func (c *Client) GenerateKeyPair(name string) (*GenerateKeyPairResponseDto, erro
 	if err != nil {
 		return nil, err
 	}
-	rq, err := c.newRequest("POST", rawUrl, nil)
+	rqb := &GenerateKeyPairRequestDto{name}
+	rq, err := c.newRequest("POST", rawUrl, rqb)
 	if err != nil {
 		return nil, err
 	}
@@ -78,4 +79,98 @@ func (c *Client) GenerateKeyPair(name string) (*GenerateKeyPairResponseDto, erro
 	}
 
 	return rb, nil
+}
+
+func (c *Client) DataspaceUpdate(name, email string) error {
+	rawUrl, err := url.JoinPath(c.edp().AuthenticationProvider(), "/tier1/v2/identity/dataspace")
+	if err != nil {
+		return err
+	}
+	rqb := &DataspaceUpdateDto{name, email}
+	rq, err := c.newRequest("PUT", rawUrl, rqb)
+	if err != nil {
+		return err
+	}
+
+	res, err := c.doRequest(rq)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	return nil
+}
+
+func (c *Client) CreateCsr(keypairId, cn string) error {
+	rawUrl, err := url.JoinPath(c.edp().AuthenticationProvider(), "/tier1/v2/identity/dataspace")
+	if err != nil {
+		return err
+	}
+	rqb := &CsrRequest{
+		CommonName:         cn,
+		Country:            cn,
+		Organization:       cn,
+		OrganizationalUnit: cn,
+	}
+	rq, err := c.newRequest("POST", rawUrl, rqb)
+	if err != nil {
+		return err
+	}
+
+	res, err := c.doRequest(rq)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	return nil
+}
+
+func (c *Client) ParticipantCreate(partType, organization string, isAuthority bool) error {
+	rawUrl, err := url.JoinPath(c.edp().IdentityProvider(), "/tier1/v2/identity/dataspace")
+	if err != nil {
+		return err
+	}
+	rqb := &ParticipantCreateRequestDto{
+		Organization:    organization,
+		ParticipantType: partType,
+		IsAuthority:     isAuthority,
+	}
+	rq, err := c.newRequest("POST", rawUrl, rqb)
+	if err != nil {
+		return err
+	}
+
+	res, err := c.doRequest(rq)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	return nil
+}
+
+func (c *Client) UploadCsr(keypairId, cn string) error {
+	rawUrl, err := url.JoinPath(c.edp().IdentityProvider(), "/tier1/v2/identity/dataspace")
+	if err != nil {
+		return err
+	}
+	rqb := &CsrRequest{
+		CommonName:         cn,
+		Country:            cn,
+		Organization:       cn,
+		OrganizationalUnit: cn,
+	}
+	rq, err := c.newRequest("POST", rawUrl, rqb)
+	if err != nil {
+		return err
+	}
+
+	res, err := c.doRequest(rq)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	return nil
 }
