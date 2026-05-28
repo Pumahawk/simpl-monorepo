@@ -10,6 +10,7 @@ import (
 	"github.com/Pumahawk/simpl-monorepo/simplcli/cmd/simplcli/internal/kccmd"
 	"github.com/Pumahawk/simpl-monorepo/simplcli/cmd/simplcli/internal/simplcmd"
 	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/cmd"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/log"
 	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/vw"
 )
 
@@ -27,6 +28,7 @@ var pipelinesCmds = &cmd.CommandGroup{
 				&GitLabMergeRequestCmd,
 				&MergeRequestCheckCmd,
 				&GitlabAutoHealMergeCmd,
+				&GitlabAutoHeal429Cmd,
 				&GitlabTagsCmd,
 			},
 		},
@@ -59,6 +61,7 @@ func main() {
 	fl := flag.NewFlagSet("", flag.ExitOnError)
 	fl.StringVar(&fields, "f", "", "")
 	fl.StringVar(&viewf, "o", "table", "")
+	fl.BoolVar(&log.DebugEnabled, "v", log.DebugEnabled, "")
 	fl.Parse(os.Args[1:])
 
 	view, ok := views[viewf]
