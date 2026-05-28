@@ -38,25 +38,25 @@ var GitlabAutoHeal429Cmd = cmd.Command[[]GitlabAutoHeal429Model]{
 			return nil, fmt.Errorf("missing project id")
 		}
 
-		type newPipe struct{ prId, pipeId string }
-		type newJob struct{ prId, pipeId, jobId, jobWebUrl string }
+		type newPipe struct{ prId, prName, pipeId string }
+		type newJob struct{ prId, prName, pipeId, jobId, jobWebUrl string }
 		newPipeC := make(chan newPipe)
 		newJobC := make(chan newJob)
 		modelC := make(chan GitlabAutoHeal429Model)
 		go func() {
 			defer close(newPipeC)
 			wg := &sync.WaitGroup{}
-			for _, pr := range projectIds {
+			for _, prName := range projectIds {
 				wg.Go(func() {
-					log.Debug("search pipelines projectId=%q", pr)
-					pr = prIds.Get(pr)
+					log.Debug("search pipelines projectId=%q", prName)
+					pr := prIds.Get(prName)
 					r, err := gitlabClient.Pipelines(pr, &gitlab.SearchPipeline{Status: "failed", CreatedAfter: since})
 					if err != nil {
 						fmt.Fprintf(os.Stderr, "unable to search pipelines: %s\n", err)
 						return
 					}
 					for _, p := range r.Items {
-						newPipeC <- newPipe{pr, strconv.Itoa(p.Id)}
+						newPipeC <- newPipe{pr, prName, strconv.Itoa(p.Id)}
 					}
 				})
 			}
@@ -75,7 +75,7 @@ var GitlabAutoHeal429Cmd = cmd.Command[[]GitlabAutoHeal429Model]{
 					}
 					for _, j := range jobs.Items {
 						if j.Status == "failed" {
-							newJobC <- newJob{ps.prId, ps.pipeId, strconv.Itoa(j.Id), j.WebUrl}
+							newJobC <- newJob{ps.prId, ps.prName, ps.pipeId, strconv.Itoa(j.Id), j.WebUrl}
 						}
 					}
 				})
@@ -100,18 +100,19 @@ var GitlabAutoHeal429Cmd = cmd.Command[[]GitlabAutoHeal429Model]{
 							if !dryRun {
 								if _, err := gitlabClient.JobRetry(job.prId, job.jobId); err != nil {
 									fmt.Fprintf(os.Stderr, "unable to retry job: %s\n", err)
-									continue
+									return
 								}
 								log.Debug("restart job pipelineId=%q jobId=%q\n", job.pipeId, job.jobId)
 							} else {
 								log.Debug("dry-run restart job pipelineId=%q jobId=%q\n", job.pipeId, job.jobId)
 							}
 							modelC <- GitlabAutoHeal429Model{
-								Project:    job.prId,
+								Project:    job.prName,
 								PipelineId: job.pipeId,
 								JobId:      job.jobId,
 								WebUrl:     job.jobWebUrl,
 							}
+							return
 						}
 					}
 				})
