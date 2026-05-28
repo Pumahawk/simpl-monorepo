@@ -26,7 +26,9 @@ var GitlabAutoHeal429Cmd = cmd.Command[[]GitlabAutoHeal429Model]{
 	Name: "autoheal:maven-429",
 	Run: func(c *cmd.Command[[]GitlabAutoHeal429Model], args []string) ([]GitlabAutoHeal429Model, error) {
 		var since string
+		var dryRun bool
 		fl := flag.NewFlagSet("", flag.ExitOnError)
+		fl.BoolVar(&dryRun, "dry-run", false, "")
 		fl.StringVar(&since, "since", "", "")
 		fl.Parse(args)
 
@@ -40,6 +42,7 @@ var GitlabAutoHeal429Cmd = cmd.Command[[]GitlabAutoHeal429Model]{
 		type newJob struct{ prId, pipeId, jobId, jobWebUrl string }
 		newPipeC := make(chan newPipe)
 		newJobC := make(chan newJob)
+		modelC := make(chan GitlabAutoHeal429Model)
 		go func() {
 			defer close(newPipeC)
 			wg := &sync.WaitGroup{}
@@ -79,36 +82,47 @@ var GitlabAutoHeal429Cmd = cmd.Command[[]GitlabAutoHeal429Model]{
 			}
 			wg.Wait()
 		}()
-		var out []GitlabAutoHeal429Model
-		wg := &sync.WaitGroup{}
-		for job := range newJobC {
-			wg.Go(func() {
-				log.Debug("find job pipelineId=%q id=%q", job.pipeId, job.jobId)
-				l, err := gitlabClient.JobLog(job.prId, job.jobId)
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "unable to read job logs: %s\n", err)
-					return
-				}
-				scan := bufio.NewScanner(bytes.NewBuffer(l))
-				for scan.Scan() {
-					line := scan.Text()
-					if strings.Contains(line, "429, reason phrase: Too Many Requests") {
-						if _, err := gitlabClient.JobRetry(job.prId, job.jobId); err != nil {
-							fmt.Fprintf(os.Stderr, "unable to retry job: %s\n", err)
-						} else {
-							log.Debug("restart job pipelineId=%q jobId=%q\n", job.pipeId, job.jobId)
-							out = append(out, GitlabAutoHeal429Model{
+		go func() {
+			defer close(modelC)
+			wg := &sync.WaitGroup{}
+			for job := range newJobC {
+				wg.Go(func() {
+					log.Debug("find job pipelineId=%q id=%q", job.pipeId, job.jobId)
+					l, err := gitlabClient.JobLog(job.prId, job.jobId)
+					if err != nil {
+						fmt.Fprintf(os.Stderr, "unable to read job logs: %s\n", err)
+						return
+					}
+					scan := bufio.NewScanner(bytes.NewBuffer(l))
+					for scan.Scan() {
+						line := scan.Text()
+						if strings.Contains(line, "429, reason phrase: Too Many Requests") {
+							if !dryRun {
+								if _, err := gitlabClient.JobRetry(job.prId, job.jobId); err != nil {
+									fmt.Fprintf(os.Stderr, "unable to retry job: %s\n", err)
+									continue
+								}
+								log.Debug("restart job pipelineId=%q jobId=%q\n", job.pipeId, job.jobId)
+							} else {
+								log.Debug("dry-run restart job pipelineId=%q jobId=%q\n", job.pipeId, job.jobId)
+							}
+							modelC <- GitlabAutoHeal429Model{
 								Project:    job.prId,
 								PipelineId: job.pipeId,
 								JobId:      job.jobId,
 								WebUrl:     job.jobWebUrl,
-							})
+							}
 						}
 					}
-				}
-			})
+				})
+			}
+			wg.Wait()
+		}()
+		var out []GitlabAutoHeal429Model
+		for m := range modelC {
+			out = append(out, m)
 		}
-		wg.Wait()
+
 		return out, nil
 	},
 }
