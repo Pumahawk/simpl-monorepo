@@ -98,7 +98,7 @@ func (c *Client) tokenize() (string, error) {
 	}
 
 	if c.token != nil && time.Now().Before(c.tokenExpire) {
-		return c.token.AccessToken, nil
+		return "Bearer " + c.token.AccessToken, nil
 	}
 
 	auth, err := c.TokenFunc()
