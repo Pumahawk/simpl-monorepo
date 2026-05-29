@@ -12,7 +12,6 @@ import (
 
 // Force a pause of fortify requests to avoid status_code=429
 var concurrentHttpRequest = make(chan any)
-var tokenSync = &sync.Mutex{}
 
 func init() {
 	go func() {
@@ -35,6 +34,7 @@ type Client struct {
 	TokenFunc   TokenFunc
 	token       *tokenDto
 	tokenExpire time.Time
+	tokenSync   sync.Mutex
 }
 
 type tokenDto struct {
@@ -90,8 +90,8 @@ func (c *Client) doRequest(r *http.Request, responseBody any) (*http.Response, e
 }
 
 func (c *Client) tokenize() (string, error) {
-	tokenSync.Lock()
-	defer tokenSync.Unlock()
+	c.tokenSync.Lock()
+	defer c.tokenSync.Unlock()
 
 	if c.TokenFunc == nil {
 		return "", fmt.Errorf("not found token function for fortify client")
