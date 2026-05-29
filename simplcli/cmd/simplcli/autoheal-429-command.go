@@ -18,6 +18,8 @@ import (
 type GitlabAutoHeal429Model struct {
 	Project    string
 	PipelineId string
+	Source     string
+	Ref        string
 	JobId      string
 	WebUrl     string
 }
@@ -38,8 +40,8 @@ var GitlabAutoHeal429Cmd = cmd.Command[[]GitlabAutoHeal429Model]{
 			return nil, fmt.Errorf("missing project id")
 		}
 
-		type newPipe struct{ prId, prName, pipeId string }
-		type newJob struct{ prId, prName, pipeId, jobId, jobWebUrl string }
+		type newPipe struct{ prId, prName, pipeId, source, ref string }
+		type newJob struct{ prId, prName, pipeId, source, ref, jobId, jobWebUrl string }
 		newPipeC := make(chan newPipe)
 		newJobC := make(chan newJob)
 		modelC := make(chan GitlabAutoHeal429Model)
@@ -56,7 +58,12 @@ var GitlabAutoHeal429Cmd = cmd.Command[[]GitlabAutoHeal429Model]{
 						return
 					}
 					for _, p := range r.Items {
-						newPipeC <- newPipe{pr, prName, strconv.Itoa(p.Id)}
+						if p.Source == "merge_request_event" || p.Ref == "main" || p.Ref == "develop" {
+							log.Debug("exec project=%q pipeline=%d source=%q ref=%q", prName, p.Id, p.Source, p.Ref)
+							newPipeC <- newPipe{pr, prName, strconv.Itoa(p.Id), p.Source, p.Ref}
+						} else {
+							log.Debug("skip project=%q pipeline=%d source=%q ref=%q", prName, p.Id, p.Source, p.Ref)
+						}
 					}
 				})
 			}
@@ -75,7 +82,7 @@ var GitlabAutoHeal429Cmd = cmd.Command[[]GitlabAutoHeal429Model]{
 					}
 					for _, j := range jobs.Items {
 						if j.Status == "failed" {
-							newJobC <- newJob{ps.prId, ps.prName, ps.pipeId, strconv.Itoa(j.Id), j.WebUrl}
+							newJobC <- newJob{ps.prId, ps.prName, ps.pipeId, ps.source, ps.ref, strconv.Itoa(j.Id), j.WebUrl}
 						}
 					}
 				})
@@ -109,6 +116,8 @@ var GitlabAutoHeal429Cmd = cmd.Command[[]GitlabAutoHeal429Model]{
 							modelC <- GitlabAutoHeal429Model{
 								Project:    job.prName,
 								PipelineId: job.pipeId,
+								Source:     job.source,
+								Ref:        job.ref,
 								JobId:      job.jobId,
 								WebUrl:     job.jobWebUrl,
 							}
