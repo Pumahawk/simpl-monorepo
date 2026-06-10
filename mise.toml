@@ -597,6 +597,11 @@ secret_env="$(echo {} | secret="$secret" yq -oshell -pj '{"keycloak":{"service-a
 echo "$secret_env > $ENV_OUT"
 echo "$secret_env" > "$ENV_OUT"
 """
+[tasks."cluster:keycloak-remove-limits"]
+shell = "bash -ec"
+run = """
+kubectl patch statefulset local-authority-keycloak --type='json' -p='[{"op": "remove", "path": "/spec/template/spec/containers/0/resources/limits"}]'
+"""
 
 [tasks."zscaler:install-cluster"]
 shell = "bash -ec"
