@@ -311,6 +311,73 @@ run = "docker-cli-plugin-docker-compose -p simpl-services --env-file=./simpl-ser
 [tasks."simpl-services-fe:compose"]
 run = "docker-cli-plugin-docker-compose -p simpl-services-fe --env-file=./simpl-services.env -f .config/docker/simpl-fe/docker-compose.yaml"
 
+[tasks."keycloak:compose"]
+run = "docker-cli-plugin-docker-compose -p simpl-keycloak -f .config/docker/keycloak/docker-compose.yaml"
+
+[tasks."keycloak:download-providers"]
+shell = "bash -ec"
+run = """
+set -a; source ./simpl-services.env; set +a;
+OUTD=".config/docker/keycloak/providers/"
+rm -v -r "$OUTD" || true
+mkdir -p "$OUTD"
+KV="${SIMPL_LIB_KEYCLOAK_AUTHENTICATOR?Missing keycloak-authenticator version}"
+EIDASV="${SIMPL_LIB_EIDAS_DEMO_KEYCLOAK_EXTENSION?Missing eidas-demo-keycloak-extension version}"
+curl -o "$OUTD/keycloak-authenticator-$KV.jar" "https://code.europa.eu/api/v4/projects/915/packages/maven/eu/europa/ec/simpl/keycloak-authenticator/$KV/keycloak-authenticator-$KV.jar"
+curl -o "$OUTD/eidas-demo-keycloak-extension-$EIDASV.jar" "https://code.europa.eu/api/v4/projects/1313/packages/maven/eu/europa/ec/simpl/eidas-demo-keycloak-extension/$EIDASV/eidas-demo-keycloak-extension-$EIDASV.jar"
+"""
+
+[tasks."keycloak:download-realms"]
+shell = "bash -ec"
+run = """
+set -a; source ./simpl-services.env; set +a;
+OUTD=".config/docker/keycloak/realms"
+rm -v -r "$OUTD/*json" || true
+mkdir -p "$OUTD"
+CH_AUTH="${SIMPL_CHART_AUTHORITY?Missing chart-authority version}"
+CH_CONS="${SIMPL_CHART_CONSUMER?Missing chart-consumer version}"
+curl -o "$OUTD/authority.json" "https://code.europa.eu/simpl/simpl-open/development/iaa/agent-iaa/authority-iaa/-/raw/$CH_AUTH/charts/data/keycloak/authority-with-eidas.json"
+curl -o "$OUTD/onboarding.json" "https://code.europa.eu/simpl/simpl-open/development/iaa/agent-iaa/authority-iaa/-/raw/$CH_AUTH/charts/data/keycloak/onboarding-with-eidas.json"
+curl -o "$OUTD/participant.json" "https://code.europa.eu/simpl/simpl-open/development/iaa/agent-iaa/consumer-iaa/-/raw/$CH_CONS/charts/data/keycloak/participant-with-eidas.json"
+"""
+
+[tasks."keycloak:keycloak-export-realms"]
+shell = "bash -ec"
+run = """
+OUTD=.config/docker/keycloak/export
+rm -v  -r "$OUTD" || true
+mkdir -p "$OUTD"
+mise run keycloak:compose down
+for realm in onboarding authority participant; do
+  docker run --rm \\
+    --name keycloak \\
+    --user 1000:1000 \\
+    -v simpl-keycloak_keycloak_data:/opt/keycloak/data \\
+    -v "$OUTD:/tmp/export" \\
+    --entrypoint /bin/env \\
+    docker.io/keycloak/keycloak:26.4 \\
+    DEBUG=0 ./opt/keycloak/bin/kc.sh export --file /tmp/export/$realm.json --realm $realm --users same_file
+done
+mise run keycloak:compose up -d
+"""
+
+[tasks."keycloak:incremental-realm-generation"]
+shell = "bash -ec"
+run = """
+mise run keycloak:compose down -v
+mise run keycloak:download-realms ::: keycloak:download-providers 
+mise run keycloak:compose up -d
+while ! curl -s localhost:30001; do echo Keycloak not avaiable; sleep 2; done
+mise run keycloak:keycloak-realm-autoconfigure 
+mise run keycloak:keycloak-export-realms 
+"""
+
+[tasks."keycloak:keycloak-realm-autoconfigure"]
+shell = "bash -ec"
+run = """
+KEYCLOAK_HOST=http://localhost:30001 mise run cluster:keycloak-realm-autoconfigure 
+"""
+
 [tasks."simpl-services-fe:up"]
 run = "docker-cli-plugin-docker-compose -p simpl-services-fe --env-file=./simpl-services.env -f .config/docker/simpl-fe/docker-compose.yaml up -d --pull=always"
 
@@ -545,6 +612,7 @@ shell = "bash -ec"
 run = """
 EIDAS_ENABLED="${EIDAS_ENABLED-1}"
 DIR="simpl-repo/backend/misc/tier1-authentication/tools/keycloak-realm-configurator"
+HOST="${KEYCLOAK_HOST-http://localhost:8100/auth}"
 echo "Generate Realm"
 for realm in authority participant onboarding; do
   echo "process realm=[$realm]"
@@ -558,7 +626,7 @@ for realm in authority participant onboarding; do
   echo "Values files: $config"
   until try_n=$(( $try_n + 1 )) && env -C "$DIR" sh ./configure-realm.sh \\
     -CONFIG "$config" \\
-    -URL http://localhost:8100/auth \\
+    -URL "$HOST" \\
     -USER admin \\
     -PASSWORD admin || [[ try_n == 3 ]]; do
     if [[ try_n -ge 3 ]]; then

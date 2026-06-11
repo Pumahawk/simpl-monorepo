@@ -1,0 +1,18 @@
+services:
+  keycloak:
+    image: docker.io/keycloak/keycloak:26.4
+    container_name: keycloak
+    command: start-dev --import-realm
+    user: "1000:1000"
+    ports:
+      - "30001:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./realms:/opt/keycloak/data/import
+      - ./providers:/opt/keycloak/providers
+      - keycloak_data:/opt/keycloak/data
+
+volumes:
+  keycloak_data:
