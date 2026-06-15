@@ -12,6 +12,7 @@ import (
 
 	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/cmd"
 	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/gitlab"
+	"github.com/Pumahawk/simpl-monorepo/simplcli/internal/log"
 )
 
 // Autoheal merge requests given multiple project ids.
@@ -45,6 +46,7 @@ var GitlabAutoHealMergeCmd = cmd.Command[[]GitlabAutoHealMergeCmdModel]{
 				projectName := projectId
 				projectId := prIds.Get(projectId)
 				wg.Go(func() {
+					log.Debug("retrieve merge requests projectName=%q", projectName)
 					search := &gitlab.SearchMergeRequest{
 						TargetBranch: params.TargetBranch,
 						State:        "opened",
@@ -77,6 +79,7 @@ var GitlabAutoHealMergeCmd = cmd.Command[[]GitlabAutoHealMergeCmdModel]{
 				prId := mr.prId
 				prName := mr.prName
 				mrId := strconv.Itoa(mr.r.Iid)
+				log.Debug("find pipeline projectName=%q mergeRequestId=%q", prName, mrId)
 				wg.Go(func() {
 					r, err := gitlabClient.MergeRequest(prId, mrId)
 					if err != nil {
@@ -135,6 +138,7 @@ var GitlabAutoHealMergeCmd = cmd.Command[[]GitlabAutoHealMergeCmdModel]{
 				prId := jb.prId
 				prName := jb.prName
 				jobId := strconv.Itoa(jb.r.Id)
+				log.Debug("find job=%q", jobId)
 				if strings.Contains(jb.r.Name, "fortify") {
 					wg.Go(func() {
 						log, err := gitlabClient.JobLog(prId, jobId)
@@ -148,8 +152,10 @@ var GitlabAutoHealMergeCmd = cmd.Command[[]GitlabAutoHealMergeCmdModel]{
 								words := strings.Split(line, "/")
 								releaseId := words[len(words)-1]
 								fortiFyRefC <- fortiFyRefT{prId, prName, jobId, releaseId}
+								return
 							}
 						}
+						fmt.Fprintf(os.Stderr, "not found fortify message url=%q\n", jb.r.WebUrl)
 					})
 				}
 			}
