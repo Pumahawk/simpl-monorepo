@@ -1,0 +1,41 @@
+redpanda:
+  image: redpandadata/redpanda:latest
+  replicas: 1
+
+  smp: 1
+  memory: "256M"
+  reserveMemory: "0M"
+  nodeId: 0
+  externalAdvertiseHost: "localhost" # external IP/hostname  for clients
+
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Gi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+
+  service:
+    ports:
+      external: 19092   # external port for container 
+      admin: 9644
+      internal: 9092 # internal external port for container
+    nodePorts:
+      kafka: 30092   # NodePort exposed for Kafka
+      admin: 30644   # NodePort exposed for Admin API
+
+console:
+  image: redpandadata/console:latest
+  replicas: 1
+  service:
+    type: NodePort
+    port: 8080
+    nodePort: 30888
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Gi
+    requests:
+      cpu: 100m
+      memory: 100Mi

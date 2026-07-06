@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}
+spec:
+  replicas: {{ .Values.redpanda.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Chart.Name }}
+    spec:
+      containers:
+        - name: redpanda
+          image: {{ .Values.redpanda.image }}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: REDPANDA_OVERPROVISIONED
+              value: "true"
+            - name: REDPANDA_SMP
+              value: {{ .Values.redpanda.smp | quote }}
+            - name: REDPANDA_NODE_ID
+              value: {{ .Values.redpanda.nodeId | quote }}
+            - name: REDPANDA_KAFKA_ADDR
+              value: "internal://0.0.0.0:{{ .Values.redpanda.service.ports.internal }},external://0.0.0.0:{{ .Values.redpanda.service.ports.external }}"
+            - name: REDPANDA_ADVERTISE_KAFKA_ADDR
+              value: "internal://redpanda.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.redpanda.service.ports.internal}},external://{{ .Values.redpanda.externalAdvertiseHost }}:{{ .Values.redpanda.service.nodePorts.kafka }}"
+          ports:
+            - name: kafka-internal
+              containerPort: {{ .Values.redpanda.service.ports.internal }}
+            - name: kafka-external
+              containerPort: {{ .Values.redpanda.service.ports.external }}
+            - name: admin
+              containerPort: {{ .Values.redpanda.service.ports.admin }}
+          resources:
+{{ toYaml .Values.redpanda.resources | indent 12 }}

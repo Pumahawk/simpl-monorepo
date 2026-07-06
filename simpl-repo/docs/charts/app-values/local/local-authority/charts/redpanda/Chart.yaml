@@ -1,0 +1,5 @@
+apiVersion: v2
+name: redpanda
+version: 0.1.0
+appVersion: "latest"
+description: A Helm subchart to deploy Redpanda
