@@ -164,6 +164,85 @@ services:
     healthcheck:
       <<: *default-healthcheck
       test: ["CMD-SHELL", "wget -qO- http://localhost:8201/actuator/health | grep UP"]
+  # static-assets:
+  #   image: python
+  #   ports:
+  #     - "8801:8080"
+  #   networks:
+  #   - simpl-network
+  #   env_file:
+  #     - users-roles/application-local-consumer.env
+  #   depends_on:
+  #     tier1-gateway-consumer:
+  #       condition: service_healthy
+  #   mem_limit: 512m
+  #   healthcheck:
+  #     <<: *default-healthcheck
+  #     test: ["CMD-SHELL", "wget -qO- http://localhost:8201/actuator/health | grep UP"]
+
+  authentication-provider-dataprovider:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/authentication_provider:${SIMPL_SERVICE_AUTHENTICATION_PROVIDER_VERSION}
+    ports:
+      - "8205:8205"
+    networks:
+      - simpl-network
+    env_file:
+      - authentication_provider/application-local-dataprovider.env
+    volumes:
+      - ./authentication_provider/application-local-dataprovider.yaml:/config/application.yaml:ro
+    mem_limit: 512m
+    healthcheck:
+      !!merge <<: *default-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8205/actuator/health | grep UP"]
+
+  tier1-gateway-dataprovider:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier1-gateway:${SIMPL_SERVICE_TIER1_GATEWAY_VERSION}
+    ports:
+      - "8300:8300"
+    networks:
+      - simpl-network
+    env_file:
+      - tier1-gateway/application-local-dataprovider.env
+    mem_limit: 512m
+    healthcheck:
+      !!merge <<: *default-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8300/actuator/health | grep UP"]
+
+  tier2-gateway-dataprovider:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier2-gateway:${SIMPL_SERVICE_TIER2_GATEWAY_VERSION}
+    ports:
+      - "8342:8342"
+      - "8343:8343"
+    networks:
+      simpl-network:
+        aliases:
+          - tier2-gateway-dataprovider.local
+    env_file:
+      - tier2-gateway/application-local-dataprovider.env
+    depends_on:
+      authentication-provider-dataprovider:
+        condition: service_healthy
+    mem_limit: 512m
+    healthcheck:
+      !!merge <<: *default-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8342/actuator/health | grep UP"]
+
+  users-roles-dataprovider:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/users-roles:${SIMPL_SERVICE_USERS_ROLES_VERSION}
+    ports:
+      - "8301:8301"
+    networks:
+      - simpl-network
+    env_file:
+      - users-roles/application-local-dataprovider.env
+    depends_on:
+      tier1-gateway-dataprovider:
+        condition: service_healthy
+    mem_limit: 512m
+    healthcheck:
+      !!merge <<: *default-healthcheck
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8301/actuator/health | grep UP"]
+
 networks:
   simpl-network:
     external: true
