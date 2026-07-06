@@ -20,3 +20,7 @@ dependencies:
     version: 1.0.3
     repository: https://keyfactor.github.io/ejbca-community-helm
     alias: ejbca
+  - name: redpanda
+    version: 5.7.0
+    repository: https://charts.redpanda.com
+

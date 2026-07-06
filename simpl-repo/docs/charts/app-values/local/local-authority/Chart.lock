@@ -14,5 +14,8 @@ dependencies:
 - name: ejbca-community-helm
   repository: https://keyfactor.github.io/ejbca-community-helm
   version: 1.0.3
-digest: sha256:d9b4a11f1ab439cf6e2f3c5409bc53c6fd639016342d9717e19862ffb7324d09
-generated: "2026-01-07T11:02:38.1478984+01:00"
+- name: redpanda
+  repository: https://charts.redpanda.com
+  version: 5.7.0
+digest: sha256:c9a772756eab6f69393897fc8bdc86c4d6fc80d797c500f1c41b067c188ab6f4
+generated: "2026-04-17T12:18:52.98344091+02:00"

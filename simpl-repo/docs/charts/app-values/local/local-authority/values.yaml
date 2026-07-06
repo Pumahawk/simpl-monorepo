@@ -373,3 +373,52 @@ redis:
       limits:
         cpu: 100m
         memory: 128Mi
+
+
+redpanda:
+
+  tls:
+    enabled: false
+
+  statefulset:
+    replicas: 1
+
+  storage:
+    persistentVolume:
+      enabled: false
+
+  resources:
+    cpu:
+      cores: 1
+    memory:
+      container:
+        min: 2Gi
+        max: 2Gi
+
+  listeners:
+    kafka:
+      port: 9092
+
+      external:
+        default:
+          enabled: true
+          port: 9094
+          advertisedPorts:
+            - 30092
+
+  config:
+    cluster:
+      auto_create_topics_enabled: true
+
+  external:
+    enabled: true
+    type: NodePort
+    addresses:
+      - 192.168.49.2
+    service:
+      enabled: true
+      nodePorts:
+        kafka: 30092
+
+  console:
+    enabled: true
