@@ -2,7 +2,7 @@
   <configuration default="false" name="TierOne-Local-Authority" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <option name="ACTIVE_PROFILES" value="local-authority" />
     <module name="tier1-gateway" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="eu.europa.ec.simpl.gateway.tier1.Tier1GatewayApplication" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="eu.europa.ec.simpl.gatewayserver.GatewayServerApplication" />
     <option name="VM_PARAMETERS" value="-Dio.netty.resolver.noPreferNative=true" />
     <extension name="coverage">
       <pattern>

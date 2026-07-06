@@ -18,6 +18,12 @@ postgresql:
       size: 1Gi
     initdb:
       scriptsConfigMap: postgresql-init-configmap
+      scripts:
+        restore-ejbca.sh: | #!/bin/bash set -e
+          echo "Restoring dump into ejbca..."
+          export PGPASSWORD="postgres"
+          #pg_restore -j 1 -U postgres -d authority_ejbca /ejbca-dump/ejbca.sql
+          psql -U postgres -d authority_ejbca -f /ejbca-dump/ejbca.sql
     extraVolumes:
       - name: ejbca-dump
         configMap:
@@ -124,7 +130,7 @@ global:
         anonRole: postgres
 
 ejbca:
-  hostname: &ejbca-hostname localhost
+  hostname: &ejbca-hostname simpl-control-plane
   fullnameOverride: ejbca-community-helm
   serviceAccount:
     name: ejbca-init-sa
@@ -134,9 +140,6 @@ ejbca:
     requests:
       cpu: 250m
       memory: 500Mi
-    limits:
-      cpu: 500m
-      memory: 1Gi
   ejbca:
     useEphemeralH2Database: false
     env:
@@ -167,7 +170,7 @@ ejbca:
     - name: DATABASE_PASSWORD
       value: *ejbca-db-password
     - name: T1_GATEWAY
-      value: localhost:8100 # TODO configure also http instead of https (now manual config is required)
+      value: tier1-gateway-authority:8100 # TODO configure also http instead of https (now manual config is required)
     - name: NAMESPACE
       value: local-authority
     command:
@@ -227,15 +230,13 @@ keycloak:
       value: |-
         {
           "authority": "http://host.docker.internal:8101/tier1/v2",
-          "consumer": "http://host.docker.internal:8201/tier1/v2",
-          "dataprovider": "http://host.docker.internal:8301/tier1/v2"
+          "consumer": "http://host.docker.internal:8201/tier1/v2"
         }
     - name: AUTHENTICATION_PROVIDER_URLS_MAP
       value: |-
         {
           "authority": "http://host.docker.internal:8105/tier1/v2",
-          "consumer": "http://host.docker.internal:8205/tier1/v2",
-          "dataprovider": "http://host.docker.internal:8305/tier1/v2"
+          "consumer": "http://host.docker.internal:8205/tier1/v2"
         }
 
     - name: KEYCLOAK_BASE_URL
@@ -304,14 +305,14 @@ keycloak:
     - name: init-spi
       # Uncomment to allow running local builds of keycloak-authenticator, see /app-values/local/keycloak-authenticator/README.md
       #image: init-spi-local:latest
-      #imagePullPolicy: Never
+      imagePullPolicy: IfNotPresent
       image: curlimages/curl:8.16.0
       command: ["/bin/sh", "-c"]
       env:
         - name: ARTIFACT
           value: keycloak-authenticator
         - name: URL
-          value: https://code.europa.eu/api/v4/projects/915/packages/maven/eu/europa/ec/simpl/keycloak-authenticator/2.7.0-SNAPSHOT.373.a67f4bfb/keycloak-authenticator-2.7.0-SNAPSHOT.373.a67f4bfb.jar
+          value: https://code.europa.eu/api/v4/projects/915/packages/maven/eu/europa/ec/simpl/keycloak-authenticator/2.7.0/keycloak-authenticator-2.7.0.jar
         - name: EIDAS_EXTENSION_ARTIFACT
           value: keycloak-eidas-demo-authenticator
         - name: EIDAS_EXTENSION_URL
@@ -336,6 +337,7 @@ keycloak:
         - name: spi-volume
           mountPath: /custom-spi
     - name: import-realms
+      imagePullPolicy: IfNotPresent
       image: alpine:latest
       command: ["/bin/sh", "-c"]
       env:

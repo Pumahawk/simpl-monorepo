@@ -2,7 +2,7 @@
   <configuration default="false" name="TierTwo-Local-Authority" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <option name="ACTIVE_PROFILES" value="local-authority" />
     <module name="tier2-gateway" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="eu.europa.ec.simpl.gateway.tier2.Tier2GatewayApplication" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="eu.europa.ec.simpl.tlsgateway.TlsGatewayApplication" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
