@@ -10,3 +10,10 @@ data:
     CREATE DATABASE {{ .name }} OWNER {{ .user }};
     {{- end }}
 
+  restore-ejbca.sh: |
+    #!/bin/bash
+    set -e
+    echo "Restoring dump into ejbca..."
+    export PGPASSWORD="postgres"
+    #pg_restore -j 1 -U postgres -d authority_ejbca /ejbca-dump/ejbca.sql
+    psql -U postgres -d authority_ejbca -f /ejbca-dump/ejbca.sql

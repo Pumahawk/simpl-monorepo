@@ -18,12 +18,6 @@ postgresql:
       size: 1Gi
     initdb:
       scriptsConfigMap: postgresql-init-configmap
-      scripts:
-        restore-ejbca.sh: | #!/bin/bash set -e
-          echo "Restoring dump into ejbca..."
-          export PGPASSWORD="postgres"
-          #pg_restore -j 1 -U postgres -d authority_ejbca /ejbca-dump/ejbca.sql
-          psql -U postgres -d authority_ejbca -f /ejbca-dump/ejbca.sql
     extraVolumes:
       - name: ejbca-dump
         configMap:
@@ -81,6 +75,13 @@ global:
         enabled: true
         nodePort: 30201
         anonRole: postgres
+    - name: dataprovider_usersroles
+      user: dataprovider_usersroles
+      password: dataprovider_usersroles
+      postgrest:
+        enabled: true
+        nodePort: 30301
+        anonRole: postgres
     - name: consumer_authenticationprovider
       user: consumer_authenticationprovider
       password: consumer_authenticationprovider
@@ -88,14 +89,42 @@ global:
         enabled: true
         nodePort: 30205
         anonRole: postgres
+    - name: dataprovider_authenticationprovider
+      user: dataprovider_authenticationprovider
+      password: dataprovider_authenticationprovider
+      postgrest:
+        enabled: true
+        nodePort: 30305
+        anonRole: postgres
     - name: keycloak
       user: keycloak
       password: keycloak
       postgrest:
         enabled: false
+    - name: authority_consentmanagement
+      user: authority_consentmanagement
+      password: authority_consentmanagement
+      postgrest:
+        enabled: true
+        nodePort: 30107
+        anonRole: postgres
+    - name: consumer_consentmanagement
+      user: consumer_consentmanagement
+      password: consumer_consentmanagement
+      postgrest:
+        enabled: true
+        nodePort: 30207
+        anonRole: postgres
+    - name: dataprovider_consentmanagement
+      user: dataprovider_consentmanagement
+      password: dataprovider_consentmanagement
+      postgrest:
+        enabled: true
+        nodePort: 30307
+        anonRole: postgres
 
 ejbca:
-  hostname: &ejbca-hostname simpl-control-plane
+  hostname: &ejbca-hostname localhost
   fullnameOverride: ejbca-community-helm
   serviceAccount:
     name: ejbca-init-sa
@@ -105,6 +134,9 @@ ejbca:
     requests:
       cpu: 250m
       memory: 500Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
   ejbca:
     useEphemeralH2Database: false
     env:
@@ -135,7 +167,7 @@ ejbca:
     - name: DATABASE_PASSWORD
       value: *ejbca-db-password
     - name: T1_GATEWAY
-      value: tier1-gateway-authority:8100 # TODO configure also http instead of https (now manual config is required)
+      value: localhost:8100 # TODO configure also http instead of https (now manual config is required)
     - name: NAMESPACE
       value: local-authority
     command:
@@ -195,13 +227,15 @@ keycloak:
       value: |-
         {
           "authority": "http://host.docker.internal:8101/tier1/v2",
-          "consumer": "http://host.docker.internal:8201/tier1/v2"
+          "consumer": "http://host.docker.internal:8201/tier1/v2",
+          "dataprovider": "http://host.docker.internal:8301/tier1/v2"
         }
     - name: AUTHENTICATION_PROVIDER_URLS_MAP
       value: |-
         {
           "authority": "http://host.docker.internal:8105/tier1/v2",
-          "consumer": "http://host.docker.internal:8205/tier1/v2"
+          "consumer": "http://host.docker.internal:8205/tier1/v2",
+          "dataprovider": "http://host.docker.internal:8305/tier1/v2"
         }
 
     - name: KEYCLOAK_BASE_URL
@@ -270,14 +304,14 @@ keycloak:
     - name: init-spi
       # Uncomment to allow running local builds of keycloak-authenticator, see /app-values/local/keycloak-authenticator/README.md
       #image: init-spi-local:latest
-      imagePullPolicy: IfNotPresent
+      #imagePullPolicy: Never
       image: curlimages/curl:8.16.0
       command: ["/bin/sh", "-c"]
       env:
         - name: ARTIFACT
           value: keycloak-authenticator
         - name: URL
-          value: https://code.europa.eu/api/v4/projects/915/packages/maven/eu/europa/ec/simpl/keycloak-authenticator/2.7.0/keycloak-authenticator-2.7.0.jar
+          value: https://code.europa.eu/api/v4/projects/915/packages/maven/eu/europa/ec/simpl/keycloak-authenticator/2.7.0-SNAPSHOT.373.a67f4bfb/keycloak-authenticator-2.7.0-SNAPSHOT.373.a67f4bfb.jar
         - name: EIDAS_EXTENSION_ARTIFACT
           value: keycloak-eidas-demo-authenticator
         - name: EIDAS_EXTENSION_URL
@@ -302,7 +336,6 @@ keycloak:
         - name: spi-volume
           mountPath: /custom-spi
     - name: import-realms
-      imagePullPolicy: IfNotPresent
       image: alpine:latest
       command: ["/bin/sh", "-c"]
       env:
@@ -374,7 +407,6 @@ redis:
         cpu: 100m
         memory: 128Mi
 
-
 redpanda:
 
   tls:
@@ -411,12 +443,9 @@ redpanda:
       auto_create_topics_enabled: true
 
   external:
-    enabled: true
-    type: NodePort
-    addresses:
-      - 192.168.49.2
     service:
       enabled: true
+      type: NodePort
       nodePorts:
         kafka: 30092
 
