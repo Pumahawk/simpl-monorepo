@@ -70,10 +70,6 @@
 	path = simpl-repo/backend/misc/tier2-proxy
 	url = https://code.europa.eu/simpl/simpl-open/development/iaa/tier2-proxy.git
 	branch = develop
-[submodule "simpl-repo/docs/charts"]
-	path = simpl-repo/docs/charts
-	url = https://code.europa.eu/simpl/simpl-open/development/iaa/charts.git
-	branch = develop
 [submodule "simpl-repo/docs/documentation"]
 	path = simpl-repo/docs/documentation
 	url = https://code.europa.eu/simpl/simpl-open/development/iaa/documentation.git
