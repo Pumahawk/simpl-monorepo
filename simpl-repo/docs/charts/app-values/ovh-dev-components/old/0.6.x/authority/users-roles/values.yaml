@@ -1,0 +1,27 @@
+image:
+  tag: 0.6.6
+keycloak:
+  master:
+    user: "user"
+    password: "admin"
+
+global:
+  hostBe: authority.be.dev.simpl-europe.eu
+  hostTls: tls.authority.dev.simpl-europe.eu
+  profile: authority
+  keystore:
+    password: "keystore-generated-password"
+
+db:
+  url: "jdbc:postgresql://postgresql.iaa.svc.cluster.local:5432/usersroles"
+  username: "usersroles"
+  password: "usersroles"
+
+redis:
+  host: "redis-master.iaa.svc.cluster.local"
+  port: "6379"
+  username: "default"
+  password: "admin"
+
+microservices:
+  identityProviderUrl: http://identity-provider.iaa.svc.cluster.local:8080

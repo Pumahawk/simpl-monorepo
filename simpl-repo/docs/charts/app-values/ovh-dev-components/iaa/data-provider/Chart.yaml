@@ -1,0 +1,40 @@
+apiVersion: v2
+name: participant
+version: 2.0.0
+Appversion: 2.0.0
+description: This Chart deploys a SIMPL Participant.
+dependencies:
+  - name: postgresql
+    version: 15.2.5
+    repository: https://charts.bitnami.com/bitnami
+  - name: redis
+    version: 19.6.0
+    repository: https://charts.bitnami.com/bitnami
+  - name: keycloak
+    repository: https://charts.bitnami.com/bitnami
+    version: 25.2.0
+  - name: tier1-gateway
+    repository: https://code.europa.eu/api/v4/projects/772/packages/helm/stable
+    version: 2.8.0-SNAPSHOT.973.a3cb87f9
+  - name: users-roles
+    version: 2.9.0-SNAPSHOT.1900.a5f64c0a
+    repository: https://code.europa.eu/api/v4/projects/771/packages/helm/stable
+  - name: authentication-provider
+    version: 2.9.0-SNAPSHOT.1858.38a2fdac
+    repository: https://code.europa.eu/api/v4/projects/939/packages/helm/stable
+  - name: tier2-gateway
+    repository: https://code.europa.eu/api/v4/projects/860/packages/helm/stable
+    version: 2.8.0-SNAPSHOT.868.16337f7d
+  - name: echo-backend
+    repository: https://code.europa.eu/api/v4/projects/1014/packages/helm/stable
+    version: 2.0.0-SNAPSHOT.115.da467736
+    condition: echo-backend.enabled
+  - name: simpl-cli
+    repository: https://code.europa.eu/api/v4/projects/882/packages/helm/stable
+    version: 2.2.0-SNAPSHOT.508.8953c843
+  - name: fe-authentication-provider
+    repository: https://code.europa.eu/api/v4/projects/1308/packages/helm/stable
+    version: 2.8.3-SNAPSHOT.138.6072d989
+  - name: fe-users-and-roles
+    repository: https://code.europa.eu/api/v4/projects/1310/packages/helm/stable
+    version: 2.9.1-SNAPSHOT.185.57c5feab

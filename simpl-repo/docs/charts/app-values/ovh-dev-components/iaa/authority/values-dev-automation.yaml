@@ -1,0 +1,196 @@
+postgresql:
+  primary:
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 100m
+      limits:
+        memory: 1Gi
+        cpu: 1
+
+users-roles:
+  authorityHostT2: t2.iaa-dsdev-authority.dev.simpl-europe.eu #the authority host tier 2
+
+authentication-provider:
+  appConfig:
+    client:
+      authority:
+        url: https://t2.iaa-dsdev-authority.dev.simpl-europe.eu
+
+  resources:
+    limits:
+      memory: 1Gi
+      cpu: 1
+  vaultConfig:
+    vault:
+      uri : [NOT_SET]
+
+identity-provider:
+  appConfig:
+    spring:
+      profiles:
+        active:
+          - testautomation
+
+onboarding:
+  appConfig:
+    spring:
+      profiles:
+        active:
+          - testautomation
+
+ejbca:
+  hostname: &ejbca-hostname ejbca-community-helm.iaa-dsdev-authority.svc.cluster.local
+  fullnameOverride: ejbca-community-helm
+  serviceAccount:
+    name: ejbca-init-sa
+  image:
+    tag: 8.2.0.1
+  ejbca:
+    useEphemeralH2Database: false
+    env:
+      LOG_LEVEL_APP: DEBUG
+      LOG_LEVEL_SERVER: DEBUG
+      LOG_LEVEL_SERVER_SUBSYSTEMS: DEBUG
+      HTTPSERVER_HOSTNAME: *ejbca-hostname
+      TLS_SETUP_ENABLED: "true"
+      DATABASE_JDBC_URL: jdbc:postgresql://postgresql.iaa-dsdev-authority.svc.cluster.local:5432/ejbca
+      DATABASE_USER: "ejbca"
+      DATABASE_PASSWORD: "ejbca2123"
+    initContainers:
+      - name: ejbca-init
+        image: code.europa.eu:4567/simpl/simpl-open/development/iaa/ejbca-preconfig:1.0.1
+        imagePullPolicy: IfNotPresent
+        securityContext: {}
+        env:
+          - name: HTTPSERVER_HOSTNAME
+            value: *ejbca-hostname
+          - name: MANAGEMENT_END_ENTITY_USERNAME
+            value: SuperAdmin
+          - name: MANAGEMENT_END_ENTITY_PASSWORD
+            value: 123-stella
+          - name: DATABASE_JDBC_URL
+            value: jdbc:postgresql://postgresql.iaa-dsdev-authority.svc.cluster.local:5432/ejbca
+          - name: DATABASE_USER
+            value: "ejbca"
+          - name: DATABASE_PASSWORD
+            value: "ejbca2123"
+          - name: T1_GATEWAY
+            value: t1.iaa-dsdev-authority.dev.simpl-europe.eu
+          - name: NAMESPACE
+            value: iaa-dsdev-authority
+        command:
+          - "./entrypoint.sh"
+
+  nginx:
+    host: *ejbca-hostname
+  # The following allows to not use a NodePort and have multiple istances of EJBCA on the same cluster
+  services:
+    directHttp:
+      type: ClusterIP
+
+simpl-cli:
+  initAuthority:
+    enabled: false
+
+tier1-gateway:
+  appConfig:
+    external-routes:
+      public-urls:
+        - path: /internal/**
+        - path: /postgrest/**
+        - method: GET
+          path: /authApi/v1/agent/ephemeralProof
+        - method: GET
+          path: /authApi/tier1/v2/ephemeralProof
+        - method: GET
+          path: /authApi/tier1/v2/participant
+        - method: GET
+          path: /authApi/tier1/v2/participant/identityAttributes
+        - method: GET
+          path: /authApi/tier1/v2/participants/{participantId}
+        - method: GET
+          path: /authApi/tier1/v2/participants/{participantId}/identityAttributes
+        - method: GET
+          path: /authApi/tier1/v2/credentials/{credentialId}/participant
+        - method: POST
+          path: /identityApi/tier1/v2/participants
+      spring-route-definitions:
+        - id: postgrest-authenticationprovider
+          uri: http://postgrest-authenticationprovider.{{ .Release.Namespace }}.svc.cluster.local:3000
+          predicates:
+            - Path=/postgrest/authenticationprovider/**
+          filters:
+            - StripPrefix=2
+        - id: postgrest-identityprovider
+          uri: http://postgrest-identityprovider.{{ .Release.Namespace }}.svc.cluster.local:3000
+          predicates:
+            - Path=/postgrest/identityprovider/**
+          filters:
+            - StripPrefix=2
+        - id: postgrest-onboarding
+          uri: http://postgrest-onboarding.{{ .Release.Namespace }}.svc.cluster.local:3000
+          predicates:
+            - Path=/postgrest/onboarding/**
+          filters:
+            - StripPrefix=2
+        - id: postgrest-securityattributesprovider
+          uri: http://postgrest-securityattributesprovider.{{ .Release.Namespace }}.svc.cluster.local:3000
+          predicates:
+            - Path=/postgrest/securityattributesprovider/**
+          filters:
+            - StripPrefix=2
+        - id: postgrest-usersroles
+          uri: http://postgrest-usersroles.{{ .Release.Namespace }}.svc.cluster.local:3000
+          predicates:
+            - Path=/postgrest/usersroles/**
+          filters:
+            - StripPrefix=2
+        - id: cleanup-users-with-CLI
+          uri: ${users-roles.url}
+          predicates:
+            - Path=
+              /cli/userApi/v1/users,
+              /cli/userApi/v1/users/*,
+              /cli/userApi/v1/roles,
+              /cli/userApi/v1/roles/*,
+          filters:
+            - StripPrefix=2
+            - name: ClientCredentialsFilterFactory
+              args:
+                cli: cli-role
+        - id: authenticationprovider-internal
+          uri: ${authentication-provider.url}
+          predicates:
+            - Path=/internal/authApi/**
+          filters:
+            - StripPrefix=2
+        - id: identityprovider-internal
+          uri: ${identity-provider.url}
+          predicates:
+            - Path=/internal/identityApi/**
+          filters:
+            - StripPrefix=2
+postgrest:
+  enabled: true
+  databases:
+    - name: authenticationprovider
+      uri: postgres://authenticationprovider:authenticationprovider@postgresql.{{ .Release.Namespace }}.svc.cluster.local:5432/authenticationprovider
+      anonRole: authenticationprovider
+      dbPool: 1
+    - name: identityprovider
+      uri: postgres://identityprovider:identityprovider@postgresql.{{ .Release.Namespace }}.svc.cluster.local:5432/identityprovider
+      anonRole: identityprovider
+      dbPool: 1
+    - name: onboarding
+      uri: postgres://onboarding:onboarding@postgresql.{{ .Release.Namespace }}.svc.cluster.local:5432/onboarding
+      anonRole: onboarding
+      dbPool: 1
+    - name: securityattributesprovider
+      uri: postgres://securityattributesprovider:securityattributesprovider@postgresql.{{ .Release.Namespace }}.svc.cluster.local:5432/securityattributesprovider
+      anonRole: securityattributesprovider
+      dbPool: 1
+    - name: usersroles
+      uri: postgres://usersroles:usersroles@postgresql.{{ .Release.Namespace }}.svc.cluster.local:5432/usersroles
+      anonRole: usersroles
+      dbPool: 1

@@ -1,0 +1,25 @@
+initAuthority:
+  enabled: true # enable the k8s job and the relative configmap
+  hostT1: t1.iaa-authority-12y.dev.simpl-europe.eu
+  csr:
+    cn: t2.iaa-authority-12y.dev.simpl-europe.eu
+    o: aruba
+    ou: aruba-dev
+    country: IT
+  keycloak:
+    app:
+      realm: authority
+      clientId: cli
+      # clientSecret: "****" # if this is provided the master.user and master.password are not required
+    master: # user and password of the admin user of the keycloak instance installed onto the authority
+      user: admin
+      password: admin
+  microservices:
+    usersRolesUrl: https://{{ tpl .Values.initAuthority.hostT1 . }}/cli/userApi/v1/
+    securityAttributesProviderUrl: https://{{ tpl .Values.initAuthority.hostT1 . }}/cli/sapApi/v1/
+    identityProviderUrl: https://{{ tpl .Values.initAuthority.hostT1 . }}/cli/identityApi/v1/
+    authenticationProviderUrl: https://{{ tpl .Values.initAuthority.hostT1 . }}/cli/authApi/v1/
+initParticipant:
+  enabled: false # disable the k8s job and the relative configmap
+
+# helm install simpl-cli simpl-cli-charts/simpl-cli --version 1.2.0 --values ./init-job/values-authority.yaml -n iaa-authority-12y

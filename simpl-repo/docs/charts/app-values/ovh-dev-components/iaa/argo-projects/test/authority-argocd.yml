@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: iaa-dstest-authority
+  namespace: argo-cd
+  labels:
+    owner: iaa
+    scope: development
+spec:
+  project: iaa
+  source:
+    repoURL: https://code.europa.eu/simpl/simpl-open/development/iaa/charts.git
+    targetRevision: feature/iaa-dstest
+    path: app-values/ovh-dev-components/iaa/authority
+    helm:
+      releaseName: iaa-dstest-authority
+      valueFiles:
+        - values.yaml
+        - values-test.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: iaa-dstest-authority
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+  info:
+  - name: Participant Type
+    value: GOVERNANCE AUTHORITY

@@ -1,0 +1,8 @@
+db:
+  url: "jdbc:postgresql://postgresql.iaa.svc.cluster.local:5432/onboarding"
+  username: "onboarding"
+  password: "onboarding"
+
+microservices:
+  identityProviderUrl: http://identity-provider.iaa.svc.cluster.local:8080
+  usersRolesUrl: http://users-roles.iaa.svc.cluster.local:8080

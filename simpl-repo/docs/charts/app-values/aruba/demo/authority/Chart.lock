@@ -1,0 +1,39 @@
+dependencies:
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 19.6.0
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 15.2.5
+- name: keycloak
+  repository: https://charts.bitnami.com/bitnami
+  version: 22.2.5
+- name: ejbca-community-helm
+  repository: https://keyfactor.github.io/ejbca-community-helm
+  version: 1.0.3
+- name: onboarding
+  repository: https://code.europa.eu/api/v4/projects/770/packages/helm/stable
+  version: 1.0.2
+- name: security-attributes-provider
+  repository: https://code.europa.eu/api/v4/projects/861/packages/helm/stable
+  version: 1.0.1
+- name: simpl-cloud-gateway
+  repository: https://code.europa.eu/api/v4/projects/772/packages/helm/stable
+  version: 1.0.1
+- name: users-roles
+  repository: https://code.europa.eu/api/v4/projects/771/packages/helm/stable
+  version: 1.0.1
+- name: identity-provider
+  repository: https://code.europa.eu/api/v4/projects/913/packages/helm/stable
+  version: 1.0.2
+- name: simpl-fe
+  repository: https://code.europa.eu/api/v4/projects/769/packages/helm/stable
+  version: 1.0.3
+- name: authentication-provider
+  repository: https://code.europa.eu/api/v4/projects/939/packages/helm/stable
+  version: 1.0.0
+- name: tls-gateway
+  repository: https://code.europa.eu/api/v4/projects/860/packages/helm/stable
+  version: 1.0.2
+digest: sha256:7aeca9f6a9341101c01c58478954d26898fd416d962f28897c4d76891c882808
+generated: "2025-01-20T10:50:59.021410369+01:00"

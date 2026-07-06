@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: configmap-scripts
+data:
+  import_and_fix.sh: |-
+{{ .Files.Get "scripts/import_and_fix.sh" | indent 4 }}
+
+  rewrite_ids.py: |-
+{{ .Files.Get "scripts/rewrite_ids.py" | indent 4 }}

@@ -1,0 +1,70 @@
+users-roles:
+  authorityHostT2: t2.iaa-dsdev-authority.dev.simpl-europe.eu #the authority host tier 2
+
+authentication-provider:
+  appConfig:
+    client:
+      authority:
+        url: https://t2.iaa-dsdev-authority.dev.simpl-europe.eu
+
+  vaultConfig:
+    vault:
+      uri : [NOT_SET]
+      authentication:
+        roleId: 768c4dd4-293a-8f6f-92b2-7da8b7a93015
+        secretId: ebd8c61c-31ca-5ad1-cd8c-4bf652af2a90
+
+ejbca:
+  hostname: &ejbca-hostname ejbca-community-helm.iaa-dsdev-authority.svc.cluster.local
+  fullnameOverride: ejbca-community-helm
+  serviceAccount:
+    name: ejbca-init-sa
+  image:
+    tag: 8.2.0.1
+  ejbca:
+    useEphemeralH2Database: false
+    env:
+      LOG_LEVEL_APP: DEBUG
+      LOG_LEVEL_SERVER: DEBUG
+      LOG_LEVEL_SERVER_SUBSYSTEMS: DEBUG
+      HTTPSERVER_HOSTNAME: *ejbca-hostname
+      TLS_SETUP_ENABLED: "true"
+      DATABASE_JDBC_URL: jdbc:postgresql://postgresql.iaa-dsdev-authority.svc.cluster.local:5432/ejbca
+      DATABASE_USER: "ejbca"
+      DATABASE_PASSWORD: "ejbca2123"
+    initContainers:
+    - name: ejbca-init
+      image: code.europa.eu:4567/simpl/simpl-open/development/iaa/ejbca-preconfig:1.0.1
+      imagePullPolicy: IfNotPresent
+      securityContext: {}
+      env:
+        - name: HTTPSERVER_HOSTNAME
+          value: *ejbca-hostname
+        - name: MANAGEMENT_END_ENTITY_USERNAME
+          value: SuperAdmin
+        - name: MANAGEMENT_END_ENTITY_PASSWORD
+          value: 123-stella
+        - name: DATABASE_JDBC_URL
+          value: jdbc:postgresql://postgresql.iaa-dsdev-authority.svc.cluster.local:5432/ejbca
+        - name: DATABASE_USER
+          value: "ejbca"
+        - name: DATABASE_PASSWORD
+          value: "ejbca2123"
+        - name: T1_GATEWAY
+          value: t1.iaa-dsdev-authority.dev.simpl-europe.eu
+        - name: NAMESPACE
+          value: iaa-dsdev-authority
+      command:
+      - "./entrypoint.sh"
+
+  nginx:
+    host: *ejbca-hostname
+  # The following allows to not use a NodePort and have multiple istances of EJBCA on the same cluster
+  services:
+    directHttp:
+      type: ClusterIP
+
+simpl-cli:
+  initAuthority:
+    enabled: true
+

@@ -1,0 +1,737 @@
+global:
+  cors:
+    allowOrigin: https://t1.iaa-dsstaging-authority.dev.simpl-europe.eu,https://fe.iaa-dsstaging-authority.dev.simpl-europe.eu,http://localhost:4202,http://localhost:3000
+  hostBe: &t1-gateway t1.iaa-dsstaging-authority.dev.simpl-europe.eu
+  hostTls: t2.iaa-dsstaging-authority.dev.simpl-europe.eu
+  ingress:
+    issuer: dev-prod
+  profile: authority
+  keystore: #TODO ???
+    password: "authority"
+
+redis:
+  architecture: standalone
+  auth:
+    password: "admin"
+  master:
+    revisionHistoryLimit: 2
+    persistence:
+      size: 1Gi
+
+postgresql:
+  architecture: standalone
+  primary:
+    persistence:
+      size: 1Gi
+    initdb:
+      scripts:
+        init.sql: |
+          CREATE USER ejbca WITH PASSWORD 'ejbca2123' CREATEDB;
+          CREATE DATABASE ejbca OWNER ejbca;
+          CREATE USER keycloak WITH PASSWORD 'keycloak' CREATEDB;
+          CREATE DATABASE keycloak OWNER keycloak;
+          CREATE USER securityattributesprovider WITH PASSWORD 'securityattributesprovider' CREATEDB;
+          CREATE DATABASE securityattributesprovider OWNER securityattributesprovider;
+          CREATE USER onboarding WITH PASSWORD 'onboarding' CREATEDB;
+          CREATE DATABASE onboarding OWNER onboarding;
+          CREATE USER usersroles WITH PASSWORD 'usersroles' CREATEDB;
+          CREATE DATABASE usersroles OWNER usersroles;
+          CREATE USER identityprovider WITH PASSWORD 'identityprovider' CREATEDB;
+          CREATE DATABASE identityprovider OWNER identityprovider;
+          CREATE USER authenticationprovider WITH PASSWORD 'authenticationprovider' CREATEDB;
+          CREATE DATABASE authenticationprovider OWNER authenticationprovider;
+
+keycloak:
+  resources:
+    limits:
+      cpu: 750m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  apiUrl: "https://t1.iaa-dsstaging-authority.dev.simpl-europe.eu"
+  extraEnvVars:
+    - name: KC_HOSTNAME_ADMIN
+      value: "https://t1.iaa-dsstaging-authority.dev.simpl-europe.eu/auth"
+    - name: KC_HOSTNAME
+      value: "https://t1.iaa-dsstaging-authority.dev.simpl-europe.eu/auth"
+    - name: USERS_ROLES_BASE_URL
+      value: "http://users-roles.iaa-dsstaging-authority.svc.cluster.local:8080"
+    - name: KEYCLOAK_BASE_URL
+      value: "https://t1.iaa-dsstaging-authority.dev.simpl-europe.eu/auth"
+    - name: REALM
+      value: "authority"
+    - name: KEYCLOAK_EXTRA_ARGS
+      value: --import-realm
+  auth:
+    adminUser: "admin"
+    adminPassword: "admin"
+  postgresql:
+    enabled: false
+  externalDatabase:
+    annotations: {}
+    database: keycloak
+    existingSecret: ""
+    existingSecretDatabaseKey: ""
+    existingSecretHostKey: ""
+    existingSecretPasswordKey: ""
+    existingSecretPortKey: ""
+    existingSecretUserKey: ""
+    host: "iaa-dsstaging-authority-postgresql.iaa-dsstaging-authority.svc.cluster.local"
+    password: keycloak
+    port: 5432
+    user: keycloak
+  extraVolumes:
+    - name: spi-volume
+      emptyDir: {}
+    - name: realm-volume
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: spi-volume
+      mountPath: /opt/bitnami/keycloak/providers/keycloak-authenticator.jar
+      subPath: keycloak-authenticator.jar
+    - name: realm-volume
+      mountPath: /opt/bitnami/keycloak/data/import/realm.json
+      subPath: realm.json
+  initContainers:
+    - name: init-spi
+      image: curlimages/curl
+      command: ["/bin/sh", "-c"]
+      env:
+        - name: ARTIFACT
+          value: keycloak-authenticator
+        - name: URL
+          value: https://code.europa.eu/api/v4/projects/915/packages/maven/com/aruba/simpl/keycloak-authenticator/1.0.0/keycloak-authenticator-1.0.0.jar
+      args:
+        - |
+          curl -o /custom-spi/${ARTIFACT}.jar ${URL};
+      volumeMounts:
+        - name: spi-volume
+          mountPath: /custom-spi
+    - name: import-realm
+      image: curlimages/curl
+      command: ["/bin/sh", "-c"]
+      env:
+        - name: REALM_NAME
+          value: realm
+        - name: URL
+          # uncomment below if you are deploying an authority
+          value: https://code.europa.eu/simpl/simpl-open/development/iaa/charts/-/raw/develop/samples/keycloak-realms/1.0.0/authority-realm-export.json?ref_type=heads
+          # uncomment below if you are deploying a participant
+          # value: https://code.europa.eu/simpl/simpl-open/development/iaa/charts/-/raw/develop/samples/keycloak-realms/0.8.0/participant-realm-export.json?ref_type=heads
+      args:
+        - |
+          curl -o /config/${REALM_NAME}.json ${URL};
+      volumeMounts:
+        - name: realm-volume
+          mountPath: /config
+
+ejbca:
+  hostname: &ejbca-hostname ejbca-community-helm.iaa-dsstaging-authority.svc.cluster.local
+  fullnameOverride: ejbca-community-helm
+  serviceAccount:
+    name: ejbca-init-sa
+  image:
+    tag: 8.2.0.1
+  ejbca:
+    useEphemeralH2Database: false
+    env:
+      LOG_LEVEL_APP: DEBUG
+      LOG_LEVEL_SERVER: DEBUG
+      LOG_LEVEL_SERVER_SUBSYSTEMS: DEBUG
+      HTTPSERVER_HOSTNAME: *ejbca-hostname
+      TLS_SETUP_ENABLED: "true"
+      DATABASE_JDBC_URL: jdbc:postgresql://iaa-dsstaging-authority-postgresql.iaa-dsstaging-authority.svc.cluster.local:5432/ejbca
+      DATABASE_USER: "ejbca"
+      DATABASE_PASSWORD: "ejbca2123"
+    initContainers:
+    - name: ejbca-init
+      image: wouldgo/ejbca-preconfig:1.0.1-8.2.0.1
+      imagePullPolicy: IfNotPresent
+      securityContext: {}
+      env:
+        - name: HTTPSERVER_HOSTNAME
+          value: *ejbca-hostname
+        - name: MANAGEMENT_END_ENTITY_USERNAME
+          value: SuperAdmin
+        - name: MANAGEMENT_END_ENTITY_PASSWORD
+          value: 123-stella
+        - name: DATABASE_JDBC_URL
+          value: jdbc:postgresql://iaa-dsstaging-authority-postgresql.iaa-dsstaging-authority.svc.cluster.local:5432/ejbca
+        - name: DATABASE_USER
+          value: "ejbca"
+        - name: DATABASE_PASSWORD
+          value: "ejbca2123"
+        - name: T1_GATEWAY
+          value: *t1-gateway
+        - name: NAMESPACE
+          value: iaa-dsstaging-authority
+      command:
+      - "./entrypoint.sh"
+
+  nginx:
+    host: *ejbca-hostname
+  # The following allows to not use a NodePort and have multiple istances of EJBCA on the same cluster
+  services:
+    directHttp:
+      type: ClusterIP
+
+onboarding:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  db:
+    url: "jdbc:postgresql://iaa-dsstaging-authority-postgresql.iaa-dsstaging-authority.svc.cluster.local:5432/onboarding"
+    username: "onboarding"
+    password: "onboarding"
+  microservices:
+    identityProviderUrl: http://identity-provider.iaa-dsstaging-authority.svc.cluster.local:8080
+    usersRolesUrl: http://users-roles.iaa-dsstaging-authority.svc.cluster.local:8080
+
+security-attributes-provider:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  db:
+    url: "jdbc:postgresql://iaa-dsstaging-authority-postgresql.iaa-dsstaging-authority.svc.cluster.local:5432/securityattributesprovider"
+    username: "securityattributesprovider"
+    password: "securityattributesprovider"
+  microservices:
+    identityProviderUrl: http://identity-provider.iaa-dsstaging-authority.svc.cluster.local:8080
+    onboardingUrl: http://onboarding.iaa-dsstaging-authority.svc.cluster.local:8080
+  databaseSeeding:
+    securityAttributeProviderMapping:
+      enabled: true # if you want start with an empty identity attributes table, turn off
+      #filePath: "file:/app/config/identityAttributes.default.json" # if you want to specify your custom attributes, put here your json file path
+
+simpl-cloud-gateway:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  ejbcaUrl: http://ejbca-community-helm.iaa-dsstaging-authority.svc.cluster.local:30080 # comment this line if profile is `participant`
+  identityProviderUrl: http://identity-provider.iaa-dsstaging-authority.svc.cluster.local:8080 # comment this line if profile is `participant`
+  keycloakUrl: http://iaa-dsstaging-authority-keycloak.iaa-dsstaging-authority.svc.cluster.local
+  onboardingUrl: http://onboarding.iaa-dsstaging-authority.svc.cluster.local:8080 # comment this line if profile is `participant`
+  securityAttributesProviderUrl: http://security-attributes-provider.iaa-dsstaging-authority.svc.cluster.local:8080 # comment this line if profile is `participant`
+  usersRolesUrl: http://users-roles.iaa-dsstaging-authority.svc.cluster.local:8080
+  authenticationProviderUrl: http://authentication-provider.iaa-dsstaging-authority.svc.cluster.local:8080
+  # Spring Cloud Gateway Routes Authority
+  appConfig:
+    spring:
+      cloud:
+        gateway:
+          routes:
+            - id: keycloak
+              uri: ${keycloak.url}
+              predicates:
+                - Path=/auth/**
+              filters:
+                - StripPrefix=1
+            - id: users-roles
+              uri: ${users-roles.url}
+              predicates:
+                - Path=/user-api/**
+              filters:
+                - StripPrefix=1
+            - id: onboarding
+              uri: ${onboarding.url}
+              predicates:
+                - Path=/onboarding-api/**
+              filters:
+                - StripPrefix=1
+            - id: sap
+              uri: ${sap.url}
+              predicates:
+                - Path=/sap-api/**
+              filters:
+                - StripPrefix=1
+            - id: identity-provider
+              uri: ${identity-provider.url}
+              predicates:
+                - Path=/identity-api/**
+              filters:
+                - StripPrefix=1
+            - id: authentication-provider
+              uri: ${authentication-provider.url}
+              predicates:
+                - Path=/auth-api/**
+              filters:
+                - StripPrefix=1
+            - id: ocsp
+              uri: ${ejbca.url}
+              predicates:
+                - Path=/ocsp
+              filters:
+                - RewritePath=/ocsp/*, /ejbca/publicweb/status/ocsp
+            - id: ca-certificates
+              uri: ${ejbca.url}
+              predicates:
+                - Path=/ca/*
+              filters:
+                - RewritePath=/ca/?(?<segment>.*), /ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3D$\{segment}
+            - id: crl
+              uri: ${ejbca.url}
+              predicates:
+                - Path=/crl/*
+              filters:
+                - RewritePath=/crl/?(?<segment>.*), /ejbca/publicweb/webdist/certdist?cmd=crl&issuer=CN%3D$\{segment}
+            # Cli configurations
+            - id: cli-authentication-provider
+              uri: ${authentication-provider.url}
+              predicates:
+                - Path=/cli/auth-api/csr/generate,/cli/auth-api/keypair/generate,/cli/auth-api/keypair
+              filters:
+                - StripPrefix=2
+                - name: ClientCredentialsFilter
+                  args:
+                    #clientid: requiredRole1,requiredRole2
+                    cli: cli-role
+
+            - id: cli-identity-provider
+              uri: ${identity-provider.url}
+              predicates:
+                - Path=/cli/identity-api/csr/store/*,/cli/identity-api/participant/from-cli,/cli/identity-api/certificate/*
+              filters:
+                - StripPrefix=2
+                - name: ClientCredentialsFilter
+                  args:
+                    #clientid: requiredRole1,requiredRole2
+                    cli: cli-role
+
+            - id: cli-security-attributes-provider
+              uri: ${sap.url}
+              predicates:
+                - Path=/cli/sap-api/identity-attribute/import,/cli/sap-api/identity-attribute/add-participant-type/*
+              filters:
+                - StripPrefix=2
+                - name: ClientCredentialsFilter
+                  args:
+                    #clientid: requiredRole1,requiredRole2
+                    cli: cli-role
+
+            - id: cli-users-and-roles
+              uri: ${users-roles.url}
+              predicates:
+                - Path=/cli/user-api/user/import,/cli/user-api/role/import,/cli/user-api/role/*/identity-attributes,/cli/user-api/credential,/cli/user-api/agent/ping
+              filters:
+                - StripPrefix=2
+                - name: ClientCredentialsFilter
+                  args:
+                    #clientid: requiredRole1,requiredRole2
+                    cli: cli-role
+    springdoc:
+      swagger-ui:
+        urls:
+          - url: /sap-api/v3/api-docs
+            name: Security Attributes Provider Service
+          - url: /onboarding-api/v3/api-docs
+            name: Onboarding Service
+          - url: /user-api/v3/api-docs
+            name: Users & Roles Service
+          - url: /identity-api/v3/api-docs
+            name: Identity Provider Service
+          - url: /auth-api/v3/api-docs
+            name: Authentication Provider Service
+    routes:
+      public-urls:
+        - method: GET
+          path: "/swagger-ui.html"
+        - method: GET
+          path: "/swagger-ui/**"
+        - method: GET
+          path: "/v3/api-docs/**"
+        - method: GET
+          path: "/actuator/**"
+
+        - method: POST
+          path: "/ocsp"
+        - method: GET
+          path: "/ca/**"
+        - method: GET
+          path: "/crl/**"
+
+        - method: GET
+          path: "/user-api/credential/public-key" #TODO remove this
+
+        - method: POST
+          path: "/onboarding-api/onboarding-request"
+        - method: GET
+          path: "/onboarding-api/participant-type"
+
+      denied-urls:
+        - method: GET
+          path: "/auth-api/keypair"
+
+      rbac:
+          ### ONBOARDING
+        - path: "/onboarding-api/onboarding-request/*/status"
+          roles:
+            - NOTARY
+        - path: "/onboarding-api/onboarding-request/*/document"
+          method: POST
+          roles:
+            - NOTARY
+        - path: "/onboarding-api/participant-type/*"
+          roles:
+            - T2IAA_M
+        - path: "/onboarding-api/onboarding-status/*"
+          roles:
+            - T2IAA_M
+        - path: "/onboarding-api/onboarding-template/*"
+          roles:
+            - T2IAA_M
+        - path: "/onboarding-api/mime-type/*"
+          roles:
+            - T2IAA_M
+        - path: "/onboarding-api/onboarding-request"
+          method: GET
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/onboarding-api/onboarding-request"
+          method: PATCH
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/onboarding-api/onboarding-request/*"
+          method: GET
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/onboarding-api/onboarding-request/*/id-document"
+          method: PATCH
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/onboarding-api/onboarding-request/*/document/*"
+          method: GET
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/onboarding-api/onboarding-request/*/expiration-timeframe"
+          method: PATCH
+          roles:
+            - NOTARY
+          ###
+        - path: "/identity-api/participant/*"
+          method: PUT
+          roles:
+            - NOTARY
+        - method: POST
+          path: "/identity-api/csr/*"
+          roles:
+            - APPLICANT
+        - path: "/user-api/agent/identity-attributes"
+          method: GET
+          roles:
+            - T1UAR_M
+        - path: "/user-api/agent/identity-attributes/*"
+          method: GET
+          roles:
+            - T1UAR_M
+        - path: "/user-api/identity-attribute/search"
+          method: GET
+          roles:
+            - T1UAR_M
+            - NOTARY
+        - path: "/user-api/role/*"
+          method: GET
+          roles:
+            - T1UAR_M
+        - path: "/user-api/role"
+          method: PUT
+          roles:
+            - T1UAR_M
+        - path: "/user-api/role/*/identity-attributes"
+          method: POST
+          roles:
+            - T1UAR_M
+        - path: "/user-api/role/delete-attribute"
+          method: DELETE
+          roles:
+            - T1UAR_M
+        - path: "/user-api/role/*"
+          method: DELETE
+          roles:
+            - T1UAR_M
+        - path: "/user-api/role/search"
+          method: GET
+          roles:
+            - T1UAR_M
+        - path: "/user-api/role/*/duplicate-identity-attribute"
+          method: POST
+          roles:
+            - T1UAR_M
+        - path: "/user-api/user/*"
+          method: POST
+          roles:
+            - T1UAR_M
+        - path: "/user-api/user/**"
+          method: GET
+          roles:
+            - T1UAR_M
+        - path: "/user-api/user/**"
+          method: PUT
+          roles:
+            - T1UAR_M
+        - path: "/user-api/user/*"
+          method: DELETE
+          roles:
+            - T1UAR_M
+        - path: "/sap-api/identity-attribute"
+          method: POST
+          roles:
+            - IATTR_M
+        - path: "/sap-api/identity-attribute/*"
+          method: GET
+          roles:
+            - IATTR_M
+            - NOTARY
+        - path: "/sap-api/identity-attribute/*"
+          method: PUT
+          roles:
+            - IATTR_M
+        - path: "/sap-api/identity-attribute/*"
+          method: DELETE
+          roles:
+            - IATTR_M
+        - path: "/sap-api/identity-attribute/assignable/*"
+          method: PUT
+          roles:
+            - IATTR_M
+        - path: "/sap-api/identity-attribute/add-participant-type/*"
+          method: PUT
+          roles:
+            - IATTR_M
+        - path: "/sap-api/identity-attribute/unassign-participant/*"
+          method: DELETE
+          roles:
+            - NOTARY
+            - IATTR_M
+        - path: "/sap-api/identity-attribute/assign-participant/*"
+          method: PUT
+          roles:
+            - NOTARY
+            - IATTR_M
+        - path: "/sap-api/identity-attribute/assign/*/*"
+          method: PUT
+          roles:
+            - NOTARY
+        - path: "/auth-api/keypair"
+          method: HEAD
+          roles:
+            - ONBOARDER_M
+
+users-roles:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  db:
+    url: "jdbc:postgresql://iaa-dsstaging-authority-postgresql.iaa-dsstaging-authority.svc.cluster.local:5432/usersroles"
+    username: "usersroles"
+    password: "usersroles"
+  redis:
+    host: "iaa-dsstaging-authority-redis-master.iaa-dsstaging-authority.svc.cluster.local"
+    port: "6379"
+    username: "default"
+    password: "admin"
+  keycloak:
+    master:
+      user: "admin"
+      password: "admin"
+    # clientToRealmRoleMigration:
+    #   enabled: true # set to true to import realm roles from client roles
+    #   clientIds: client-1,client-2 # clients from which you want to copy the roles, separated by comma.
+  microservices:
+    identityProviderUrl: http://identity-provider.iaa-dsstaging-authority.svc.cluster.local:8080
+    authenticationProviderUrl: http://authentication-provider.iaa-dsstaging-authority.svc.cluster.local:8080
+  databaseSeeding:
+    roleIdentityAttributesMapping:
+      enabled: true # if you want start with an empty identity attributes table, turn off
+      # uncomment below if you want to specify your custom attributes, your json file path must start with 'file:'
+      # if enabled=true and filePath is commented or empty the table will be initialized with the default seeding file.
+      # You can find the default seeding file roleAttributes.default.json in samples/db-seeding/user-roles/0.8.x/
+      #filePath: #file:/app/config/roleAttributes.json
+
+identity-provider:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  hostT2: "t2.iaa-dsstaging-authority.dev.simpl-europe.eu" # TODO duplicate from row 6???
+  db:
+    url: "jdbc:postgresql://iaa-dsstaging-authority-postgresql.iaa-dsstaging-authority.svc.cluster.local:5432/identityprovider"
+    username: "identityprovider"
+    password: "identityprovider"
+  redis:
+    host: "iaa-dsstaging-authority-redis-master.iaa-dsstaging-authority.svc.cluster.local"
+    port: "6379"
+    username: "default"
+    password: "admin"
+  ephemeralProof:
+    expireAfter: "1m"
+  microservices:
+    usersRolesUrl: http://users-roles.iaa-dsstaging-authority.svc.cluster.local:8080
+    securityAttributesProviderUrl: http://security-attributes-provider.iaa-dsstaging-authority.svc.cluster.local:8080
+    onboardingUrl: http://onboarding.iaa-dsstaging-authority.svc.cluster.local:8080
+    authenticationProviderUrl: http://authentication-provider.iaa-dsstaging-authority.svc.cluster.local:8080
+  ejbca:
+    keystore:
+      password: "123-stella"
+    truststore:
+      password: "changeit"
+    enrollConfig:
+      url: "https://ejbca-community-helm.iaa-dsstaging-authority.svc.cluster.local:30443"
+      profileName: "Onboarding TLS Profile"
+      endEntityName: "Onboarding End Entity"
+      caName: "OnBoardingCA"
+
+simpl-fe:
+  resources:
+    limits:
+      cpu: 250m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 50Mi
+  hostFe: fe.iaa-dsstaging-authority.dev.simpl-europe.eu # TODO Why here instead of up?
+  cors: # TODO duplicate?
+    allowOrigin: https://t1.iaa-dsstaging-authority.dev.simpl-europe.eu,https://fe.iaa-dsstaging-authority.dev.simpl-europe.eu,http://localhost:4202,http://localhost:4203,http://localhost:3000
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "https://t1.iaa-dsstaging-authority.dev.simpl-europe.eu"
+  - name: KEYCLOAK_URL
+    value: "https://t1.iaa-dsstaging-authority.dev.simpl-europe.eu/auth"
+  - name: KEYCLOAK_REALM
+    value: "authority"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+
+  microfrontends:
+  - name: sap
+    application: sap
+    path: "/sap"
+  - name: onboarding
+    application: onboarding
+    path: "/onboarding"
+  - name: usersroles
+    application: usersandroles
+    path: "/users-roles"
+
+authentication-provider:
+  fullnameOverride: authn-provider
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  db:
+    url: "jdbc:postgresql://iaa-dsstaging-authority-postgresql.iaa-dsstaging-authority.svc.cluster.local:5432/authenticationprovider"
+    username: "authenticationprovider"
+    password: "authenticationprovider"
+    cipherSecret: "authenticationprovider-db-cipher-secret"
+  redis:
+    host: "iaa-dsstaging-authority-redis-master.iaa-dsstaging-authority.svc.cluster.local"
+    port: "6379"
+    username: "default"
+    password: "admin"
+  keypair:
+    signatureAlgorithm: "SHA256withECDSA"
+    algorithm: "ECDSA"
+    keyLength: 256
+  microservices:
+    usersRolesUrl: http://users-roles.iaa-dsstaging-authority.svc.cluster.local:8080
+  simpl:
+    certificate:
+      san: t2.iaa-dsstaging-authority.dev.simpl-europe.eu
+
+tls-gateway:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  service:
+    type: LoadBalancer
+  useDeamonSet: false
+
+  keypair:
+    algorithm: EC
+
+  microservices:
+    usersRolesUrl: http://users-roles.iaa-dsstaging-authority.svc.cluster.local:8080
+    keycloakUrl: http://iaa-dsstaging-authority-keycloak.iaa-dsstaging-authority.svc.cluster.local
+    securityAttributesProviderUrl: http://security-attributes-provider.iaa-dsstaging-authority.svc.cluster.local:8080
+    identityProviderUrl: http://identity-provider.iaa-dsstaging-authority.svc.cluster.local:8080
+    authenticationProviderUrl: http://authentication-provider.iaa-dsstaging-authority.svc.cluster.local:8080
+
+  redis:
+    host: "iaa-dsstaging-authority-redis-master.iaa-dsstaging-authority.svc.cluster.local"
+    port: "6379"
+    username: "default"
+    password: "admin"
+
+  hostT2: "t2.iaa-dsstaging-authority.dev.simpl-europe.eu"
+  appConfig:
+    spring:
+      cloud:
+        gateway:
+          routes:
+          - id: sap
+            uri: ${sap.url}
+            predicates:
+              - Path=/sap-api/mtls/**
+            filters:
+              - StripPrefix=1
+          - id: identity-provider
+            uri: ${identity-provider.url}
+            predicates:
+              - Path=/identity-api/mtls/**
+            filters:
+              - StripPrefix=1
+          - id: users-roles
+            uri: ${users-roles.url}
+            predicates:
+              - Path=/user-api/mtls/**
+            filters:
+              - StripPrefix=1
+    routes:
+      public-urls:
+        - method: GET
+          path: "/actuator/**"
+
+      abac:
+        - method: PATCH
+          path: "/identity-api/mtls/public-key"
+          disable-ephemeral-proof-check: true
+        - method: POST
+          path: "/identity-api/mtls/token"
+          disable-ephemeral-proof-check: true
+        - method: POST
+          path: "/user-api/mtls/ephemeral-proof"
+          disable-ephemeral-proof-check: true

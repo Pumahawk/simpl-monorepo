@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: iaa-dsdev-consumer
+  namespace: argo-cd
+  labels:
+    owner: iaa
+    scope: development
+spec:
+  project: iaa
+  source:
+    repoURL: https://code.europa.eu/simpl/simpl-open/development/iaa/charts.git
+    targetRevision: feature/iaa-dsdev
+    path: app-values/ovh-dev-components/iaa/consumer
+    helm:
+      releaseName: iaa-dsdev-consumer
+      valueFiles:
+        - values.yaml
+        - values-dev.yaml
+        - values-dev-automation.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: iaa-dsdev-consumer
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+  info:
+  - name: Participant Type
+    value: CONSUMER

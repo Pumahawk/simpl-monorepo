@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Consumer" type="CompoundRunConfigurationType">
+    <toRun name="AuthenticationProvider-Local-Consumer" type="SpringBootApplicationConfigurationType" />
+    <toRun name="TierOne-Local-Consumer" type="SpringBootApplicationConfigurationType" />
+    <toRun name="TierTwo-Local-Consumer" type="SpringBootApplicationConfigurationType" />
+    <toRun name="UsersRoles-Local-Consumer" type="SpringBootApplicationConfigurationType" />
+    <method v="2" />
+  </configuration>
+</component>

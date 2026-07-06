@@ -1,0 +1,1040 @@
+
+# global:
+#   cors:
+#     allowOrigin: https://t1.iaa-authority-tmp.dev.simpl-europe.eu,https://fe.iaa-authority-tmp.dev.simpl-europe.eu,http://localhost:4202,http://localhost:3000
+#   hostBe: t1.iaa-authority-tmp.dev.simpl-europe.eu
+#   hostTls: t2.iaa-authority-tmp.dev.simpl-europe.eu
+#   ingress:
+#     issuer: dev-prod-dns01
+#   profile: authority
+#   keystore:
+#     password: "authority"
+
+redis:
+  fullnameOverride: redis
+  replica:
+    replicaCount: 0
+    persistence:
+      size: 1Gi
+  master:
+    persistence:
+      size: 1Gi
+  auth:
+    password: "admin"
+
+postgresql:
+  fullnameOverride: postgresql
+  primary:
+    initdb:
+      scripts:
+        init.sql: |
+          CREATE USER ejbca WITH PASSWORD 'ejbca2123' CREATEDB;
+          CREATE DATABASE ejbca OWNER ejbca;
+          CREATE USER keycloak WITH PASSWORD 'keycloak' CREATEDB;
+          CREATE DATABASE keycloak OWNER keycloak;
+          CREATE USER securityattributesprovider WITH PASSWORD 'securityattributesprovider' CREATEDB;
+          CREATE DATABASE securityattributesprovider OWNER securityattributesprovider;
+          CREATE USER onboarding WITH PASSWORD 'onboarding' CREATEDB;
+          CREATE DATABASE onboarding OWNER onboarding;
+          CREATE USER usersroles WITH PASSWORD 'usersroles' CREATEDB;
+          CREATE DATABASE usersroles OWNER usersroles;
+          CREATE USER identityprovider WITH PASSWORD 'identityprovider' CREATEDB;
+          CREATE DATABASE identityprovider OWNER identityprovider;
+          CREATE USER authenticationprovider WITH PASSWORD 'authenticationprovider' CREATEDB;
+          CREATE DATABASE authenticationprovider OWNER authenticationprovider;
+ejbca:
+  hostname: &ejbca-hostname ejbca-community-helm.iaa-authority-tmp.svc.cluster.local
+  fullnameOverride: ejbca-community-helm
+  # I used as Authentication Code for cryptotokens "enter" 
+  serviceAccount:
+    name: ejbca-init-sa # see templates/secret-manager-role.yaml
+  image:
+    tag: 8.2.0.1
+  ejbca:
+    useEphemeralH2Database: false
+    env:
+      HTTPSERVER_HOSTNAME: *ejbca-hostname # update namespace
+      TLS_SETUP_ENABLED: "true"
+      DATABASE_JDBC_URL: &ejbca-db-url jdbc:postgresql://postgresql.iaa-authority-tmp.svc.cluster.local:5432/ejbca # update namespace
+      DATABASE_USER: &ejbca-db-user ejbca
+      DATABASE_PASSWORD: &ejbca-db-password ejbca2123
+
+    initContainers:
+    - name: ejbca-init
+      image: code.europa.eu:4567/simpl/simpl-open/development/iaa/ejbca-preconfig:1.0.0
+      imagePullPolicy: IfNotPresent
+      securityContext: {}
+      env:
+      - name: HTTPSERVER_HOSTNAME
+        value: *ejbca-hostname
+      - name: MANAGEMENT_END_ENTITY_USERNAME
+        value: SuperAdmin
+      - name: MANAGEMENT_END_ENTITY_PASSWORD
+        value: password # update password
+      - name: DATABASE_JDBC_URL
+        value: *ejbca-db-url
+      - name: DATABASE_USER
+        value: *ejbca-db-user
+      - name: DATABASE_PASSWORD
+        value: *ejbca-db-password
+      - name: T1_GATEWAY
+        value: t1.iaa-authority-tmp.dev.simpl-europe.eu # update namespace
+      - name: NAMESPACE
+        value: iaa-authority-tmp # update namespace
+      command:
+      - "./entrypoint.sh"
+
+  nginx:
+    host: *ejbca-hostname
+
+  # The following allows to not use a NodePort and have multiple istances of EJBCA on the same cluster 
+  services:
+    directHttp:
+      type: ClusterIP
+
+### Keycloak Config
+keycloak:
+  resources:
+    limits:
+      cpu: 750m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  fullnameOverride: keycloak
+  apiUrl: "https://t1.iaa-authority-tmp.dev.simpl-europe.eu" # update
+  extraEnvVars: 
+    - name: KC_HOSTNAME_ADMIN
+      value: "https://t1.iaa-authority-tmp.dev.simpl-europe.eu/auth" # update
+    - name: KC_HOSTNAME
+      value: "https://t1.iaa-authority-tmp.dev.simpl-europe.eu/auth" # update
+    - name: USERS_ROLES_BASE_URL
+      value: "http://users-roles.iaa-authority-tmp.svc.cluster.local:8080" # update
+    - name: KEYCLOAK_BASE_URL
+      value: "https://t1.iaa-authority-tmp.dev.simpl-europe.eu/auth" # update
+    - name: REALM
+      value: "authority" # update
+    - name: KEYCLOAK_EXTRA_ARGS
+      value: --import-realm
+
+  auth:
+    adminUser: "admin" # update
+    adminPassword: "admin" # update
+
+  postgresql:
+    enabled: false
+
+  externalDatabase:
+    annotations: {}
+    database: keycloak
+    existingSecret: ""
+    existingSecretDatabaseKey: ""
+    existingSecretHostKey: ""
+    existingSecretPasswordKey: ""
+    existingSecretPortKey: ""
+    existingSecretUserKey: ""
+    host: "postgresql.iaa-authority-tmp.svc.cluster.local" # update
+    password: keycloak
+    port: 5432
+    user: keycloak
+
+  extraVolumes:
+    - name: spi-volume
+      emptyDir: {}
+    - name: realm-volume
+      emptyDir: {}
+
+  extraVolumeMounts:
+    - name: spi-volume
+      mountPath: /opt/bitnami/keycloak/providers/keycloak-authenticator.jar
+      subPath: keycloak-authenticator.jar
+    - name: realm-volume
+      mountPath: /opt/bitnami/keycloak/data/import/realm.json
+      subPath: realm.json
+
+  initContainers: 
+    - name: init-spi
+      image: curlimages/curl
+      command: ["/bin/sh", "-c"]
+      env:
+        - name: ARTIFACT
+          value: keycloak-authenticator
+        - name: URL
+          value: https://code.europa.eu/api/v4/projects/915/packages/maven/com/aruba/simpl/keycloak-authenticator/1.0.0/keycloak-authenticator-1.0.0.jar
+      args:
+        - |
+          curl -o /custom-spi/${ARTIFACT}.jar ${URL};
+      volumeMounts:
+        - name: spi-volume
+          mountPath: /custom-spi
+
+    - name: import-realm
+      image: curlimages/curl
+      command: ["/bin/sh", "-c"]
+      env:
+        - name: REALM_NAME
+          value: realm
+        - name: URL
+          # uncomment below if you are deploying an authority
+          value: https://code.europa.eu/simpl/simpl-open/development/iaa/charts/-/raw/develop/samples/keycloak-realms/1.0.0/authority-realm-export.json?ref_type=heads
+          # uncomment below if you are deploying a participant
+          # value: https://code.europa.eu/simpl/simpl-open/development/iaa/charts/-/raw/develop/samples/keycloak-realms/0.8.0/participant-realm-export.json?ref_type=heads&inline=false
+      args:
+        - |
+          curl -o /config/${REALM_NAME}.json ${URL};
+      volumeMounts:
+        - name: realm-volume
+          mountPath: /config
+
+tier1-gateway:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  hostT1: t1.iaa-authority-tmp.dev.simpl-europe.eu #your t1 host
+  profile: authority
+  ingress:
+    issuer: dev-prod-dns01
+  cors: 
+    allowOrigin: https://t1.iaa-authority-tmp.dev.simpl-europe.eu,https://fe.iaa-authority-tmp.dev.simpl-europe.eu,http://localhost:4202,http://localhost:4203,http://localhost:3000
+  ejbcaUrl: http://ejbca-community-helm.iaa-authority-tmp.svc.cluster.local:30080 # comment this line if profile is `participant`
+  identityProviderUrl: http://identity-provider.iaa-authority-tmp.svc.cluster.local:8080 # comment this line if profile is `participant`
+  keycloakUrl: http://keycloak.iaa-authority-tmp.svc.cluster.local
+  onboardingUrl: http://onboarding.iaa-authority-tmp.svc.cluster.local:8080 # comment this line if profile is `participant`
+  securityAttributesProviderUrl: http://security-attributes-provider.iaa-authority-tmp.svc.cluster.local:8080 # comment this line if profile is `participant`
+  usersRolesUrl: http://users-roles.iaa-authority-tmp.svc.cluster.local:8080
+  authenticationProviderUrl: http://authentication-provider.iaa-authority-tmp.svc.cluster.local:8080
+
+  # Spring Cloud Gateway Routes Authority
+  appConfig:
+    spring:
+      cloud:
+        gateway:
+          routes:
+            - id: keycloak
+              uri: ${keycloak.url}
+              predicates:
+                - Path=/auth/**
+              filters:
+                - StripPrefix=1
+            - id: users-roles
+              uri: ${users-roles.url}
+              predicates:
+                - Path=/user-api/**
+              filters:
+                - StripPrefix=1
+            - id: users-rolesV1
+              uri: ${users-roles.url}
+              predicates:
+                - Path=/userApi/**
+              filters:
+                - StripPrefix=1
+            - id: onboarding
+              uri: ${onboarding.url}
+              predicates:
+                - Path=/onboarding-api/**
+              filters:
+                - StripPrefix=1
+            - id: onboardingV1
+              uri: ${onboarding.url}
+              predicates:
+                - Path=/onboardingApi/**
+              filters:
+                - StripPrefix=1
+            - id: sap
+              uri: ${sap.url}
+              predicates:
+                - Path=/sap-api/**
+              filters:
+                - StripPrefix=1
+            - id: sapV1
+              uri: ${sap.url}
+              predicates:
+                - Path=/sapApi/**
+              filters:
+                - StripPrefix=1
+            - id: identity-provider
+              uri: ${identity-provider.url}
+              predicates:
+                - Path=/identity-api/**
+              filters:
+                - StripPrefix=1
+            - id: identity-providerV1
+              uri: ${identity-provider.url}
+              predicates:
+                - Path=/identityApi/**
+              filters:
+                - StripPrefix=1
+            - id: authentication-provider
+              uri: ${authentication-provider.url}
+              predicates:
+                - Path=/auth-api/**
+              filters:
+                - StripPrefix=1
+            - id: authentication-providerV1
+              uri: ${authentication-provider.url}
+              predicates:
+                - Path=/authApi/**
+              filters:
+                - StripPrefix=1
+            - id: ocsp
+              uri: ${ejbca.url}
+              predicates:
+                - Path=/ocsp
+              filters:
+                - RewritePath=/ocsp/*, /ejbca/publicweb/status/ocsp
+            - id: ca-certificates
+              uri: ${ejbca.url}
+              predicates:
+                - Path=/ca/*
+              filters:
+                - RewritePath=/ca/?(?<segment>.*), /ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3D$\{segment}
+            - id: crl
+              uri: ${ejbca.url}
+              predicates:
+                - Path=/crl/*
+              filters:
+                - RewritePath=/crl/?(?<segment>.*), /ejbca/publicweb/webdist/certdist?cmd=crl&issuer=CN%3D$\{segment}
+    
+            # CLI configurations
+            - id: cli-authentication-providerV1
+              uri: ${authentication-provider.url}
+              predicates:
+                - Path=
+                  /cli/authApi/v1/csr/generate,
+                  /cli/authApi/v1/keypairs/generate,
+                  /cli/authApi/v1/keypairs,
+                  /cli/authApi/v1/credentials,
+                  /cli/authApi/v1/credentials/download,
+                  /cli/authApi/v1/agent/ping
+              filters:
+                - StripPrefix=2
+                - name: ClientCredentialsFilter
+                  args:
+                    # Here you specify the clientid and the required client role to invoke this api
+                    # in the following order: 
+                    # client-id-name: client-role-1, client-role-1
+                    # The default configuration is shown below.
+                    cli: cli-role
+
+            - id: cli-identity-providerV1
+              uri: ${identity-provider.url}
+              predicates:
+                - Path=
+                  /cli/identityApi/v1/participants/*/csr,
+                  /cli/identityApi/v1/participants,
+                  /cli/identityApi/v1/participants/authorityExists,
+                  /cli/identityApi/v1/credentials/*/download
+              filters:
+                - StripPrefix=2
+                - name: ClientCredentialsFilter
+                  args:
+                    # Here you specify the clientid and the required client role to invoke this api
+                    # in the following order: 
+                    # client-id-name: client-role-1, client-role-1
+                    # The default configuration is shown below.
+                    cli: cli-role
+
+            - id: cli-security-attributes-providerV1
+              uri: ${sap.url}
+              predicates:
+                - Path=
+                  /cli/sapApi/v1/identityAttributes/import,
+                  /cli/sapApi/v1/identityAttributes/addParticipantType/*
+              filters:
+                - StripPrefix=2
+                - name: ClientCredentialsFilter
+                  args:
+                    # Here you specify the clientid and the required client role to invoke this api
+                    # in the following order: 
+                    # client-id-name: client-role-1, client-role-1
+                    # The default configuration is shown below.
+                    cli: cli-role
+
+            - id: cli-users-and-rolesV1
+              uri: ${users-roles.url}
+              predicates:
+                - Path=
+                  /cli/userApi/v1/users/import,
+                  /cli/userApi/v1/roles/import,
+                  /cli/userApi/v1/roles/*/identityAttributes
+              filters:
+                - StripPrefix=2
+                - name: ClientCredentialsFilter
+                  args:
+                    # Here you specify the clientid and the required client role to invoke this api
+                    # in the following order: 
+                    # client-id-name: client-role-1, client-role-1
+                    # The default configuration is shown below.
+                    cli: cli-role
+      
+    springdoc:
+      swagger-ui:
+        urls:
+          - url: /sap-api/v3/api-docs
+            name: Security Attributes Provider Service
+          - url: /onboarding-api/v3/api-docs
+            name: Onboarding Service
+          - url: /user-api/v3/api-docs
+            name: Users & Roles Service
+          - url: /identity-api/v3/api-docs
+            name: Identity Provider Service
+          - url: /auth-api/v3/api-docs
+            name: Authentication Provider Service
+    
+    keycloak:
+      app:
+        realm: authority
+    
+    routes: 
+      public-urls:
+        - method: GET
+          path: "/swagger-ui.html"
+        - method: GET
+          path: "/swagger-ui/**"
+        - method: GET
+          path: "/v3/api-docs/**"
+        - method: GET
+          path: "/actuator/health/**"
+        - method: GET
+          path: "/actuator/info/**"
+    
+        - method: POST
+          path: "/ocsp"
+        - method: GET
+          path: "/ca/**"
+        - method: GET
+          path: "/crl/**"
+    
+        - method: GET
+          path: "/user-api/credential/public-key"
+        - method: GET
+          path: "/authApi/v1/credentials" 
+
+        - method: GET
+          path: "/onboarding-api/participant-type"
+        - method: POST
+          path: "/onboarding-api/onboarding-request"
+    
+      denied-urls:
+        - method: GET
+          path: "/auth-api/keypair"
+        - method: GET
+          path: "/authApi/v1/keypairs"
+
+        - path: "/sap-api/mtls/**"
+        - path: "/user-api/mtls/**"
+        - path: "/identity-api/mtls/**"
+        - path: "/auth-api/mtls/**"
+        - path: "/sapApi/v1/mtls/**"
+        - path: "/userApi/v1/mtls/**"
+        - path: "/identityApi/v1/mtls/**"
+        - path: "/authApi/v1/mtls/**"
+
+      rbac:
+        ### onboarding
+        - path: "/onboarding-api/onboarding-request/*/status"
+          roles:
+            - NOTARY
+        - path: "/onboarding-api/onboarding-request/*/document"
+          method: POST
+          roles:
+            - NOTARY
+        - path: "/onboarding-api/participant-type/*"
+          roles:
+            - T2IAA_M
+        - path: "/onboarding-api/onboarding-status/*"
+          roles:
+            - T2IAA_M
+        - path: "/onboarding-api/onboarding-template/*"
+          roles:
+            - T2IAA_M
+        - path: "/onboarding-api/mime-type/*"
+          roles:
+            - T2IAA_M
+        - path: "/onboarding-api/mime-type"
+          roles:
+            - T2IAA_M
+        - path: "/onboarding-api/credential-request"
+          method: POST
+          roles:
+            - NOTARY
+            - T1UAR_M
+        - path: "/onboarding-api/onboarding-request"
+          method: GET
+          roles:
+            - APPLICANT
+            - NOTARY
+            - T2IAA_M
+        - path: "/onboarding-api/onboarding-request"
+          method: POST
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/onboarding-api/onboarding-request"
+          method: PATCH
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/onboarding-api/onboarding-request/*"
+          method: GET
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/onboarding-api/onboarding-request/*/id-document"
+          method: PATCH
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/onboarding-api/onboarding-request/*/document/*"
+          method: GET
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/onboarding-api/onboarding-request/*/expiration-timeframe"
+          method: PATCH
+          roles:
+            - NOTARY
+        - path: /onboarding-api/v1/onboardingRequests/*/evaluateFaultRules
+          method: POST
+          roles:
+            - NOTARY
+        - path: /onboardingApi/v1/onboardingRequests/*/evaluateFaultRules
+          method: POST
+          roles:
+            - NOTARY
+
+        - path: /onboarding-api/v1/onboardingProcedureTemplates/*/validationRules
+          method: POST
+          roles:
+            - T2IAA_M
+        - path: /onboardingApi/v1/onboardingProcedureTemplates/*/validationRules
+          method: GET
+          roles:
+            - T2IAA_M
+
+        - path: /onboarding-api/v1/onboardingProcedureTemplates/*/validationRules/*
+          method: GET
+          roles:
+            - T2IAA_M
+        - path: /onboardingApi/v1/onboardingProcedureTemplates/*/validationRules/*
+          method: PUT
+          roles:
+            - T2IAA_M
+            
+        ### identity provider
+        - path: "/identity-api/participant/*"
+          method: PUT
+          roles:
+            - NOTARY
+        - path: "/identity-api/participant/*/credential-validity"
+          method: GET
+          roles:
+            - NOTARY
+        - path: "/identity-api/participant/*"
+          method: GET
+          roles:
+            - IATTR_M
+        - path: "/identity-api/participant/search**"
+          method: GET
+          roles:
+            - NOTARY
+        - path: "/identity-api/participant/certificate/*"
+          method: DELETE
+          roles:
+            - IATTR_M
+        ### users-roles
+        - path: "/user-api/agent/identity-attributes"
+          method: GET
+          roles:
+            - T1UAR_M
+        - path: "/user-api/agent/identity-attributes/*"
+          method: GET
+          roles:
+            - T1UAR_M
+        - path: "/user-api/identity-attribute/search"
+          method: GET
+          roles:
+            - T1UAR_M
+            - NOTARY
+        - path: "/user-api/role/*"
+          method: GET
+          roles:
+            - T1UAR_M
+        - path: "/user-api/role"
+          method: PUT
+          roles:
+            - T1UAR_M
+        - path: "/user-api/role/*/identity-attributes"
+          method: POST
+          roles:
+            - T1UAR_M
+        - path: "/user-api/role/*/identity-attributes"
+          method: PUT
+          roles:
+            - T1UAR_M
+        - path: "/user-api/role/delete-attribute"
+          method: DELETE
+          roles:
+            - T1UAR_M
+        - path: "/user-api/role/*"
+          method: DELETE
+          roles:
+            - T1UAR_M
+        - path: "/user-api/role/search"
+          method: GET
+          roles:
+            - T1UAR_M
+        - path: "/user-api/role/*/duplicate-identity-attribute"
+          method: POST
+          roles:
+            - T1UAR_M
+        - path: "/user-api/user/*"
+          method: POST
+          roles:
+            - T1UAR_M
+        - path: "/user-api/user/*"
+          method: GET
+          roles:
+            - T1UAR_M
+        - path: "/user-api/user/*"
+          method: PUT
+          roles:
+            - T1UAR_M
+        - path: "/user-api/user/*"
+          method: DELETE
+          roles:
+            - T1UAR_M
+        ### security-attributes-provider
+        - path: "/sap-api/identity-attribute"
+          method: POST
+          roles:
+            - IATTR_M
+        - path: "/sap-api/identity-attribute/*"
+          method: GET
+          roles:
+            - IATTR_M
+            - NOTARY
+        - path: "/sap-api/identity-attribute/*"
+          method: PUT
+          roles:
+            - IATTR_M
+        - path: "/sap-api/identity-attribute/*"
+          method: DELETE
+          roles:
+            - IATTR_M
+        - path: "/sap-api/identity-attribute/assignable/*"
+          method: PUT
+          roles:
+            - IATTR_M
+        - path: "/sap-api/identity-attribute/add-participant-type/*"
+          method: PUT
+          roles:
+            - IATTR_M
+        - path: "/sap-api/identity-attribute/unassign-participant/*"
+          method: DELETE
+          roles:
+            - IATTR_M
+        - path: "/sap-api/identity-attribute/assign-participant/*"
+          method: PUT
+          roles:
+            - IATTR_M
+        - path: "/sap-api/identity-attribute/search**"
+          method: GET
+          roles:
+            - NOTARY
+        - path: "/sap-api/identity-attribute/assign/*/*"
+          method: PUT
+          roles:
+            - NOTARY
+        - path: "/auth-api/keypair"
+          method: HEAD
+          roles:
+            - ONBOARDER_M
+
+      logging:
+        business:
+          - method: POST
+            path: /onboarding-api/onboarding-request
+            config:
+              operations:
+                - ONBOARDING_REQUEST
+          - method: POST
+            path: /onboarding-api/onboarding-request/*/approve
+            config:
+              operations:
+                - APPROVE_ONBOARDING_REQUEST
+          - method: POST
+            path: /onboarding-api/onboarding-request/*/reject
+            config:
+              operations:
+                - REJECT_ONBOARDING_REQUEST
+
+tier2-gateway:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  profile: authority
+  keypair:
+    algorithm: EC
+
+  microservices:
+    usersRolesUrl: http://users-roles.iaa-authority-tmp.svc.cluster.local:8080 
+    keycloakUrl: http://keycloak.iaa-authority-tmp.svc.cluster.local
+    securityAttributesProviderUrl: http://security-attributes-provider.iaa-authority-tmp.svc.cluster.local:8080
+    identityProviderUrl: http://identity-provider.iaa-authority-tmp.svc.cluster.local:8080
+    authenticationProviderUrl: http://authentication-provider.iaa-authority-tmp.svc.cluster.local:8080
+
+  redis:
+    host: "redis-master.{{ .Release.Namespace }}.svc.cluster.local"
+    port: "6379"
+    username: "default"
+    password: "admin"
+
+  hostT2: "t2.iaa-authority-tmp.dev.simpl-europe.eu"
+
+  kafkaConfig:
+    spring:
+      kafka:
+        bootstrap-servers: kafka.common-agent.svc.cluster.local:9092
+        consumer:
+          properties:
+            security.protocol: SASL_PLAINTEXT
+            sasl.mechanism: PLAIN
+            sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_USER:iaa}" password="${KAFKA_PASSWORD:eezooS4Aideth1teaDeey3ohghohwohk}";
+        admin:
+          auto-create: true
+    simpl:
+      kafka:
+        topic:
+          prefix: iaa.{{ .Release.Namespace }}.
+    
+
+  appConfig:
+    spring:
+      cloud:
+        gateway:
+          routes:
+          - id: sap
+            uri: ${sap.url}
+            predicates:
+              - Path=/sap-api/mtls/**
+            filters:
+              - StripPrefix=1
+          - id: sap-v1
+            uri: ${sap.url}
+            predicates:
+              - Path=/sapApi/v1/mtls/**
+            filters:
+              - StripPrefix=1
+          - id: identity-provider
+            uri: ${identity-provider.url}
+            predicates:
+              - Path=/identity-api/mtls/**
+            filters:
+              - StripPrefix=1
+          - id: identity-provider-v1
+            uri: ${identity-provider.url}
+            predicates:
+              - Path=/identityApi/v1/mtls/**
+            filters:
+              - StripPrefix=1
+          - id: identity-provider-v1-tmp
+            uri: ${identity-provider.url}
+            predicates:
+              - Path=/identity-api/v1/mtls/**
+            filters:
+              - StripPrefix=1
+          - id: users-roles
+            uri: ${users-roles.url}
+            predicates:
+              - Path=/user-api/mtls/**
+            filters:
+              - StripPrefix=1
+          - id: users-roles-v1
+            uri: ${users-roles.url}
+            predicates:
+              - Path=/userApi/v1/mtls/**
+            filters:
+              - StripPrefix=1
+    routes:
+      public-urls:
+        - method: GET
+          path: "/actuator/**"
+
+      abac:
+        - method: PATCH
+          path: "/identity-api/mtls/public-key"
+          disable-ephemeral-proof-check: true
+        - method: POST
+          path: "/identity-api/mtls/token"
+          disable-ephemeral-proof-check: true
+        - method: GET
+          path: "/identity-api/v1/mtls/whoami"
+          disable-ephemeral-proof-check: true
+        - method: POST
+          path: "/user-api/mtls/ephemeral-proof"
+          disable-ephemeral-proof-check: true
+        - method: PATCH
+          path: "/identityApi/v1/mtls/public-key"
+          disable-ephemeral-proof-check: true
+        - method: POST
+          path: "/identityApi/v1/mtls/token"
+          disable-ephemeral-proof-check: true
+        - method: GET
+          path: "/identityApi/v1/mtls/whoami"
+          disable-ephemeral-proof-check: true
+        - method: POST
+          path: "/userApi/v1/mtls/ephemeral-proof"
+          disable-ephemeral-proof-check: true
+      logging:
+        business:
+          - method: GET
+            path: /user-api/mtls/ping
+            config:
+              operations:
+                - PING_REQUEST
+          - method: GET
+            path: /identity-api/mtls/echo
+            config:
+              operations:
+                - ECHO_REQUEST
+
+security-attributes-provider:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  db:
+    url: "jdbc:postgresql://postgresql.iaa-authority-tmp.svc.cluster.local:5432/securityattributesprovider"
+    username: "securityattributesprovider"
+    password: "securityattributesprovider"
+
+  microservices:
+    identityProviderUrl: http://identity-provider.iaa-authority-tmp.svc.cluster.local:8080
+    onboardingUrl: http://onboarding.iaa-authority-tmp.svc.cluster.local:8080
+
+  databaseSeeding:
+    securityAttributeProviderMapping:
+      # If you want to start with an empty identity attributes table, set this to false.
+      enabled: true 
+
+      # To specify your custom attributes, uncomment and provide the path to your JSON file here.
+      # filePath: "file:/app/config/exampleIdentityAttributes.default.json" 
+
+users-roles:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  hostT1: t1.iaa-authority-tmp.dev.simpl-europe.eu
+  authorityHostT2: t2.iaa-authority-tmp.dev.simpl-europe.eu
+
+  db:
+    url: "jdbc:postgresql://postgresql.iaa-authority-tmp.svc.cluster.local:5432/usersroles"
+    username: "usersroles"
+    password: "usersroles"
+
+  redis:
+    host: "redis-master.iaa-authority-tmp.svc.cluster.local"
+    port: "6379"
+    username: "default"
+    password: "admin"
+
+  keycloak:
+    master:
+      user: "admin"
+      password: "admin"
+      realm: authority
+    clientToRealmRoleMigration:
+      enabled: true # set to true to import realm roles from client roles
+      clientIds: "['frontend-cli']" # Add clients from which you want to copy the roles, separated by commas (e.g., frontend-cli,client-1,client-2).
+
+  microservices:
+    identityProviderUrl: http://identity-provider.iaa-authority-tmp.svc.cluster.local:8080
+    authenticationProviderUrl: http://authentication-provider.iaa-authority-tmp.svc.cluster.local:8080
+
+  databaseSeeding:
+    roleIdentityAttributesMapping:
+      # If you want to start with an empty identity attributes table, set this to false.
+      # if enabled is set to true and filePath is commented or empty the table will be initialized with the default seeding file.
+      enabled: true 
+
+      # To specify your custom attributes, uncomment and provide the path to your JSON file here.
+      # filePath must start with 'file:'
+      # You can find an example of seeding file in samples/db-seeding/user-roles/0.8.x/roleAttributes.default.json
+      # filePath: file:/app/config/exampleRoleAttributes.json 
+  kafkaConfig:
+    spring:
+      kafka:
+        bootstrap-servers: kafka.common-agent.svc.cluster.local:9092
+        consumer:
+          group-id: iaa.{{ .Release.Namespace }}.users-roles
+          properties:
+            security.protocol: SASL_PLAINTEXT
+            sasl.mechanism: PLAIN
+            sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_USER:iaa}" password="${KAFKA_PASSWORD:eezooS4Aideth1teaDeey3ohghohwohk}";
+        admin:
+          auto-create: true
+    simpl:
+      kafka:
+        topic:
+          prefix: iaa.{{ .Release.Namespace }}.
+        inbox:
+          topic:
+            pattern: iaa\.{{ .Release.Namespace }}\..*
+
+
+onboarding:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  db:
+    url: "jdbc:postgresql://postgresql.iaa-authority-tmp.svc.cluster.local:5432/onboarding"
+    username: "onboarding"
+    password: "onboarding"
+
+  microservices:
+    identityProviderUrl: http://identity-provider.iaa-authority-tmp.svc.cluster.local:8080
+    usersRolesUrl: http://users-roles.iaa-authority-tmp.svc.cluster.local:8080
+
+identity-provider:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  hostT2: "t2.iaa-authority-tmp.dev.simpl-europe.eu"
+
+  db:
+    url: "jdbc:postgresql://postgresql.iaa-authority-tmp.svc.cluster.local:5432/identityprovider"
+    username: "identityprovider"
+    password: "identityprovider"
+
+  redis:
+    host: "redis-master.iaa-authority-tmp.svc.cluster.local"
+    port: "6379"
+    username: "default"
+    password: "admin"
+
+  ephemeralProof:
+    expireAfter: "3m"
+
+  microservices:
+    usersRolesUrl: http://users-roles.iaa-authority-tmp.svc.cluster.local:8080
+    securityAttributesProviderUrl: http://security-attributes-provider.iaa-authority-tmp.svc.cluster.local:8080
+    onboardingUrl: http://onboarding.iaa-authority-tmp.svc.cluster.local:8080
+    authenticationProviderUrl: http://authentication-provider.iaa-authority-tmp.svc.cluster.local:8080
+
+  ejbca:
+    # SuperAdmin .p12
+    keystore: 
+      password: "password"
+    # ManagementCA
+    truststore:
+      password: "changeit"
+    enrollConfig:
+      url: "https://ejbca-community-helm.iaa-authority-tmp.svc.cluster.local:30443"
+      profileName: "Onboarding TLS Profile" # update this field, example "Onboarding TLS Profile"
+      endEntityName: "Onboarding End Entity" # update this field, example "TLS Server Profile"
+      caName: "OnBoardingCA" # update this field, example "OnBoardingCA"
+
+simpl-fe:
+  resources:  
+    limits:
+      cpu: 250m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 50Mi
+  hostFe: fe.iaa-authority-tmp.dev.simpl-europe.eu
+  cors: 
+    allowOrigin: https://t1.iaa-authority-tmp.dev.simpl-europe.eu,https://fe.iaa-authority-tmp.dev.simpl-europe.eu,http://localhost:4202,http://localhost:4203,http://localhost:3000
+  ingress:
+    issuer: dev-prod-dns01
+  env:
+  - name: API_URL
+    value: "https://t1.iaa-authority-tmp.dev.simpl-europe.eu"
+  - name: KEYCLOAK_URL
+    value: "https://t1.iaa-authority-tmp.dev.simpl-europe.eu/auth"
+  - name: KEYCLOAK_REALM
+    value: "authority" 
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+    
+  microfrontends:
+  - name: sap
+    application: sap
+    path: "/sap"
+  - name: onboarding
+    application: onboarding
+    path: "/onboarding"
+  - name: usersroles
+    application: usersandroles
+    path: "/users-roles"
+
+authentication-provider:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  profile: authority
+  urlAuthorityT2: "https://t2.iaa-authority-tmp.dev.simpl-europe.eu"
+
+  db:
+    url: "jdbc:postgresql://postgresql.iaa-authority-tmp.svc.cluster.local:5432/authenticationprovider"
+    username: "authenticationprovider"
+    password: "authenticationprovider"
+    cipherSecret: "authenticationprovider-db-cipher-secret" # name of the secret key that will be generated used to encrypt keys  
+
+  keypair:
+    signatureAlgorithm: "SHA256withECDSA"
+    algorithm: "ECDSA"
+    keyLength: 256
+
+  microservices:
+    usersRolesUrl: http://users-roles.iaa-authority-tmp.svc.cluster.local:8080
+
+  simpl:
+    certificate:
+      san: t2.iaa-authority-tmp.dev.simpl-europe.eu
+  security:
+    location: database
+    
+  kafkaConfig:
+    spring:
+      kafka:
+        bootstrap-servers: kafka.common-agent.svc.cluster.local:9092
+        producer:
+          properties:
+            security.protocol: SASL_PLAINTEXT
+            sasl.mechanism: PLAIN
+            sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="${KAFKA_USER:iaa}" password="${KAFKA_PASSWORD:eezooS4Aideth1teaDeey3ohghohwohk}";
+        admin:
+          auto-create: true
+    simpl:
+      kafka:
+        topic:
+          prefix: iaa.{{ .Release.Namespace }}.

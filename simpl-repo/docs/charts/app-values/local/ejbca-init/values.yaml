@@ -1,0 +1,70 @@
+ejbca:
+  hostname: &ejbca-hostname localhost
+  fullnameOverride: ejbca-community-helm
+  serviceAccount:
+    name: ejbca-init-sa
+  image:
+    tag: 8.2.0.1
+  resources:
+    requests:
+      cpu: 250m
+      memory: 500Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  ejbca:
+    useEphemeralH2Database: false
+    env:
+      LOG_LEVEL_APP: DEBUG
+      LOG_LEVEL_SERVER: DEBUG
+      LOG_LEVEL_SERVER_SUBSYSTEMS: DEBUG
+      HTTPSERVER_HOSTNAME: *ejbca-hostname
+      TLS_SETUP_ENABLED: "true"
+      DATABASE_JDBC_URL: &ejbca-db-url jdbc:postgresql://ejbca-init-postgresql.ejbca-init.svc.cluster.local:5432/ejbca_init
+      DATABASE_USER: &ejbca-db-user "ejbca_init"
+      DATABASE_PASSWORD: &ejbca-db-password "ejbca_init"
+    initContainers:
+    - name: ejbca-init
+      image: code.europa.eu:4567/simpl/simpl-open/development/iaa/ejbca-preconfig:1.0.2-F-feature-gateway-scheme.47.85bb5c0d
+      imagePullPolicy: IfNotPresent
+      securityContext: {}
+      env:
+      - name: HTTPSERVER_HOSTNAME
+        value: *ejbca-hostname
+      - name: MANAGEMENT_END_ENTITY_USERNAME
+        value: SuperAdmin
+      - name: MANAGEMENT_END_ENTITY_PASSWORD
+        value: 123-stella
+      - name: DATABASE_JDBC_URL
+        value: *ejbca-db-url
+      - name: DATABASE_USER
+        value: *ejbca-db-user
+      - name: DATABASE_PASSWORD
+        value: *ejbca-db-password
+      - name: T1_GATEWAY
+        value: http://localhost:8100
+      - name: NAMESPACE
+        value: ejbca-init
+      command:
+      - "./entrypoint.sh"
+
+postgresql:
+  architecture: standalone
+  auth:
+    postgresPassword: postgres
+  primary:
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 50m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+    persistence:
+      size: 1Gi
+    initdb:
+      scripts:
+        init.sql: |
+          -- Authority-only databases and users
+          CREATE USER ejbca_init WITH PASSWORD 'ejbca_init';
+          CREATE DATABASE ejbca_init OWNER ejbca_init;

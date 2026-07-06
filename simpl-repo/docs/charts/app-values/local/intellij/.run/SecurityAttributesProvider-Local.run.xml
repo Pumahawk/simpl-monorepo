@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="SecurityAttributesProvider-Local" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="local" />
+    <module name="security-attributes-provider" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="eu.europa.ec.simpl.securityattributesprovider.SecurityAttributesProviderApplication" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

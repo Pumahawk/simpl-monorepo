@@ -1,0 +1,12 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Authority" type="CompoundRunConfigurationType">
+    <toRun name="AuthenticationProvider-Local-Authority" type="SpringBootApplicationConfigurationType" />
+    <toRun name="IdentityProvider-Local" type="SpringBootApplicationConfigurationType" />
+    <toRun name="Onboarding-Local" type="SpringBootApplicationConfigurationType" />
+    <toRun name="SecurityAttributesProvider-Local" type="SpringBootApplicationConfigurationType" />
+    <toRun name="TierOne-Local-Authority" type="SpringBootApplicationConfigurationType" />
+    <toRun name="TierTwo-Local-Authority" type="SpringBootApplicationConfigurationType" />
+    <toRun name="UsersRoles-Local-Authority" type="SpringBootApplicationConfigurationType" />
+    <method v="2" />
+  </configuration>
+</component>

@@ -1,0 +1,39 @@
+dependencies:
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 15.2.5
+- name: ejbca-community-helm
+  repository: https://keyfactor.github.io/ejbca-community-helm
+  version: 1.0.3
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 19.6.0
+- name: keycloak
+  repository: https://charts.bitnami.com/bitnami
+  version: 22.2.5
+- name: tier1-gateway
+  repository: https://code.europa.eu/api/v4/projects/772/packages/helm/stable
+  version: 1.5.0
+- name: tier2-gateway
+  repository: https://code.europa.eu/api/v4/projects/860/packages/helm/stable
+  version: 1.5.0
+- name: security-attributes-provider
+  repository: https://code.europa.eu/api/v4/projects/861/packages/helm/stable
+  version: 1.5.0
+- name: users-roles
+  repository: https://code.europa.eu/api/v4/projects/771/packages/helm/stable
+  version: 1.5.0
+- name: onboarding
+  repository: https://code.europa.eu/api/v4/projects/770/packages/helm/stable
+  version: 1.5.0
+- name: simpl-fe
+  repository: https://code.europa.eu/api/v4/projects/769/packages/helm/stable
+  version: 1.5.2
+- name: identity-provider
+  repository: https://code.europa.eu/api/v4/projects/913/packages/helm/stable
+  version: 1.5.0
+- name: authentication-provider
+  repository: https://code.europa.eu/api/v4/projects/939/packages/helm/stable
+  version: 1.5.0
+digest: sha256:cffaef28fae49822d3dacea3ca9ac3063cd31ceb9b15b7eda0f37500e3378fd6
+generated: "2025-05-14T15:04:23.176854365+02:00"

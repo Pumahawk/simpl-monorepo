@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-nodeport
+spec:
+  type: NodePort
+  selector:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+  ports:
+    - name: kafka
+      port: {{ .Values.redpanda.service.ports.external }}
+      targetPort: {{ .Values.redpanda.service.ports.external }}
+      nodePort: {{ .Values.redpanda.service.nodePorts.kafka }}
+    - name: admin
+      port: {{ .Values.redpanda.service.ports.admin }}
+      targetPort: {{ .Values.redpanda.service.ports.admin }}
+      nodePort: {{ .Values.redpanda.service.nodePorts.admin }}

@@ -1,0 +1,36 @@
+{{- range .Values.global.initDatabases }}
+{{- if .postgrest.enabled }}
+{{- $name := include "replaceUnderscoreWithDash" .name }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgrest-{{ $name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgrest-{{ $name }}
+  template:
+    metadata:
+      labels:
+        app: postgrest-{{ $name }}
+    spec:
+      containers:
+        - name: postgrest
+          image: postgrest/postgrest:latest
+          env:
+            - name: PGRST_DB_URI
+              value: postgres://{{ .user }}:{{ .password }}@local-authority-postgresql.local-authority.svc.cluster.local:5432/{{ .name }}
+            - name: PGRST_DB_ANON_ROLE
+              value: {{ .user }}
+            {{- if .postgrest.jwtSecret }}
+            - name: PGRST_JWT_SECRET
+              value: {{ .postgrest.jwtSecret }}
+            {{- end }}
+            - name: PGRST_DB_POOL
+              value: "1"
+          ports:
+            - containerPort: 3000
+---
+{{- end }}
+{{- end }}

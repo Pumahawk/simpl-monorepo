@@ -1,0 +1,38 @@
+apiUrl: "https://participant01-be.dev.simpl-europe.eu"
+extraEnvVars: 
+  - name: KC_HOSTNAME_ADMIN_URL
+    value: "https://participant01-be.dev.simpl-europe.eu/auth"
+  - name: KC_HOSTNAME_URL
+    value: "https://participant01-be.dev.simpl-europe.eu/auth"
+  - name: USERS_ROLES_BASE_URL
+    value: "http://users-roles.iaa-01.svc.cluster.local:8080"
+  - name: KEYCLOAK_BASE_URL
+    value: "https://participant01-be.dev.simpl-europe.eu/auth"
+  - name: REALM
+    value: "participant"
+
+auth:
+  adminPassword: "admin"
+
+keycloakConfigCli:
+  enabled: true
+  configuration:
+    participant.json: |
+      {{- $.Files.Get "kc-init/participant-realm-export.json" -}}
+
+postgresql:
+  enabled: false
+
+externalDatabase:
+  host: "postgresql.iaa-01.svc.cluster.local"
+  port: 5432
+  user: keycloak
+  database: keycloak
+  password: "keycloak"
+  existingSecret: ""
+  existingSecretHostKey: ""
+  existingSecretPortKey: ""
+  existingSecretUserKey: ""
+  existingSecretDatabaseKey: ""
+  existingSecretPasswordKey: ""
+  annotations: {}

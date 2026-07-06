@@ -1,0 +1,9 @@
+image:
+  repository: postgrest/postgrest
+  tag: latest
+  pullPolicy: IfNotPresent
+
+database:
+  uri: postgres://postgres:postgres@local-authority-postgresql.local-authority.svc.cluster.local:5432/authority_onboarding
+  anonRole: postgres
+  jwtSecret: "o7sDhwiBQpP3Fqf3otCfjmC5VALjRoVA"

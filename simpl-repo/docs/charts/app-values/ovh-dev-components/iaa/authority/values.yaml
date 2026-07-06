@@ -1,0 +1,629 @@
+redis:
+  image:
+    repository: bitnamilegacy/redis
+  kubectl:
+    image:
+      repository: bitnamilegacy/kubectl
+  security:
+    allowInsecureImages: true
+  fullnameOverride: redis
+  architecture: standalone
+  auth:
+    password: "admin"
+  master:
+    revisionHistoryLimit: 2
+    persistence:
+      size: 1Gi
+
+postgresql:
+  image:
+    repository: bitnamilegacy/postgresql
+  security:
+    allowInsecureImages: true
+  fullnameOverride: postgresql
+  architecture: standalone
+  primary:
+    persistence:
+      size: 1Gi
+    initdb:
+      scripts:
+        init.sql: |
+          CREATE USER ejbca WITH PASSWORD 'ejbca2123' CREATEDB;
+          CREATE DATABASE ejbca OWNER ejbca;
+          CREATE USER keycloak WITH PASSWORD 'keycloak' CREATEDB;
+          CREATE DATABASE keycloak OWNER keycloak;
+          CREATE USER securityattributesprovider WITH PASSWORD 'securityattributesprovider' CREATEDB;
+          CREATE DATABASE securityattributesprovider OWNER securityattributesprovider;
+          CREATE USER onboarding WITH PASSWORD 'onboarding' CREATEDB;
+          CREATE DATABASE onboarding OWNER onboarding;
+          CREATE USER usersroles WITH PASSWORD 'usersroles' CREATEDB;
+          CREATE DATABASE usersroles OWNER usersroles;
+          CREATE USER identityprovider WITH PASSWORD 'identityprovider' CREATEDB;
+          CREATE DATABASE identityprovider OWNER identityprovider;
+          CREATE USER authenticationprovider WITH PASSWORD 'authenticationprovider' CREATEDB;
+          CREATE DATABASE authenticationprovider OWNER authenticationprovider;
+
+keycloak:
+  global:
+    security:
+      allowInsecureImages: true
+  image:
+    repository: keycloak/keycloak
+    tag: 26.4
+  fullnameOverride: keycloak
+  defaultInitContainers:
+    prepareWriteDirs:
+      enabled: false
+  args:
+    - start
+    - --import-realm
+    - --verbose
+    - --proxy-headers
+    - xforwarded
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+  resources:
+    limits:
+      cpu: 750m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  apiUrl: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu"
+  extraEnvVars:
+    - name: KC_HOSTNAME_ADMIN
+      value: "{{ tpl .Values.apiUrl . }}/auth"
+    - name: KC_HOSTNAME
+      value: "{{ tpl .Values.apiUrl . }}/auth"
+    - name: USERS_ROLES_BASE_URL
+      value: "http://users-roles.{{ .Release.Namespace }}.svc.cluster.local:8080"
+    - name: AUTHENTICATION_PROVIDER_BASE_URL
+      value: "http://authentication-provider.{{ .Release.Namespace }}.svc.cluster.local:8080"
+    - name: KEYCLOAK_BASE_URL
+      value: "{{ tpl .Values.apiUrl . }}/auth"
+    - name: REALM
+      value: "authority" # update
+    - name: KEYCLOAK_ADMIN
+      value: "admin"
+    - name: KEYCLOAK_ADMIN_PASSWORD
+      value: "admin"
+    - name: KC_DB
+      value: "postgres"
+    - name: KC_DB_URL_HOST
+      value: "postgresql.{{ .Release.Namespace }}.svc.cluster.local"
+    - name: KC_DB_URL_PORT
+      value: "5432"
+    - name: KC_DB_URL_DATABASE
+      value: "keycloak"
+    - name: KC_DB_USERNAME
+      value: "keycloak"
+    - name: KC_DB_PASSWORD
+      value: "keycloak"
+    - name: KC_BOOTSTRAP_ADMIN_USERNAME
+      value: "admin"
+    - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+      value: "admin"
+  # auth:
+  #   adminUser: "admin" # update
+  #   adminPassword: "admin" # update
+  postgresql:
+    enabled: false
+  externalDatabase:
+    annotations: {}
+    database: keycloak
+    existingSecret: ""
+    existingSecretDatabaseKey: ""
+    existingSecretHostKey: ""
+    existingSecretPasswordKey: ""
+    existingSecretPortKey: ""
+    existingSecretUserKey: ""
+    host: "postgresql.{{ .Release.Namespace }}.svc.cluster.local"
+    password: keycloak
+    port: 5432
+    user: keycloak
+  extraVolumes:
+    - name: spi-volume
+      emptyDir: {}
+    - name: realm-volume
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: spi-volume
+      mountPath: /opt/keycloak/providers
+    - name: realm-volume
+      mountPath: /opt/keycloak/data/import/realm.json
+      subPath: realm.json
+  initContainers:
+    # - name: setup-container
+    #   image: alpine:latest
+    #   command:
+    #     - /bin/sh
+    #   args:
+    #     - -ec
+    #     - |
+    #       echo "Copying writable dirs to empty dir"
+    #       # In order to not break the application functionality we need to make some
+    #       # directories writable, so we need to copy it to an empty dir volume
+    #       mkdir /emptydir/app-quarkus-dir
+    #       mkdir /emptydir/app-data-dir
+    #       mkdir /emptydir/app-providers-dir
+    #       mkdir /emptydir/app-themes-dir
+
+    #       echo "Copy operation completed"
+    #   volumeMounts:
+    #     - name: empty-dir
+    #       mountPath: /emptydir
+    - name: init-spi
+      image: curlimages/curl
+      securityContext:
+        runAsUser: 1000
+        runAsNonRoot: true
+      command: ["/bin/sh", "-c"]
+      env:
+        - name: ARTIFACT
+          value: keycloak-authenticator
+        - name: URL
+          value: https://code.europa.eu/api/v4/projects/915/packages/maven/com/aruba/simpl/keycloak-authenticator/2.0.0/keycloak-authenticator-2.0.0.jar
+        - name: EIDAS_EXTENSION_ARTIFACT
+          value: keycloak-eidas-demo-authenticator
+        - name: EIDAS_EXTENSION_URL
+          value: https://code.europa.eu/api/v4/projects/1313/packages/maven/eu/europa/ec/simpl/eidas-demo-keycloak-extension/0.1.0/eidas-demo-keycloak-extension-0.1.0.jar
+      args:
+        - |
+          curl -o /custom-spi/${ARTIFACT}.jar ${URL};
+          curl -o /custom-spi/${EIDAS_EXTENSION_ARTIFACT}.jar ${EIDAS_EXTENSION_URL};
+      volumeMounts:
+        - name: spi-volume
+          mountPath: /custom-spi
+    - name: import-realm
+      image: nginx:latest
+      securityContext:
+        runAsUser: 1000
+        runAsNonRoot: true
+      command: ["/bin/sh", "-c"]
+      env:
+        - name: REDIRECT_URIS
+          value: |-
+            [ "*" ]
+        - name: REALM_NAME
+          value: realm
+        - name: URL
+          # uncomment below if you are deploying an authority
+          value: https://code.europa.eu/simpl/simpl-open/development/iaa/charts/-/raw/feature/paramsin-realm-export/samples/keycloak-realms/1.0.0/authority-realm-export.json?ref_type=heads
+          # uncomment below if you are deploying a participant
+          # value: https://code.europa.eu/simpl/simpl-open/development/iaa/charts/-/raw/develop/samples/keycloak-realms/1.0.0/participant-realm-export.json?ref_type=heads
+      args:
+        - |
+          curl ${URL} | envsubst '$REDIRECT_URIS' > /config/${REALM_NAME}.json;
+      volumeMounts:
+        - name: realm-volume
+          mountPath: /config
+
+onboarding:
+  devMode: true
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+
+  kafkaConfig:
+    spring:
+      kafka:
+        bootstrap-servers: kafka.iaacommon.svc.cluster.local:9092
+        producer:
+          properties:
+            security.protocol: SASL_PLAINTEXT
+            sasl.mechanism: PLAIN
+            sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="iaaauthority_onboarding" password="XGEc4V6BQqKb5fwP";
+        admin:
+          auto-create: true
+    simpl:
+      kafka:
+        topic:
+          prefix: iaa.{{ .Release.Namespace }}.
+  
+  appConfig:
+    eidas:
+      enabled: true
+    email-service:
+      onboarding-request-url:
+        applicant-url-template: https://fe.{{ .Release.Namespace }}.dev.simpl-europe.eu/onboarding/application/additional-request
+        notary-url-template: https://fe.{{ .Release.Namespace }}.dev.simpl-europe.eu/onboarding/administration/{id}
+
+security-attributes-provider:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  
+  appConfig:
+    simpl:
+      ephemeral-proof:
+        issuer-url: https://t2.{{ .Release.Namespace }}.dev.simpl-europe.eu
+        expire-after: 1m
+    management:
+      otlp:
+        tracing:
+          endpoint: http://collector.common01.dev.simpl-europe.eu
+    logging:
+      config: classpath:log4j2-local.xml
+
+tier1-gateway:
+  devMode: true
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  
+  cors:
+    allowOrigin: https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu,https://fe.{{ .Release.Namespace }}.dev.simpl-europe.eu,http://localhost:4202,http://localhost:3000,https://fe-shell.iaa-dsdev-authority.dev.simpl-europe.eu,https://fe-react.iaa-dsdev-authority.dev.simpl-europe.eu,https://fe-angular.iaa-dsdev-authority.dev.simpl-europe.eu,https://fe-vue.iaa-dsdev-authority.dev.simpl-europe.eu
+
+  ingress:
+    issuer: dev-prod
+
+  hostT1: t1.{{ .Release.Namespace }}.dev.simpl-europe.eu
+  
+  profile: authority
+  appConfig:
+    springdoc:
+      swagger-ui:
+        urls:
+          - url: /sapApi/openapi/securityattributesprovider-v1.yaml
+            name: Security Attributes Provider Service V1
+          - url: /onboardingApi/openapi/onboarding-v1.yaml
+            name: Onboarding Service V1
+          - url: /userApi/openapi/usersroles-v1.yaml
+            name: Users & Roles Service V1
+          - url: /identityApi/openapi/identityprovider-v1.yaml
+            name: Identity Provider Service V1
+          - url: /authApi/openapi/authenticationprovider-v1.yaml
+            name: Authentication Provider Service V1
+          - url: /openapi/tier1gateway-v1.yaml
+            name: Application Info V1
+    
+    keycloak:
+      app:
+        realm: authority
+        
+    microservices-info:
+      microservices:
+        - name: users-roles
+          internalUrl: "http://users-roles.{{ .Release.Namespace }}.svc.cluster.local:8080/v1"
+          detailUrl: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/userApi/v1/"
+        - name: sap
+          internalUrl: "http://security-attributes-provider.{{ .Release.Namespace }}.svc.cluster.local:8080/v1"
+          detailUrl: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/sapApi/v1/"
+        - name: identity-provider
+          internalUrl: "http://identity-provider.{{ .Release.Namespace }}.svc.cluster.local:8080/v1"
+          detailUrl: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/identityApi/v1/"
+        - name: onboarding
+          internalUrl: "http://onboarding.{{ .Release.Namespace }}.svc.cluster.local:8080/v1"
+          detailUrl: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/onboardingApi/v1/"
+        - name: authentication-provider
+          internalUrl: "http://authentication-provider.{{ .Release.Namespace }}.svc.cluster.local:8080/v1"
+          detailUrl: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/authApi/v1/"
+
+users-roles:
+  devMode: true
+  hostT1: t1.{{ .Release.Namespace }}.dev.simpl-europe.eu
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  keycloak:
+    master:
+      user: "admin"
+      password: "admin"
+      realm: "authority"
+    # clientToRealmRoleMigration:
+    #   enabled: true # set to true to import realm roles from client roles
+    #   clientIds: client-1,client-2 # clients from which you want to copy the roles, separated by comma.
+  databaseSeeding:
+    roleIdentityAttributesMapping:
+      enabled: true # if you want start with an empty identity attributes table, turn off
+      # uncomment below if you want to specify your custom attributes, your json file path must start with 'file:'
+      # if enabled=true and filePath is commented or empty the table will be initialized with the default seeding file.
+      # You can find the default seeding file roleAttributes.default.json in samples/db-seeding/user-roles/0.8.x/
+      #filePath: #file:/app/config/roleAttributes.json
+  kafkaConfig:
+    kafka:
+      user: iaa
+      password: eezooS4Aideth1teaDeey3ohghohwohk
+    spring:
+      kafka:
+        bootstrap-servers: kafka.iaacommon.svc.cluster.local:9092
+        consumer:
+          group-id: iaa.{{ .Release.Namespace }}.users-roles
+          properties:
+            security.protocol: SASL_PLAINTEXT
+            sasl.mechanism: PLAIN
+            sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="iaaauthority_usersroles" password="IfnqWqnmQ15ydcgY";
+        admin:
+          auto-create: true
+    simpl:
+      kafka:
+        topic:
+          prefix: iaa.{{ .Release.Namespace }}.
+        inbox:
+          topic:
+            pattern: iaa\.{{ .Release.Namespace }}\..*
+
+identity-provider:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+
+  appConfig:
+    spring:
+      jpa:
+        show-sql: true
+        properties:
+          hibernate:
+            format_sql: false
+      ssl:
+        bundle:
+          jks:
+            ejbca:
+              keystore:
+                password: "123-stella"
+              truststore:
+                password: "changeit"
+    management:
+      otlp:
+        tracing:
+          endpoint: http://collector.common01.dev.simpl-europe.eu
+    logging:
+      config: classpath:log4j2-local.xml
+
+
+simpl-fe:
+  resources:
+    limits:
+      cpu: 250m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 50Mi
+  hostFe: fe.{{ .Release.Namespace }}.dev.simpl-europe.eu
+  cors: 
+    allowOrigin: https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu,https://fe.{{ .Release.Namespace }}.dev.simpl-europe.eu,http://localhost:4202,http://localhost:4203,http://localhost:3000
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu"
+  - name: KEYCLOAK_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/auth"
+  - name: KEYCLOAK_REALM
+    value: "authority"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+
+  microfrontends:
+  - name: identity-provider
+    application: identity-provider
+    path: /identity-provider
+  - name: sap
+    application: sap
+    path: "/sap"
+  - name: onboarding
+    application: onboarding
+    path: "/onboarding"
+  - name: usersroles
+    application: usersandroles
+    path: "/users-roles"
+
+authentication-provider:
+  appConfig:
+    spring:
+      profiles:
+        active: authority
+    security:
+      secret:
+        location: database
+    simpl:
+      certificate:
+        san: t2.{{ .Release.Namespace }}.dev.simpl-europe.eu
+    logging:
+      http:
+        enabled: true
+      config: classpath:log4j2-local.xml
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  db:
+    cipherSecret: "authenticationprovider-db-cipher-secret"
+  
+
+  kafkaConfig:
+    kafka:
+      user: iaa
+      password: eezooS4Aideth1teaDeey3ohghohwohk
+    spring:
+      kafka:
+        bootstrap-servers: kafka.iaacommon.svc.cluster.local:9092
+        producer:
+          properties:
+            security.protocol: SASL_PLAINTEXT
+            sasl.mechanism: PLAIN
+            sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="iaaauthority_authprovider" password="x17ew47L2rKEYCa7";
+        admin:
+          auto-create: true
+    simpl:
+      kafka:
+        topic:
+          prefix: iaa.{{ .Release.Namespace }}.
+          
+  vaultConfig:
+    vault:
+      uri: "http://vault.common.svc.cluster.local:8200"
+      secretEngine: iaa.{{ .Release.Namespace }}
+      basePath: authenticationprovider
+      authentication:
+        path: "{{ .Release.Namespace }}.authenticationprovider"
+
+tier2-gateway:
+  devMode: true
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  service:
+    type: LoadBalancer
+  useDeamonSet: false
+
+  profile: authority
+
+  keypair:
+    algorithm: EC
+
+  hostT2: "t2.{{ .Release.Namespace }}.dev.simpl-europe.eu"
+
+  kafkaConfig:
+    kafka:
+      user: iaa
+      password: eezooS4Aideth1teaDeey3ohghohwohk
+    spring:
+      kafka:
+        bootstrap-servers: kafka.iaacommon.svc.cluster.local:9092
+        consumer:
+          properties:
+            security.protocol: SASL_PLAINTEXT
+            sasl.mechanism: PLAIN
+            sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="iaaauthority_tier2gw" password="QBoeXZ2mKEdoyZYc";
+        admin:
+          auto-create: true
+    simpl:
+      kafka:
+        topic:
+          prefix: iaa.{{ .Release.Namespace }}.
+
+simpl-cli:
+  initAuthority:
+    enabled: true
+    hostT1: t1.{{ .Release.Namespace }}.dev.simpl-europe.eu
+    csr:
+      cn: t2.{{ .Release.Namespace }}.dev.simpl-europe.eu
+      o: authority
+      ou: aruba-dev
+      country: IT
+    keycloak:
+      internalHost: keycloak.{{ .Release.Namespace }}.svc.cluster.local
+      port: 80
+      app:
+        realm: authority
+        clientId: cli
+      master:
+        user: admin
+        password: admin
+  initParticipant:
+    enabled: false
+
+fe-authentication-provider:
+  hostFe: fe.{{ .Release.Namespace }}.dev.simpl-europe.eu
+  cors: 
+    allowOrigin: https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu,https://authentication-provider.{{ .Release.Namespace }}.dev.simpl-europe.eu,http://localhost:4202,http://localhost:4203,http://localhost:3000
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu"
+  - name: KEYCLOAK_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/auth"
+  - name: KEYCLOAK_REALM
+    value: "authority"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+
+fe-identity-provider:
+  hostFe: fe.{{ .Release.Namespace }}.dev.simpl-europe.eu
+  cors: 
+    allowOrigin: https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu,https://identity-provider.{{ .Release.Namespace }}.dev.simpl-europe.eu,http://localhost:4202,http://localhost:4203,http://localhost:3000
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu"
+  - name: KEYCLOAK_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/auth"
+  - name: KEYCLOAK_REALM
+    value: "authority"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+
+fe-onboarding:
+  hostFe: fe.{{ .Release.Namespace }}.dev.simpl-europe.eu
+  cors: 
+    allowOrigin: https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu,https://onboarding.{{ .Release.Namespace }}.dev.simpl-europe.eu,http://localhost:4202,http://localhost:4203,http://localhost:3000
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu"
+  - name: KEYCLOAK_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/auth"
+  - name: KEYCLOAK_REALM
+    value: "authority"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+  - name: EIDAS_ENABLED
+    value: "true"
+
+fe-security-attribute-provider:
+  hostFe: fe.{{ .Release.Namespace }}.dev.simpl-europe.eu
+  cors: 
+    allowOrigin: https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu,https://security-attribute-provider.{{ .Release.Namespace }}.dev.simpl-europe.eu,http://localhost:4202,http://localhost:4203,http://localhost:3000
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu"
+  - name: KEYCLOAK_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/auth"
+  - name: KEYCLOAK_REALM
+    value: "authority"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+
+fe-users-and-roles:
+  hostFe: fe.{{ .Release.Namespace }}.dev.simpl-europe.eu
+  cors: 
+    allowOrigin: https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu,https://users-and-roles.{{ .Release.Namespace }}.dev.simpl-europe.eu,http://localhost:4202,http://localhost:4203,http://localhost:3000
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu"
+  - name: KEYCLOAK_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/auth"
+  - name: KEYCLOAK_REALM
+    value: "authority"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+

@@ -1,0 +1,17 @@
+env:
+  MICROSERVICE_ONBOARDING_URL: http://onboarding.iaa.svc.cluster.local:8080
+  MICROSERVICE_USERS_ROLES_URL: http://users-roles.iaa.svc.cluster.local:8080
+  SIMPL_EPHEMERAL_PROOF_EXPIRE_AFTER: 3D
+  SPRING_DATA_REDIS_HOST: redis-master.iaa.svc.cluster.local
+  SPRING_DATA_REDIS_PASSWORD: admin
+  SPRING_DATA_REDIS_PORT: "6379"
+  SPRING_DATA_REDIS_USERNAME: default
+  SPRING_DATASOURCE_PASSWORD: securityattributesprovider
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql.iaa.svc.cluster.local:5432/securityattributesprovider
+  SPRING_DATASOURCE_USERNAME: securityattributesprovider
+
+global:
+  hostTls: tls.authority.dev.simpl-europe.eu
+  hostBe: authority.be.dev.simpl-europe.eu
+  keystore:
+    password: "o+cndTh0U0i82loxKdosU35U"

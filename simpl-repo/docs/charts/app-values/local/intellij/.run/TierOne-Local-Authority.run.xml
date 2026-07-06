@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="TierOne-Local-Authority" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="local-authority" />
+    <module name="tier1-gateway" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="eu.europa.ec.simpl.gatewayserver.GatewayServerApplication" />
+    <option name="VM_PARAMETERS" value="-Dio.netty.resolver.noPreferNative=true" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="eu.europa.ec.simpl.gatewayserver.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

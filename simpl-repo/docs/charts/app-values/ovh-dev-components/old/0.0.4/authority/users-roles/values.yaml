@@ -1,0 +1,17 @@
+env:
+  KEYCLOAK_MASTER_PASSWORD: admin
+  KEYCLOAK_MASTER_USER: user
+  SPRING_DATA_REDIS_HOST: redis-master.iaa.svc.cluster.local
+  SPRING_DATA_REDIS_PASSWORD: admin
+  SPRING_DATA_REDIS_PORT: "6379"
+  SPRING_DATA_REDIS_USERNAME: default
+  SPRING_DATASOURCE_PASSWORD: usersroles
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql.iaa.svc.cluster.local:5432/usersroles
+  SPRING_DATASOURCE_USERNAME: usersroles
+
+global:
+  hostBe: authority.be.dev.simpl-europe.eu
+  hostTls: tls.authority.dev.simpl-europe.eu
+  profile: authority
+  keystore:
+    password: "o+cndTh0U0i82loxKdosU35U"

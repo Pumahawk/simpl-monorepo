@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ejbca-dump
+data:
+  ejbca.sql: |-
+{{ .Files.Get "files/ejbca.sql" | nindent 4 }}

@@ -1,0 +1,464 @@
+postgresql:
+  image:
+    repository: bitnamilegacy/postgresql
+  security:
+    allowInsecureImages: true
+  fullnameOverride: postgresql
+  architecture: standalone
+  primary:
+    persistence:
+      size: 1Gi
+    initdb:
+      scripts:
+        init.sql: |
+          CREATE USER keycloak WITH PASSWORD 'keycloak' CREATEDB;
+          CREATE DATABASE keycloak OWNER keycloak;
+          CREATE USER usersroles WITH PASSWORD 'usersroles' CREATEDB;
+          CREATE DATABASE usersroles OWNER usersroles;
+          CREATE USER authenticationprovider WITH PASSWORD 'authenticationprovider' CREATEDB;
+          CREATE DATABASE authenticationprovider OWNER authenticationprovider;
+redis:
+  image:
+    repository: bitnamilegacy/redis
+  kubectl:
+    image:
+      repository: bitnamilegacy/kubectl
+  security:
+    allowInsecureImages: true
+  fullnameOverride: redis
+  replica:
+    replicaCount: 1
+    persistence:
+      size: 1Gi
+  master:
+    persistence:
+      size: 1Gi
+  auth:
+    password: "admin"
+
+keycloak:
+  global:
+    security:
+      allowInsecureImages: true
+  image:
+    repository: keycloak/keycloak
+    tag: 26.4
+  defaultInitContainers:
+    prepareWriteDirs:
+      enabled: false
+  args:
+    - start
+    - --import-realm
+    - --verbose
+    - --proxy-headers
+    - xforwarded
+  containerSecurityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+  resources:
+    limits:
+      cpu: 750m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  fullnameOverride: keycloak
+  apiUrl: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu"
+  extraEnvVars:
+    - name: KC_HOSTNAME_ADMIN
+      value: "{{ tpl .Values.apiUrl . }}/auth"
+    - name: KC_HOSTNAME
+      value: "{{ tpl .Values.apiUrl . }}/auth"
+    - name: USERS_ROLES_BASE_URL
+      value: "http://users-roles.{{ .Release.Namespace }}.svc.cluster.local:8080"
+    - name: AUTHENTICATION_PROVIDER_BASE_URL
+      value: "http://authentication-provider.{{ .Release.Namespace }}.svc.cluster.local:8080"
+    - name: KEYCLOAK_BASE_URL
+      value: "{{ tpl .Values.apiUrl . }}/auth"
+    - name: REALM
+      value: "participant" # update
+    - name: KEYCLOAK_ADMIN
+      value: "admin"
+    - name: KEYCLOAK_ADMIN_PASSWORD
+      value: "admin"
+    - name: KC_DB
+      value: "postgres"
+    - name: KC_DB_URL_HOST
+      value: "postgresql.{{ .Release.Namespace }}.svc.cluster.local"
+    - name: KC_DB_URL_PORT
+      value: "5432"
+    - name: KC_DB_URL_DATABASE
+      value: "keycloak"
+    - name: KC_DB_USERNAME
+      value: "keycloak"
+    - name: KC_DB_PASSWORD
+      value: "keycloak"
+    - name: KC_BOOTSTRAP_ADMIN_USERNAME
+      value: "admin"
+    - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+      value: "admin"
+    - name: KC_HTTP_COOKIE_SAMESITE
+      value: "None"
+    - name: KC_HTTP_COOKIE_SECURE
+      value: "true"
+  # auth:
+  #   adminUser: "admin" # update
+  #   adminPassword: "admin" # update
+  postgresql:
+    enabled: false
+  externalDatabase:
+    host: "postgresql.{{ .Release.Namespace }}.svc.cluster.local"
+    port: 5432
+    user: keycloak
+    database: keycloak
+    password: "keycloak"
+    existingSecret: ""
+    existingSecretDatabaseKey: ""
+    existingSecretHostKey: ""
+    existingSecretPasswordKey: ""
+    existingSecretPortKey: ""
+    existingSecretUserKey: ""
+    password: keycloak
+    port: 5432
+    user: keycloak
+  extraVolumes:
+    - name: spi-volume
+      emptyDir: {}
+    - name: realm-volume
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: spi-volume
+      mountPath: /opt/keycloak/providers/keycloak-authenticator.jar
+      subPath: keycloak-authenticator.jar
+    - name: realm-volume
+      mountPath: /opt/keycloak/data/import/realm.json
+      subPath: realm.json
+  initContainers:
+    - name: init-spi
+      image: curlimages/curl
+      securityContext:
+        runAsUser: 1000
+        runAsNonRoot: true
+      command: ["/bin/sh", "-c"]
+      env:
+        - name: ARTIFACT
+          value: keycloak-authenticator
+        - name: URL
+          value: https://code.europa.eu/api/v4/projects/915/packages/maven/com/aruba/simpl/keycloak-authenticator/2.0.0/keycloak-authenticator-2.0.0.jar
+      args:
+        - |
+          curl -o /custom-spi/${ARTIFACT}.jar ${URL};
+      volumeMounts:
+        - name: spi-volume
+          mountPath: /custom-spi
+    - name: import-realm
+      image: nginx:latest
+      securityContext:
+        runAsUser: 1000
+        runAsNonRoot: true
+      command: ["/bin/sh", "-c"]
+      env:
+        - name: REALM_NAME
+          value: realm
+        - name: URL
+          value: https://code.europa.eu/simpl/simpl-open/development/iaa/charts/-/raw/develop/samples/keycloak-realms/1.0.0/participant-realm-export.json?ref_type=heads&inline=false
+      args:
+        - |
+          curl -o /config/${REALM_NAME}.json ${URL};
+      volumeMounts:
+        - name: realm-volume
+          mountPath: /config
+
+
+tier1-gateway:
+  devMode: true
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  
+  cors:
+    allowOrigin: https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu,https://fe.{{ .Release.Namespace }}.dev.simpl-europe.eu,http://localhost:4202,http://localhost:3000,https://fe-shell.iaa-dsdev-authority.dev.simpl-europe.eu,https://fe-react.iaa-dsdev-authority.dev.simpl-europe.eu,https://fe-angular.iaa-dsdev-authority.dev.simpl-europe.eu,https://fe-vue.iaa-dsdev-authority.dev.simpl-europe.eu
+
+  ingress:
+    issuer: dev-prod
+
+  hostT1: t1.{{ .Release.Namespace }}.dev.simpl-europe.eu
+  
+  profile: participant
+
+  # Spring Cloud Gateway Routes Participant
+  appConfig:
+    springdoc:
+      swagger-ui:
+        urls:
+          - url: /userApi/openapi/usersroles-v1.yaml
+            name: Users & Roles Service V1
+          - url: /authApi/openapi/authenticationprovider-v1.yaml
+            name: Authentication Provider Service V1
+          - url: /openapi/tier1gateway-v1.yaml
+            name: Application Info V1
+
+    keycloak:
+      app:
+        realm: participant
+
+    microservices-info:
+      microservices:
+        - name: users-roles
+          internalUrl: "http://users-roles.{{ .Release.Namespace }}.svc.cluster.local:8080/v1"
+          detailUrl: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/userApi/v1/"
+        - name: authentication-provider
+          internalUrl: "http://authentication-provider.{{ .Release.Namespace }}.svc.cluster.local:8080/v1"
+          detailUrl: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/authApi/v1/"
+
+simpl-fe:
+  resources:
+    limits:
+      cpu: 250m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 50Mi
+
+  hostFe: fe.{{ .Release.Namespace }}.dev.simpl-europe.eu
+  cors: 
+    allowOrigin: https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu,https://fe.{{ .Release.Namespace }}.dev.simpl-europe.eu,http://localhost:4202,http://localhost:4203,http://localhost:3000
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu"
+  - name: KEYCLOAK_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/auth"
+  - name: KEYCLOAK_REALM
+    value: "participant"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+
+  microfrontends:
+  - name: usersroles
+    application: usersandroles
+    path: "/users-roles"
+  - name: participant
+    application: participant-utility
+    path: "/participant-utility"
+
+users-roles:
+  devMode: true
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  
+  hostT1: t1.{{ .Release.Namespace }}.dev.simpl-europe.eu
+
+  keycloak:
+    master:
+      user: "admin"
+      password: "admin"
+      realm: "participant"
+    clientToRealmRoleMigration:
+      enabled: false # set to true to import realm roles from client roles
+
+  databaseSeeding:
+    roleIdentityAttributesMapping:
+      # If you want to start with an empty identity attributes table, set this to false.
+      # Ff enabled is set to true and filePath is commented or empty the table will be initialized with the default seeding file.
+      enabled: true 
+
+      # To specify your custom attributes, uncomment and provide the path to your JSON file here.
+      # filePath must start with 'file:'
+      # You can find an example of seeding file in samples/db-seeding/user-roles/0.8.x/roleAttributes.default.json
+      # filePath: file:/app/config/exampleRoleAttributes.json 
+  kafkaConfig:
+    kafka:
+      user: iaa
+      password: eezooS4Aideth1teaDeey3ohghohwohk
+    spring:
+      kafka:
+        bootstrap-servers: kafka.iaacommon.svc.cluster.local:9092
+        consumer:
+          group-id: iaa.{{ .Release.Namespace }}.users-roles
+          properties:
+            security.protocol: SASL_PLAINTEXT
+            sasl.mechanism: PLAIN
+            sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="iaaconsumer_usersroles" password="uN6bbvjTDpRSi6M8";
+        admin:
+          auto-create: true
+    simpl:
+      kafka:
+        topic:
+          prefix: iaa.{{ .Release.Namespace }}.
+        inbox:
+          topic:
+            pattern: iaa\.{{ .Release.Namespace }}\..*
+  appConfig:
+    spring:
+      jpa:
+        properties:
+          hibernate:
+            format_sql: false
+    logging:
+      http:
+        enabled: true
+
+tier2-gateway:
+  devMode: true
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+
+  profile: participant
+
+  keypair:
+    algorithm: EC
+
+  hostT2: "t2.{{ .Release.Namespace }}.dev.simpl-europe.eu"
+  
+  kafkaConfig:
+    kafka:
+      user: iaa
+      password: eezooS4Aideth1teaDeey3ohghohwohk
+    spring:
+      kafka:
+        bootstrap-servers: kafka.iaacommon.svc.cluster.local:9092
+        consumer:
+          properties:
+            security.protocol: SASL_PLAINTEXT
+            sasl.mechanism: PLAIN
+            sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="iaaconsumer_tier2gw" password="J6jf3T0djtOVsKRp";
+        admin:
+          auto-create: true
+    simpl:
+      kafka:
+        topic:
+          prefix: iaa.{{ .Release.Namespace }}.
+
+authentication-provider:
+  appConfig:
+    spring:
+      profiles:
+        active: participant
+    security:
+      secret:
+        location: database
+    simpl:
+      certificate:
+        san: t2.{{ .Release.Namespace }}.dev.simpl-europe.eu
+    logging:
+      http:
+        enabled: true
+      config: classpath:log4j2-local.xml
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+      
+  fullnameOverride: authn-provider
+
+  db:
+    cipherSecret: "authenticationprovider-db-cipher-secret" # name of the secret key that will be generated used to encrypt keys  
+
+  kafkaConfig:
+    kafka:
+      user: iaa
+      password: eezooS4Aideth1teaDeey3ohghohwohk
+    spring:
+      kafka:
+        bootstrap-servers: kafka.iaacommon.svc.cluster.local:9092
+        producer:
+          properties:
+            security.protocol: SASL_PLAINTEXT
+            sasl.mechanism: PLAIN
+            sasl.jaas.config: org.apache.kafka.common.security.plain.PlainLoginModule required username="iaaconsumer_authprovider" password="ZvDzSmvndyxLvYZo";
+        admin:
+          auto-create: true
+    simpl:
+      kafka:
+        topic:
+          prefix: iaa.{{ .Release.Namespace }}.
+  
+  vaultConfig:
+    vault:
+      uri: "http://vault-common.common.svc.cluster.local:8200"
+      secretEngine: iaa.{{ .Release.Namespace }}
+      basePath: authenticationprovider
+      authentication:
+        path: "{{ .Release.Namespace }}.authenticationprovider"
+
+simpl-cli:
+  initParticipant:
+    enabled: false
+    ptype: CONSUMER
+    hostT1: t1.{{ .Release.Namespace }}.dev.simpl-europe.eu
+    csr:
+      cn: t2.{{ .Release.Namespace }}.dev.simpl-europe.eu
+      o: consumer
+      ou: aruba-dev
+      country: IT
+    keycloak:
+      internalHost: keycloak.{{ .Release.Namespace }}.svc.cluster.local
+      port: 80
+      app:
+        realm: participant
+        clientId: cli
+      master:
+        user: user
+        password: admin
+      authority:
+        user: admin
+        password: admin
+        realm: authority
+
+echo-backend:
+  enabled: false
+
+fe-authentication-provider:
+  hostFe: fe.{{ .Release.Namespace }}.dev.simpl-europe.eu
+  cors: 
+    allowOrigin: https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu,https://authentication-provider.{{ .Release.Namespace }}.dev.simpl-europe.eu,http://localhost:4202,http://localhost:4203,http://localhost:3000
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu"
+  - name: KEYCLOAK_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/auth"
+  - name: KEYCLOAK_REALM
+    value: "participant"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+
+fe-users-and-roles:
+  hostFe: fe.{{ .Release.Namespace }}.dev.simpl-europe.eu
+  cors: 
+    allowOrigin: https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu,https://users-and-roles.{{ .Release.Namespace }}.dev.simpl-europe.eu,http://localhost:4202,http://localhost:4203,http://localhost:3000
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu"
+  - name: KEYCLOAK_URL
+    value: "https://t1.{{ .Release.Namespace }}.dev.simpl-europe.eu/auth"
+  - name: KEYCLOAK_REALM
+    value: "participant"
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+

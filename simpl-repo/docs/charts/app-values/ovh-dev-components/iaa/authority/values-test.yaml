@@ -1,0 +1,87 @@
+users-roles:
+  authorityHostT2: t2.iaa-dstest-authority.dev.simpl-europe.eu #the authority host tier 2
+
+authentication-provider:
+  appConfig:
+    client:
+      authority:
+        url: https://t2.iaa-dstest-authority.dev.simpl-europe.eu
+
+  vaultConfig:
+    vault:
+      uri : [NOT_SET]
+      authentication:
+        roleId: ce2ffc32-7325-773c-06e1-1db52a389e2f
+        secretId: 48552cbc-4664-f374-76cc-86d8a9c55583
+
+onboarding:
+  appConfig:
+    auto-approval:
+      identity-attributes-from-sap: false
+    scheduled-tasks:
+      rejection-of-stale-onboarding-requests:
+        cron: "0 */15 * * * *"
+      evaluate-not-executed-validation-rules:
+        cron: "0/5 * * * * *"
+        rules-per-execution: 20
+      evaluate-rule-execution-results:
+        cron: "2/5 * * * * *"
+        onboarding-request-per-execution: 20
+      delete-rejected-onboarding-requests:
+        cron: "0 */15 * * * *"
+        retention-time: 1d
+
+ejbca:
+  hostname: &ejbca-hostname ejbca-community-helm.iaa-dstest-authority.svc.cluster.local
+  fullnameOverride: ejbca-community-helm
+  serviceAccount:
+    name: ejbca-init-sa
+  image:
+    tag: 8.2.0.1
+  ejbca:
+    useEphemeralH2Database: false
+    env:
+      LOG_LEVEL_APP: DEBUG
+      LOG_LEVEL_SERVER: DEBUG
+      LOG_LEVEL_SERVER_SUBSYSTEMS: DEBUG
+      HTTPSERVER_HOSTNAME: *ejbca-hostname
+      TLS_SETUP_ENABLED: "true"
+      DATABASE_JDBC_URL: jdbc:postgresql://postgresql.iaa-dstest-authority.svc.cluster.local:5432/ejbca
+      DATABASE_USER: "ejbca"
+      DATABASE_PASSWORD: "ejbca2123"
+    initContainers:
+    - name: ejbca-init
+      image: code.europa.eu:4567/simpl/simpl-open/development/iaa/ejbca-preconfig:1.0.1
+      imagePullPolicy: IfNotPresent
+      securityContext: {}
+      env:
+        - name: HTTPSERVER_HOSTNAME
+          value: *ejbca-hostname
+        - name: MANAGEMENT_END_ENTITY_USERNAME
+          value: SuperAdmin
+        - name: MANAGEMENT_END_ENTITY_PASSWORD
+          value: 123-stella
+        - name: DATABASE_JDBC_URL
+          value: jdbc:postgresql://postgresql.iaa-dstest-authority.svc.cluster.local:5432/ejbca
+        - name: DATABASE_USER
+          value: "ejbca"
+        - name: DATABASE_PASSWORD
+          value: "ejbca2123"
+        - name: T1_GATEWAY
+          value: t1.iaa-dstest-authority.dev.simpl-europe.eu
+        - name: NAMESPACE
+          value: iaa-dstest-authority
+      command:
+      - "./entrypoint.sh"
+
+  nginx:
+    host: *ejbca-hostname
+  # The following allows to not use a NodePort and have multiple istances of EJBCA on the same cluster
+  services:
+    directHttp:
+      type: ClusterIP
+
+simpl-cli:
+  initAuthority:
+    enabled: true
+

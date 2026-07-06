@@ -1,0 +1,626 @@
+
+global:
+  cors:
+    allowOrigin: https://t1.iaads-authority-01.dev.simpl-europe.eu,https://fe.iaads-authority-01.dev.simpl-europe.eu,http://localhost:4202,http://localhost:3000
+  hostBe: t1.iaads-authority-01.dev.simpl-europe.eu
+  hostTls: t2.iaads-authority-01.dev.simpl-europe.eu
+  ingress:
+    issuer: dev-prod
+  profile: authority
+  keystore:
+    password: "authority"
+
+redis:
+  fullnameOverride: redis
+  replica:
+    replicaCount: 1
+    persistence:
+      size: 1Gi
+  master:
+    persistence:
+      size: 1Gi
+  auth:
+    password: "admin"
+
+postgresql:
+  fullnameOverride: postgresql
+  primary:
+    initdb:
+      scripts:
+        init.sql: |
+          CREATE USER ejbca WITH PASSWORD 'ejbca2123' CREATEDB;
+          CREATE DATABASE ejbca OWNER ejbca;
+          CREATE USER keycloak WITH PASSWORD 'keycloak' CREATEDB;
+          CREATE DATABASE keycloak OWNER keycloak;
+          CREATE USER securityattributesprovider WITH PASSWORD 'securityattributesprovider' CREATEDB;
+          CREATE DATABASE securityattributesprovider OWNER securityattributesprovider;
+          CREATE USER onboarding WITH PASSWORD 'onboarding' CREATEDB;
+          CREATE DATABASE onboarding OWNER onboarding;
+          CREATE USER usersroles WITH PASSWORD 'usersroles' CREATEDB;
+          CREATE DATABASE usersroles OWNER usersroles;
+          CREATE USER identityprovider WITH PASSWORD 'identityprovider' CREATEDB;
+          CREATE DATABASE identityprovider OWNER identityprovider;
+          CREATE USER authenticationprovider WITH PASSWORD 'authenticationprovider' CREATEDB;
+          CREATE DATABASE authenticationprovider OWNER authenticationprovider;
+ejbca:
+  hostname: &ejbca-hostname ejbca-community-helm.iaads-authority-01.svc.cluster.local
+  fullnameOverride: ejbca-community-helm
+  # I used as Authentication Code for cryptotokens "enter" 
+  ejbca:
+    useEphemeralH2Database: false
+    env:
+      HTTPSERVER_HOSTNAME: *ejbca-hostname
+      TLS_SETUP_ENABLED: "true"
+      DATABASE_JDBC_URL: jdbc:postgresql://postgresql.iaads-authority-01.svc.cluster.local:5432/ejbca
+      DATABASE_USER: "ejbca"
+      DATABASE_PASSWORD: "ejbca2123"
+    
+  nginx:
+    host: *ejbca-hostname
+
+  # The following allows to not use a NodePort and have multiple istances of EJBCA on the same cluster 
+  services:
+    directHttp:
+      type: ClusterIP
+
+### Keycloak Config
+keycloak:
+  fullnameOverride: keycloak
+  apiUrl: "https://t1.iaads-authority-01.dev.simpl-europe.eu" # update
+  extraEnvVars: 
+    - name: KC_HOSTNAME_ADMIN
+      value: "https://t1.iaads-authority-01.dev.simpl-europe.eu/auth" # update
+    - name: KC_HOSTNAME
+      value: "https://t1.iaads-authority-01.dev.simpl-europe.eu/auth" # update
+    - name: USERS_ROLES_BASE_URL
+      value: "http://users-roles.iaads-authority-01.svc.cluster.local:8080" # update
+    - name: KEYCLOAK_BASE_URL
+      value: "https://t1.iaads-authority-01.dev.simpl-europe.eu/auth" # update
+    - name: REALM
+      value: "authority" # update
+    - name: KEYCLOAK_EXTRA_ARGS
+      value: --import-realm
+
+  auth:
+    adminUser: "admin" # update
+    adminPassword: "admin" # update
+
+  postgresql:
+    enabled: false
+
+  externalDatabase:
+    annotations: {}
+    database: keycloak
+    existingSecret: ""
+    existingSecretDatabaseKey: ""
+    existingSecretHostKey: ""
+    existingSecretPasswordKey: ""
+    existingSecretPortKey: ""
+    existingSecretUserKey: ""
+    host: "postgresql.iaads-authority-01.svc.cluster.local" # update
+    password: keycloak
+    port: 5432
+    user: keycloak
+
+  extraVolumes:
+    - name: spi-volume
+      emptyDir: {}
+    - name: realm-volume
+      emptyDir: {}
+
+  extraVolumeMounts:
+    - name: spi-volume
+      mountPath: /opt/bitnami/keycloak/providers/keycloak-authenticator.jar
+      subPath: keycloak-authenticator.jar
+    - name: realm-volume
+      mountPath: /opt/bitnami/keycloak/data/import/realm.json
+      subPath: realm.json
+
+  initContainers: 
+    - name: init-spi
+      image: curlimages/curl
+      command: ["/bin/sh", "-c"]
+      env:
+        - name: ARTIFACT
+          value: keycloak-authenticator
+        - name: URL
+          value: https://code.europa.eu/api/v4/projects/915/packages/maven/com/aruba/simpl/keycloak-authenticator/0.7.0/keycloak-authenticator-0.7.0.jar
+      args:
+        - |
+          curl -o /custom-spi/${ARTIFACT}.jar ${URL};
+      volumeMounts:
+        - name: spi-volume
+          mountPath: /custom-spi
+
+    - name: import-realm
+      image: curlimages/curl
+      command: ["/bin/sh", "-c"]
+      env:
+        - name: REALM_NAME
+          value: realm
+        - name: URL
+          # uncomment below if you are deploying an authority
+          value: https://code.europa.eu/simpl/simpl-open/development/iaa/charts/-/raw/develop/samples/keycloak-realms/0.6/authority-realm-export.json?ref_type=heads&inline=false
+          # uncomment below if you are deploying a participant
+          # value: https://code.europa.eu/simpl/simpl-open/development/iaa/charts/-/raw/develop/samples/keycloak-realms/0.6/participant-realm-export.json?ref_type=heads&inline=false
+      args:
+        - |
+          curl -o /config/${REALM_NAME}.json ${URL};
+      volumeMounts:
+        - name: realm-volume
+          mountPath: /config
+
+simpl-cloud-gateway:
+  ejbcaUrl: http://ejbca-community-helm.iaads-authority-01.svc.cluster.local:30080 # comment this line if profile is `participant`
+  identityProviderUrl: http://identity-provider.iaads-authority-01.svc.cluster.local:8080 # comment this line if profile is `participant`
+  keycloakUrl: http://keycloak.iaads-authority-01.svc.cluster.local
+  onboardingUrl: http://onboarding.iaads-authority-01.svc.cluster.local:8080 # comment this line if profile is `participant`
+  securityAttributesProviderUrl: http://security-attributes-provider.iaads-authority-01.svc.cluster.local:8080 # comment this line if profile is `participant`
+  usersRolesUrl: http://users-roles.iaads-authority-01.svc.cluster.local:8080
+  authenticationProviderUrl: http://authentication-provider.iaads-authority-01.svc.cluster.local:8080
+
+ # Spring Cloud Gateway Routes Authority
+  appConfig:
+    spring:
+      cloud:
+        gateway:
+          routes: 
+            - id: keycloak
+              uri: ${keycloak.url}
+              predicates:
+                - Path=/auth/**
+              filters:
+                - StripPrefix=1
+            - id: users-roles
+              uri: ${users-roles.url}
+              predicates:
+                - Path=/*/user-api/**
+              filters:
+                - StripPrefix=2
+            - id: onboarding
+              uri: ${onboarding.url}
+              predicates:
+                - Path=/*/onboarding-api/**
+              filters:
+                - StripPrefix=2
+            - id: sap
+              uri: ${sap.url}
+              predicates:
+                - Path=/*/sap-api/**
+              filters:
+                - StripPrefix=2
+            - id: identity-provider
+              uri: ${identity-provider.url}
+              predicates:
+                - Path=/*/identity-api/**
+              filters:
+                - StripPrefix=2
+            - id: authentication-provider
+              uri: ${authentication-provider.url}
+              predicates:
+                - Path=/*/auth-api/**
+              filters:
+                - StripPrefix=2
+            - id: ocsp
+              uri: ${ejbca.url}
+              predicates:
+                - Path=/ocsp
+              filters:
+                - RewritePath=/ocsp/*, /ejbca/publicweb/status/ocsp
+            - id: ca-certificates
+              uri: ${ejbca.url}
+              predicates:
+                - Path=/ca/*
+              filters:
+                - RewritePath=/ca/?(?<segment>.*), /ejbca/publicweb/webdist/certdist?cmd=cacert&issuer=CN%3D$\{segment}
+            - id: crl
+              uri: ${ejbca.url}
+              predicates:
+                - Path=/crl/*
+              filters:
+                - RewritePath=/crl/?(?<segment>.*), /ejbca/publicweb/webdist/certdist?cmd=crl&issuer=CN%3D$\{segment}
+
+    springdoc:
+      swagger-ui:
+        urls:
+          - url: /public/sap-api/v3/api-docs
+            name: Security Attributes Provider Service
+          - url: /public/onboarding-api/v3/api-docs
+            name: Onboarding Service
+          - url: /public/user-api/v3/api-docs
+            name: Users & Roles Service
+          - url: /public/identity-api/v3/api-docs
+            name: Identity Provider Service
+          - url: /public/auth-api/v3/api-docs
+            name: Authentication Provider Service
+
+    routes:
+      public-urls:
+        - method: GET
+          path: "/swagger-ui.html"
+        - method: GET
+          path: "/swagger-ui/**"
+        - method: GET
+          path: "/v3/api-docs/**"
+        - method: GET
+          path: "/actuator/**"
+
+        - method: POST
+          path: "/ocsp"
+        - method: GET
+          path: "/ca/**"
+        - method: GET
+          path: "/crl/**"
+
+        - method: GET
+          path: "/public/user-api/credential/public-key" #TODO remove this
+
+        - method: POST
+          path: "/public/onboarding-api/credential-request"
+        
+      denied-urls:
+        - method: GET
+          path: "*/auth-api/keypair"
+
+      rbac:
+        ### CLI
+        - path: "private/identity-api/cli/*"
+          roles:
+            - NOTARY
+            - T1UAR_M
+        - path: "private/sap-api/cli*"
+          roles:
+            - NOTARY
+            - T1UAR_M
+        - path: "private/user-api/cli*"
+          roles:
+            - NOTARY
+            - T1UAR_M
+          ### ONBOARDING
+        - path: "private/onboarding-api/onboarding-request/*/status"
+          roles:
+            - NOTARY
+        - path: "private/onboarding-api/onboarding-request/*/document"
+          method: POST
+          roles:
+            - NOTARY
+        - path: "private/onboarding-api/participant-type/*"
+          roles:
+            - T2IAA_M
+        - path: "private/onboarding-api/onboarding-status/*"
+          roles:
+            - T2IAA_M
+        - path: "private/onboarding-api/onboarding-template/*"
+          roles:
+            - T2IAA_M
+        - path: "private/onboarding-api/mime-type/*"
+          roles:
+            - T2IAA_M
+        - path: "/private/onboarding-api/onboarding-request"
+          method: GET
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/private/onboarding-api/onboarding-request"
+          method: POST
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/private/onboarding-api/onboarding-request"
+          method: PATCH
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/private/onboarding-api/onboarding-request/*"
+          method: GET
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/private/onboarding-api/onboarding-request/*/id-document"
+          method: PATCH
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/private/onboarding-api/onboarding-request/*/document/*"
+          method: GET
+          roles:
+            - APPLICANT
+            - NOTARY
+        - path: "/private/onboarding-api/onboarding-request/*/expiration-timeframe"
+          method: PATCH
+          roles:
+            - NOTARY
+          ###
+        - path: "private/identity-api/participant/*"
+          method: PUT
+          roles:
+            - NOTARY
+        - method: POST
+          path: "private/identity-api/csr/*"
+          roles:
+            - APPLICANT
+        - path: "private/user-api/agent/identity-attributes"
+          method: GET
+          roles:
+            - T1UAR_M
+        - path: "private/user-api/agent/identity-attributes/*"
+          method: GET
+          roles:
+            - T1UAR_M
+        - path: "private/user-api/identity-attribute/search"
+          method: GET
+          roles:
+            - T1UAR_M
+            - NOTARY
+        - path: "private/user-api/role/*"
+          method: GET
+          roles:
+            - T1UAR_M
+        - path: "private/user-api/role"
+          method: PUT
+          roles:
+            - T1UAR_M
+        - path: "private/user-api/role/*/identity-attributes"
+          method: POST
+          roles:
+            - T1UAR_M
+        - path: "private/user-api/role/delete-attribute"
+          method: DELETE
+          roles:
+            - T1UAR_M
+        - path: "private/user-api/role/*"
+          method: DELETE
+          roles:
+            - T1UAR_M
+        - path: "private/user-api/role/search"
+          method: GET
+          roles:
+            - T1UAR_M
+        - path: "private/user-api/role/*/duplicate-identity-attribute"
+          method: POST
+          roles:
+            - T1UAR_M
+        - path: "private/user-api/user/*"
+          method: POST
+          roles:
+            - T1UAR_M
+        - path: "private/user-api/user/**"
+          method: GET
+          roles:
+            - T1UAR_M
+        - path: "private/user-api/user/**"
+          method: PUT
+          roles:
+            - T1UAR_M
+        - path: "private/user-api/user/*"
+          method: DELETE
+          roles:
+            - T1UAR_M
+        - path: "private/sap-api/identity-attribute"
+          method: POST
+          roles:
+            - IATTR_M
+            - NOTARY
+        - path: "private/sap-api/identity-attribute/*"
+          method: GET
+          roles:
+            - IATTR_M
+            - NOTARY
+        - path: "private/sap-api/identity-attribute/*"
+          method: PUT
+          roles:
+            - IATTR_M
+            - NOTARY
+        - path: "private/sap-api/identity-attribute/*"
+          method: DELETE
+          roles:
+            - IATTR_M
+            - NOTARY
+        - path: "private/sap-api/identity-attribute/assignable/*"
+          method: PUT
+          roles:
+            - IATTR_M
+            - NOTARY
+        - path: "private/sap-api/identity-attribute/add-participant-type/*"
+          method: PUT
+          roles:
+            - IATTR_M
+        - path: "private/sap-api/identity-attribute/unassign-participant/*"
+          method: DELETE
+          roles:
+            - NOTARY
+            - IATTR_M
+        - path: "private/sap-api/identity-attribute/assign-participant/*"
+          method: PUT
+          roles:
+            - NOTARY
+            - IATTR_M
+        - path: "private/sap-api/identity-attribute/assign/*/*"
+          method: PUT
+          roles:
+            - NOTARY
+
+
+tls-gateway:
+  keypair:
+    algorithm: EC
+
+  microservices:
+    usersRolesUrl: http://users-roles.iaads-authority-01.svc.cluster.local:8080 
+    keycloakUrl: http://keycloak.iaads-authority-01.svc.cluster.local
+    securityAttributesProviderUrl: http://security-attributes-provider.iaads-authority-01.svc.cluster.local:8080
+    identityProviderUrl: http://identity-provider.iaads-authority-01.svc.cluster.local:8080
+    authenticationProviderUrl: http://authentication-provider.iaads-authority-01.svc.cluster.local:8080
+
+  redis:
+    host: "redis-master.iaads-authority-01.svc.cluster.local"
+    port: "6379"
+    username: "default"
+    password: "admin"
+
+  hostT2: "t2.iaads-authority-01.dev.simpl-europe.eu"
+  appConfig:
+    spring:
+      cloud:
+        gateway:
+          routes:
+          - id: sap
+            uri: ${sap.url}
+            predicates:
+              - Path=/sap-api/mtls/**
+            filters:
+              - StripPrefix=1
+          - id: identity-provider
+            uri: ${identity-provider.url}
+            predicates:
+              - Path=/identity-api/mtls/**
+            filters:
+              - StripPrefix=1
+          - id: users-roles
+            uri: ${users-roles.url}
+            predicates:
+              - Path=/user-api/mtls/**
+            filters:
+              - StripPrefix=1
+    routes:
+      public-urls:
+        - method: GET
+          path: "/actuator/**"
+
+      abac:
+        - method: PATCH
+          path: "/identity-api/mtls/public-key"
+          disable-ephemeral-proof-check: true
+        - method: POST
+          path: "/identity-api/mtls/token"
+          disable-ephemeral-proof-check: true
+        - method: POST
+          path: "/user-api/mtls/ephemeral-proof"
+          disable-ephemeral-proof-check: true
+
+
+security-attributes-provider:
+  db:
+    url: "jdbc:postgresql://postgresql.iaads-authority-01.svc.cluster.local:5432/securityattributesprovider"
+    username: "securityattributesprovider"
+    password: "securityattributesprovider"
+
+  microservices:
+    identityProviderUrl: http://identity-provider.iaads-authority-01.svc.cluster.local:8080
+    onboardingUrl: http://onboarding.iaads-authority-01.svc.cluster.local:8080
+
+
+users-roles:
+  db:
+    url: "jdbc:postgresql://postgresql.iaads-authority-01.svc.cluster.local:5432/usersroles"
+    username: "usersroles"
+    password: "usersroles"
+
+  redis:
+    host: "redis-master.iaads-authority-01.svc.cluster.local"
+    port: "6379"
+    username: "default"
+    password: "admin"
+
+  keycloak:
+    master:
+      user: "admin"
+      password: "admin"
+  
+  microservices:
+    identityProviderUrl: http://identity-provider.iaads-authority-01.svc.cluster.local:8080
+    authenticationProviderUrl: http://authentication-provider.iaads-authority-01.svc.cluster.local:8080
+
+
+onboarding:
+  db:
+    url: "jdbc:postgresql://postgresql.iaads-authority-01.svc.cluster.local:5432/onboarding"
+    username: "onboarding"
+    password: "onboarding"
+
+  microservices:
+    identityProviderUrl: http://identity-provider.iaads-authority-01.svc.cluster.local:8080
+    usersRolesUrl: http://users-roles.iaads-authority-01.svc.cluster.local:8080
+
+identity-provider:
+  db:
+    url: "jdbc:postgresql://postgresql.iaads-authority-01.svc.cluster.local:5432/identityprovider"
+    username: "identityprovider"
+    password: "identityprovider"
+
+  redis:
+    host: "redis-master.iaads-authority-01.svc.cluster.local"
+    port: "6379"
+    username: "default"
+    password: "admin"
+
+  ephemeralProof:
+    expireAfter: "3D"
+
+  microservices:
+    usersRolesUrl: http://users-roles.iaads-authority-01.svc.cluster.local:8080
+    securityAttributesProviderUrl: http://security-attributes-provider.iaads-authority-01.svc.cluster.local:8080
+    onboardingUrl: http://onboarding.iaads-authority-01.svc.cluster.local:8080
+    authenticationProviderUrl: http://authentication-provider.iaads-authority-01.svc.cluster.local:8080
+
+  hostT2: "t2.iaads-authority-01.dev.simpl-europe.eu"
+  ejbca:
+    # SuperAdmin .p12
+    keystore: 
+      base64: "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" 
+      password: "d8HIdOLu/FskY/O1KZsg/ZHp"
+    # ManagementCA
+    truststore:
+      base64: "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" 
+      password: "anotherpassword"
+    enrollConfig:
+      url: "https://ejbca-community-helm.iaads-authority-01.svc.cluster.local:30443"
+      profileName: "Onboarding TLS Profile" # update this field, example "Onboarding TLS Profile"
+      endEntityName: "TLS Server Profile" # update this field, example "TLS Server Profile"
+      caName: "SimplOnboardingSubCA" # update this field, example "OnBoardingCA"
+
+simpl-fe:
+  hostFe: fe.iaads-authority-01.dev.simpl-europe.eu
+  cors: 
+    allowOrigin: https://t1.iaads-authority-01.dev.simpl-europe.eu,https://fe.iaads-authority-01.dev.simpl-europe.eu,http://localhost:4202,http://localhost:4203,http://localhost:3000
+  ingress:
+    issuer: dev-prod
+  env:
+  - name: API_URL
+    value: "https://t1.iaads-authority-01.dev.simpl-europe.eu"
+  - name: KEYCLOAK_URL
+    value: "https://t1.iaads-authority-01.dev.simpl-europe.eu/auth"
+  - name: KEYCLOAK_REALM
+    value: "authority" 
+  - name: KEYCLOAK_CLIENT_ID
+    value: "frontend-cli"
+    
+  microfrontends:
+  - name: sap
+    application: sap
+    path: "/sap"
+  - name: onboarding
+    application: onboarding
+    path: "/onboarding"
+  - name: usersroles
+    application: usersandroles
+    path: "/users-roles"
+
+authentication-provider:
+  db:
+    url: "jdbc:postgresql://postgresql.iaads-authority-01.svc.cluster.local:5432/authenticationprovider"
+    username: "authenticationprovider"
+    password: "authenticationprovider"
+    cipherSecret: "authenticationprovider-db-cipher-secret" # name of the secret key that will be generated used to encrypt keys  
+
+  keypair:
+    signatureAlgorithm: "SHA256withECDSA"
+    algorithm: "ECDSA"
+    keyLength: 256
+
+  microservices:
+    usersRolesUrl: http://users-roles.iaads-authority-01.svc.cluster.local:8080
+
+  simpl:
+    certificate:
+      san: t2.iaads-authority-01.dev.simpl-europe.eu

@@ -1,0 +1,9 @@
+dependencies:
+- name: ejbca-community-helm
+  repository: https://keyfactor.github.io/ejbca-community-helm
+  version: 1.0.3
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 15.2.5
+digest: sha256:ab5aa89d34d8ffaaded8e81ddb5c98e055092eb648ab7e898c39772f08ead78c
+generated: "2025-07-24T10:18:51.4568523+02:00"

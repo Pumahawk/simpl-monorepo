@@ -1,0 +1,22 @@
+apiVersion: v2
+name: authority
+version: 2.0.0
+Appversion: 2.0.0
+description: This Chart deploys a SIMPL Authority.
+dependencies:
+  - name: vault
+    version: 0.30.0
+    repository: https://helm.releases.hashicorp.com
+  - name: redis
+    version: 19.6.0
+    repository: https://charts.bitnami.com/bitnami
+  - name: postgresql
+    version: 15.2.5
+    repository: https://charts.bitnami.com/bitnami
+  - name: keycloak
+    repository: https://charts.bitnami.com/bitnami
+    version: 25.2.0
+  - name: ejbca-community-helm
+    version: 1.0.3
+    repository: https://keyfactor.github.io/ejbca-community-helm
+    alias: ejbca

@@ -1,0 +1,43 @@
+apiVersion: v2
+name: authority
+version: 1.0.0
+Appversion: 1.0.0
+description: This Chart deploys a SIMPL Authority.
+dependencies:
+- name: postgresql
+  version: 15.2.5
+  repository: https://charts.bitnami.com/bitnami
+- name: ejbca-community-helm
+  version: 1.0.3
+  repository: "https://keyfactor.github.io/ejbca-community-helm"
+  alias: ejbca
+- name: redis
+  version: 19.6.0
+  repository:  https://charts.bitnami.com/bitnami
+- name: keycloak
+  repository: https://charts.bitnami.com/bitnami
+  version: 22.2.5
+- name: simpl-cloud-gateway
+  repository: https://code.europa.eu/api/v4/projects/772/packages/helm/stable
+  version: 1.0.1
+- name: tls-gateway
+  repository: https://code.europa.eu/api/v4/projects/860/packages/helm/stable
+  version: 1.0.2
+- name: security-attributes-provider
+  repository: https://code.europa.eu/api/v4/projects/861/packages/helm/stable
+  version: 1.0.1
+- name: users-roles
+  version: 1.0.2
+  repository: https://code.europa.eu/api/v4/projects/771/packages/helm/stable
+- name: onboarding
+  version: 1.0.3
+  repository: https://code.europa.eu/api/v4/projects/770/packages/helm/stable
+- name: simpl-fe
+  version: 1.0.8
+  repository: https://code.europa.eu/api/v4/projects/769/packages/helm/stable
+- name: identity-provider
+  version: 1.0.2
+  repository: https://code.europa.eu/api/v4/projects/913/packages/helm/stable
+- name: authentication-provider
+  version: 1.0.0
+  repository: https://code.europa.eu/api/v4/projects/939/packages/helm/stable

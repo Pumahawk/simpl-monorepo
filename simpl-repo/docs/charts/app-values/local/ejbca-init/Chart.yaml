@@ -1,0 +1,13 @@
+apiVersion: v2
+name: authority
+version: 2.0.0
+Appversion: 2.0.0
+description: This Chart deploys a SIMPL Authority.
+dependencies:
+  - name: ejbca-community-helm
+    version: 1.0.3
+    repository: https://keyfactor.github.io/ejbca-community-helm
+    alias: ejbca
+  - name: postgresql
+    version: 15.2.5
+    repository: https://charts.bitnami.com/bitnami

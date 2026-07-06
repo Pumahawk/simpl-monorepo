@@ -1,0 +1,5 @@
+apiVersion: v2
+name: postgrest
+version: 0.1.0
+appVersion: "latest"
+description: A Helm subchart to deploy PostgREST

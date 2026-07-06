@@ -1,0 +1,79 @@
+apiUrl: "https://authority.be.dev.simpl-europe.eu"
+extraEnvVars: 
+  - name: KC_HOSTNAME_ADMIN
+    value: "https://authority.be.dev.simpl-europe.eu/auth"
+  - name: KC_HOSTNAME
+    value: "https://authority.be.dev.simpl-europe.eu/auth"
+  - name: USERS_ROLES_BASE_URL
+    value: "http://users-roles.iaa.svc.cluster.local:8080"
+  - name: KEYCLOAK_BASE_URL
+    value: "https://authority.be.dev.simpl-europe.eu/auth"
+  - name: REALM
+    value: "authority"
+  - name: KEYCLOAK_EXTRA_ARGS
+    value: --import-realm
+
+auth:
+  adminPassword: "admin"
+
+postgresql:
+  enabled: false
+
+externalDatabase:
+  host: "postgresql.iaa.svc.cluster.local"
+  port: 5432
+  user: keycloak
+  database: keycloak
+  password: "keycloak"
+  existingSecret: ""
+  existingSecretHostKey: ""
+  existingSecretPortKey: ""
+  existingSecretUserKey: ""
+  existingSecretDatabaseKey: ""
+  existingSecretPasswordKey: ""
+  annotations: {}
+
+extraVolumes:
+  - name: spi-volume
+    emptyDir: {}
+  - name: realm-volume
+    emptyDir: {}
+
+extraVolumeMounts:
+  - name: spi-volume
+    mountPath: /opt/bitnami/keycloak/providers/keycloak-authenticator.jar
+    subPath: keycloak-authenticator.jar
+  - name: realm-volume
+    mountPath: /opt/bitnami/keycloak/data/import/realm.json
+    subPath: realm.json
+
+initContainers: 
+  - name: init-spi
+    image: curlimages/curl
+    command: ["/bin/sh", "-c"]
+    env:
+      - name: ARTIFACT
+        value: keycloak-authenticator
+      - name: URL
+        value: https://code.europa.eu/api/v4/projects/915/packages/maven/com/aruba/simpl/keycloak-authenticator/0.6.0/keycloak-authenticator-0.6.0.jar
+    args:
+      - |
+        curl -o /custom-spi/${ARTIFACT}.jar ${URL};
+    volumeMounts:
+      - name: spi-volume
+        mountPath: /custom-spi
+
+  - name: import-realm
+    image: curlimages/curl
+    command: ["/bin/sh", "-c"]
+    env:
+      - name: REALM_NAME
+        value: realm
+      - name: URL
+        value: https://code.europa.eu/simpl/simpl-open/development/iaa/charts/-/raw/develop/keycloak/kc-init/authority-realm-export.json?ref_type=heads
+    args:
+      - |
+        curl -o /config/${REALM_NAME}.json ${URL};
+    volumeMounts:
+      - name: realm-volume
+        mountPath: /config

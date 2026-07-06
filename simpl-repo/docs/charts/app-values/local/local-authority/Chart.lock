@@ -1,0 +1,18 @@
+dependencies:
+- name: vault
+  repository: https://helm.releases.hashicorp.com
+  version: 0.30.0
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 19.6.0
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 15.2.5
+- name: keycloak
+  repository: https://charts.bitnami.com/bitnami
+  version: 25.2.0
+- name: ejbca-community-helm
+  repository: https://keyfactor.github.io/ejbca-community-helm
+  version: 1.0.3
+digest: sha256:d9b4a11f1ab439cf6e2f3c5409bc53c6fd639016342d9717e19862ffb7324d09
+generated: "2026-01-07T11:02:38.1478984+01:00"

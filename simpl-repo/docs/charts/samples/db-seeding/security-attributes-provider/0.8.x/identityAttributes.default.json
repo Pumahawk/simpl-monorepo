@@ -1,0 +1,73 @@
+[
+	{
+		"name": "Consumer",
+		"code": "CONSUMER",
+		"participantTypes": [
+			"CONSUMER"
+		],
+		"description": "Identity attribute used for tagging an end user able to act as a user of a data consumer participant",
+		"assignableToRoles": false,
+		"isRight": false
+	},
+	{
+		"name": "Data Provider",
+		"code": "DATA_PROVIDER",
+		"participantTypes": [
+			"DATA_PROVIDER"
+		],
+		"description": "Identity attribute used to tag the data provider",
+		"assignableToRoles": false,
+		"isRight": false
+	},
+	{
+		"name": "Application Provider",
+		"code": "APP_PROVIDER",
+		"participantTypes": [
+			"APPLICATION_PROVIDER"
+		],
+		"description": "Identity attribute used to tag the application provider",
+		"assignableToRoles": false,
+		"isRight": false
+	},
+	{
+		"name": "Infrastructure Provider",
+		"code": "INFRA_PROVIDER",
+		"participantTypes": [
+			"INFRASTRUCTURE_PROVIDER"
+		],
+		"description": "Identity attribute used to tag the infrastructure provider",
+		"assignableToRoles": false,
+		"isRight": false
+	},
+	{
+		"name": "Data Provider Publisher",
+		"code": "DATA_PROVIDER_PUBLISHER",
+		"participantTypes": [
+			"DATA_PROVIDER"
+		],
+		"description": "Identity attribute needed for publishing Data Catalogue",
+		"assignableToRoles": true,
+		"isRight": true
+	},
+	{
+		"name": "Application Provider Publisher",
+		"code": "APP_PROVIDER_PUBLISHER",
+		"participantTypes": [
+			"APPLICATION_PROVIDER"
+		],
+		"description": "Identity attribute needed for publishing Application Catalogue",
+		"assignableToRoles": true,
+		"isRight": true
+	},
+	{
+		"name": "Infrastructure Provider Publisher",
+		"code": "INFRA_PROVIDER_PUBLISHER",
+		"participantTypes": [
+			"INFRASTRUCTURE_PROVIDER"
+		],
+		"description": "Identity attribute needed for publishing Infrastructure",
+		"assignableToRoles": true,
+		"isRight": true
+	}
+]
+

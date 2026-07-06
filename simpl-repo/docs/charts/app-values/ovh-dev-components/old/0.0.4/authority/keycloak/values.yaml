@@ -1,0 +1,40 @@
+apiUrl: "https://authority.be.dev.simpl-europe.eu"
+extraEnvVars: 
+  - name: KC_HOSTNAME_ADMIN_URL
+    value: "https://authority.be.dev.simpl-europe.eu/auth"
+  - name: KC_HOSTNAME_URL
+    value: "https://authority.be.dev.simpl-europe.eu/auth"
+  - name: USERS_ROLES_BASE_URL
+    value: "http://users-roles.iaa.svc.cluster.local:8080"
+  - name: KEYCLOAK_BASE_URL
+    value: "https://authority.be.dev.simpl-europe.eu/auth"
+  - name: REALM
+    value: "authority"
+
+auth:
+  adminUser: "admin"
+  adminPassword: "admin"
+
+
+keycloakConfigCli:
+  enabled: true
+  configuration:
+    authority.json: |
+      {{- $.Files.Get "kc-init/authority-realm-export.json" -}}
+
+postgresql:
+  enabled: false
+
+externalDatabase:
+  host: "postgresql.iaa.svc.cluster.local"
+  port: 5432
+  user: keycloak
+  database: keycloak
+  password: "keycloak"
+  existingSecret: ""
+  existingSecretHostKey: ""
+  existingSecretPortKey: ""
+  existingSecretUserKey: ""
+  existingSecretDatabaseKey: ""
+  existingSecretPasswordKey: ""
+  annotations: {}

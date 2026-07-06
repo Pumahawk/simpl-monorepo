@@ -1,0 +1,16 @@
+global:
+  cors:
+    allowOrigin: https://authority.be.dev.simpl-europe.eu,https://authority.fe.dev.simpl-europe.eu,http://localhost:4202,http://localhost:3000
+  hostBe: authority.be.dev.simpl-europe.eu
+  hostFe: authority.fe.dev.simpl-europe.eu
+  hostTls: tls.authority.dev.simpl-europe.eu
+  ingress:
+    issuer: dev-prod
+  profile: authority
+
+microservices:
+  ejbcaUrl: http://ejbca-community-helm.iaa.svc.cluster.local:30080
+  keycloakUrl: http://keycloak.iaa.svc.cluster.local
+  onboardingUrl: http://onboarding.iaa.svc.cluster.local:8080
+  securityAttributesProviderUrl: http://security-attributes-provider.iaa.svc.cluster.local:8080
+  usersRolesUrl: http://users-roles.iaa.svc.cluster.local:8080

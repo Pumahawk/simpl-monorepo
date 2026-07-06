@@ -1,0 +1,27 @@
+users-roles:
+  authorityHostT2: t2.iaa-dstest-authority.dev.simpl-europe.eu #the authority host tier 2
+
+authentication-provider:
+  appConfig:
+    client:
+      authority:
+        url: https://t2.iaa-dstest-authority.dev.simpl-europe.eu
+
+  vaultConfig:
+    vault:
+      uri : [NOT_SET]
+      authentication:
+        roleId: f04fbfc0-cc03-354d-c454-586bebf20356
+        secretId: 0435e7bc-67a7-689b-836b-d68d0fabd310
+
+tier2-gateway:
+  authorityUrlT1: "https://t1.iaa-dstest-authority.dev.simpl-europe.eu"
+    
+simpl-cli:
+  initParticipant:
+    enabled: true
+    authorityHostT1: t1.iaa-dstest-authority.dev.simpl-europe.eu
+    keycloak:
+      master:
+        user: admin
+        password: admin

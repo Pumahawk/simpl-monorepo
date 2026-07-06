@@ -1,0 +1,15 @@
+# Only used in _helpers.tpl
+global:
+  hostTls: tls.authority.dev.simpl-europe.eu
+  hostBe: authority.be.dev.simpl-europe.eu
+  # keystore:
+  #   password: "keystore-generated-password"
+
+db:
+  url: "jdbc:postgresql://postgresql.iaa.svc.cluster.local:5432/securityattributesprovider"
+  username: "securityattributesprovider"
+  password: "securityattributesprovider"
+
+microservices:
+  identityProviderUrl: http://identity-provider.iaa.svc.cluster.local:8080
+  onboardingUrl: http://onboarding.iaa.svc.cluster.local:8080

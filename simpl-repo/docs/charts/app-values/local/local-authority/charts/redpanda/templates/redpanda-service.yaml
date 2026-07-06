@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.redpanda.service.ports.internal }}
+      targetPort: kafka-internal
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: {{ .Chart.Name }}

@@ -1,0 +1,16 @@
+hostname: &hostname ejbca-community-helm.iaa.svc.cluster.local # update this
+fullnameOverride: ejbca-community-helm
+ejbca:
+  useEphemeralH2Database: false
+  env:
+    HTTPSERVER_HOSTNAME: *hostname
+    TLS_SETUP_ENABLED: "true"
+    DATABASE_JDBC_URL: jdbc:postgresql://postgresql.iaa.svc.cluster.local:5432/ejbca # update this
+    DATABASE_USER: "ejbca"
+    DATABASE_PASSWORD: "ejbca2123"
+nginx:
+  host: *hostname
+
+services:
+  directHttp:
+    type: ClusterIP

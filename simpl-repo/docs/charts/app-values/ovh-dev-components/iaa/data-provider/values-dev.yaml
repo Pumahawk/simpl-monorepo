@@ -1,0 +1,33 @@
+users-roles:
+  authorityHostT2: t2.iaa-dsdev-authority.dev.simpl-europe.eu #the authority host tier 2
+  keycloak:
+    master:
+      user: "user"
+      password: "admin"
+
+authentication-provider:
+  appConfig:
+    client:
+      authority:
+        url: https://t2.iaa-dsdev-authority.dev.simpl-europe.eu
+
+  vaultConfig:
+    vault:
+      uri : [NOT_SET]
+      authentication:
+        roleId: 05b6f551-0931-6fe5-be5a-4e2c88e775ed
+        secretId: efacaa6d-31b0-f3ad-36f5-b0161cde38f0
+
+tier2-gateway:
+  authorityUrlT1: "https://t1.iaa-dsdev-authority.dev.simpl-europe.eu"
+
+simpl-cli:
+  initParticipant:
+    enabled: true
+    authorityHostT1: t1.iaa-dsdev-authority.dev.simpl-europe.eu
+    microservices:
+      usersRolesUrl: https://{{ tpl .Values.initParticipant.hostT1 . }}/cli/userApi/
+      authenticationProviderUrl: https://{{ tpl .Values.initParticipant.hostT1 . }}/cli/authApi/
+
+
+

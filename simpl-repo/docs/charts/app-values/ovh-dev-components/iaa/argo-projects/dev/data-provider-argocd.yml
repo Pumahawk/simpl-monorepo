@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: iaa-dsdev-data-provider
+  namespace: argo-cd
+  labels:
+    owner: iaa
+    scope: development
+spec:
+  project: iaa
+  source:
+    repoURL: https://code.europa.eu/simpl/simpl-open/development/iaa/charts.git
+    targetRevision: feature/iaa-dsdev
+    path: app-values/ovh-dev-components/iaa/data-provider
+    helm:
+      releaseName: iaa-dsdev-data-provider
+      valueFiles:
+        - values.yaml
+        - values-dev.yaml
+        - values-dev-automation.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: iaa-dsdev-data-provider
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+  info:
+  - name: Participant Type
+    value: DATA PROVIDER

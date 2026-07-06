@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="UsersRoles-Local-Authority" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="local-authority" />
+    <module name="usersroles" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="eu.europa.ec.simpl.usersroles.UsersRolesApplication" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="eu.europa.ec.simpl.usersroles.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

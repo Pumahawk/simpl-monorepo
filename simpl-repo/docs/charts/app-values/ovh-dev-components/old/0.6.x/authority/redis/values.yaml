@@ -1,0 +1,6 @@
+replica:
+   replicaCount: 0
+architecture: standalone
+
+auth:
+  password: "admin"

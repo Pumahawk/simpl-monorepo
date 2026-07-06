@@ -1,0 +1,27 @@
+dependencies:
+- name: postgresql
+  repository: https://charts.bitnami.com/bitnami
+  version: 15.2.5
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 19.6.0
+- name: keycloak
+  repository: https://charts.bitnami.com/bitnami
+  version: 22.2.5
+- name: tier1-gateway
+  repository: https://code.europa.eu/api/v4/projects/772/packages/helm/stable
+  version: 1.4.0
+- name: users-roles
+  repository: https://code.europa.eu/api/v4/projects/771/packages/helm/stable
+  version: 1.4.0
+- name: simpl-fe
+  repository: https://code.europa.eu/api/v4/projects/769/packages/helm/stable
+  version: 1.4.3
+- name: tier2-gateway
+  repository: https://code.europa.eu/api/v4/projects/860/packages/helm/stable
+  version: 1.4.0
+- name: authentication-provider
+  repository: https://code.europa.eu/api/v4/projects/939/packages/helm/stable
+  version: 1.4.0
+digest: sha256:e5ce518631b3d7a2fee64c505319161bd8d42ac2e0274072e868cc6481f45794
+generated: "2025-05-02T12:12:39.789918394+02:00"

@@ -1,0 +1,14 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="AuthenticationProvider-Local-Authority" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="local-authority" />
+    <envs>
+      <env name="CRYPTO_SECRETKEYBASE64" value="KdSucCE6DSRFThqxv2frvx1h84HPFEy4ocEFwFDJC8A" />
+    </envs>
+    <module name="authenticationprovider" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="eu.europa.ec.simpl.authenticationprovider.AuthenticationProviderApplication" />
+    <option name="VM_PARAMETERS" value="-Djava.net.preferIPv4Stack=true" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

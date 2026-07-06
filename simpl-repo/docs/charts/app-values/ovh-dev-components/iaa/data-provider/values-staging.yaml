@@ -1,0 +1,24 @@
+users-roles:
+  authorityHostT2: t2.iaa-dsstaging-authority.dev.simpl-europe.eu #the authority host tier 2
+
+authentication-provider:
+  appConfig:
+    client:
+      authority:
+        url: https://t2.iaa-dsstaging-authority.dev.simpl-europe.eu
+
+  vaultConfig:
+    vault:
+      uri : [NOT_SET]
+      authentication:
+        roleId: d4f117ab-e399-d751-196f-19924ed8aa1d
+        secretId: 51c7fe85-86a7-1084-741f-a17afcefbc9f
+
+tier2-gateway:
+  authorityUrlT1: "https://t1.iaa-dsstaging-authority.dev.simpl-europe.eu"
+
+
+simpl-cli:
+  initParticipant:
+    enabled: false
+    authorityHostT1: t1.iaa-dsstaging-authority.dev.simpl-europe.eu
