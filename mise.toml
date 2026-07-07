@@ -614,7 +614,7 @@ EIDAS_ENABLED="${EIDAS_ENABLED-1}"
 DIR="simpl-repo/backend/misc/tier1-authentication/tools/keycloak-realm-configurator"
 HOST="${KEYCLOAK_HOST-http://localhost:8100/auth}"
 echo "Generate Realm"
-for realm in authority participant onboarding; do
+for realm in authority participant onboarding dataprovider; do
   echo "process realm=[$realm]"
   echo "Start keycloak-config-cli"
   config="values/${realm}.yaml,values/test-default.yaml"
