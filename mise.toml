@@ -168,7 +168,6 @@ run = [
   { task = "cluster:forward-node-up" },
   { task = "cluster:redpanda:up" },
   { task = "cluster:authority-install-or-upgrade" },
-  { task = "code:test-automation:autoconfigure-client-secret" },
   { task = "cluster:initialization_ejbca" },
   { task = "cluster:download_ejbca_pem" },
   { task = "config:prepare-files" },
