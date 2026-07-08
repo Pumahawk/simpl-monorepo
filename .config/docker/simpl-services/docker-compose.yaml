@@ -15,9 +15,7 @@ services:
     volumes:
       - ./authentication_provider/application-local-authority.yaml:/config/application.yaml:ro
     mem_limit: 512m
-    healthcheck:
-      <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8105/actuator/health | grep UP"]
+    restart: unless-stopped
   authentication-provider-consumer:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/authentication_provider:${SIMPL_SERVICE_AUTHENTICATION_PROVIDER_VERSION}
     ports:
@@ -29,9 +27,7 @@ services:
     volumes:
       - ./authentication_provider/application-local-consumer.yaml:/config/application.yaml:ro
     mem_limit: 512m
-    healthcheck:
-      <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8205/actuator/health | grep UP"]
+    restart: unless-stopped
   identity-provider-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/identity-provider:${SIMPL_SERVICE_IDENTITY_PROVIDER_VERSION}
     ports:
@@ -44,9 +40,7 @@ services:
       - ./identity-provider/SuperAdmin.p12:/config/SuperAdmin.p12:ro
       - ./identity-provider/truststore.jks:/config/truststore.jks:ro
     mem_limit: 512m
-    healthcheck:
-      <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8103/actuator/health | grep UP"]
+    restart: unless-stopped
   onboarding-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/onboarding:${SIMPL_SERVICE_ONBOARDING_VERSION}
     ports:
@@ -57,9 +51,7 @@ services:
       - onboarding/application-local-authority.env
       - onboarding/keycloak-onboarding-secret-authority.env
     mem_limit: 512m
-    healthcheck:
-      <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8104/actuator/health | grep UP"]
+    restart: unless-stopped
   security-attributes-provider-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/security-attributes-provider:${SIMPL_SERVICE_SECURITY_ATTRIBUTES_PROVIDER_VERSION}
     ports:
@@ -69,9 +61,7 @@ services:
     env_file:
       - security-attributes-provider/application-local-authority.env
     mem_limit: 512m
-    healthcheck:
-      <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8102/actuator/health | grep UP"]
+    restart: unless-stopped
   tier1-gateway-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier1-gateway:${SIMPL_SERVICE_TIER1_GATEWAY_VERSION}
     ports:
@@ -83,9 +73,7 @@ services:
     volumes:
       - ./tier1-gateway/ejbca-local.pem:/config/ejbca-local.pem:ro
     mem_limit: 512m
-    healthcheck:
-      <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8100/actuator/health | grep UP"]
+    restart: unless-stopped
   tier1-gateway-consumer:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier1-gateway:${SIMPL_SERVICE_TIER1_GATEWAY_VERSION}
     ports:
@@ -95,9 +83,7 @@ services:
     env_file:
       - tier1-gateway/application-local-consumer.env
     mem_limit: 512m
-    healthcheck:
-      <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8200/actuator/health | grep UP"]
+    restart: unless-stopped
   tier2-gateway-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier2-gateway:${SIMPL_SERVICE_TIER2_GATEWAY_VERSION}
     ports:
@@ -109,13 +95,8 @@ services:
           - tier2-gateway-authority.local
     env_file:
       - tier2-gateway/application-local-authority.env
-    depends_on:
-      authentication-provider-authority:
-        condition: service_healthy
     mem_limit: 512m
-    healthcheck:
-      <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8142/actuator/health | grep UP"]
+    restart: unless-stopped
   tier2-gateway-consumer:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier2-gateway:${SIMPL_SERVICE_TIER2_GATEWAY_VERSION}
     ports:
@@ -127,13 +108,8 @@ services:
           - tier2-gateway-consumer.local
     env_file:
       - tier2-gateway/application-local-consumer.env
-    depends_on:
-      authentication-provider-consumer:
-        condition: service_healthy
     mem_limit: 512m
-    healthcheck:
-      <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8242/actuator/health | grep UP"]
+    restart: unless-stopped
   users-roles-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/users-roles:${SIMPL_SERVICE_USERS_ROLES_VERSION}
     ports:
@@ -142,13 +118,8 @@ services:
     - simpl-network
     env_file:
       - users-roles/application-local-authority.env
-    depends_on:
-      tier1-gateway-authority:
-        condition: service_healthy
     mem_limit: 512m
-    healthcheck:
-      <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8101/actuator/health | grep UP"]
+    restart: unless-stopped
   users-roles-consumer:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/users-roles:${SIMPL_SERVICE_USERS_ROLES_VERSION}
     ports:
@@ -157,13 +128,8 @@ services:
     - simpl-network
     env_file:
       - users-roles/application-local-consumer.env
-    depends_on:
-      tier1-gateway-consumer:
-        condition: service_healthy
     mem_limit: 512m
-    healthcheck:
-      <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8201/actuator/health | grep UP"]
+    restart: unless-stopped
   # static-assets:
   #   image: python
   #   ports:
@@ -172,13 +138,8 @@ services:
   #   - simpl-network
   #   env_file:
   #     - users-roles/application-local-consumer.env
-  #   depends_on:
-  #     tier1-gateway-consumer:
-  #       condition: service_healthy
   #   mem_limit: 512m
-  #   healthcheck:
-  #     <<: *default-healthcheck
-  #     test: ["CMD-SHELL", "wget -qO- http://localhost:8201/actuator/health | grep UP"]
+  #   restart: unless-stopped
 
   authentication-provider-dataprovider:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/authentication_provider:${SIMPL_SERVICE_AUTHENTICATION_PROVIDER_VERSION}
@@ -191,9 +152,7 @@ services:
     volumes:
       - ./authentication_provider/application-local-dataprovider.yaml:/config/application.yaml:ro
     mem_limit: 512m
-    healthcheck:
-      !!merge <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8305/actuator/health | grep UP"]
+    restart: unless-stopped
 
   tier1-gateway-dataprovider:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier1-gateway:${SIMPL_SERVICE_TIER1_GATEWAY_VERSION}
@@ -204,9 +163,7 @@ services:
     env_file:
       - tier1-gateway/application-local-dataprovider.env
     mem_limit: 512m
-    healthcheck:
-      !!merge <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8300/actuator/health | grep UP"]
+    restart: unless-stopped
 
   tier2-gateway-dataprovider:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier2-gateway:${SIMPL_SERVICE_TIER2_GATEWAY_VERSION}
@@ -219,13 +176,8 @@ services:
           - tier2-gateway-dataprovider.local
     env_file:
       - tier2-gateway/application-local-dataprovider.env
-    depends_on:
-      authentication-provider-dataprovider:
-        condition: service_healthy
     mem_limit: 512m
-    healthcheck:
-      !!merge <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8342/actuator/health | grep UP"]
+    restart: unless-stopped
 
   users-roles-dataprovider:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/users-roles:${SIMPL_SERVICE_USERS_ROLES_VERSION}
@@ -235,13 +187,8 @@ services:
       - simpl-network
     env_file:
       - users-roles/application-local-dataprovider.env
-    depends_on:
-      tier1-gateway-dataprovider:
-        condition: service_healthy
     mem_limit: 512m
-    healthcheck:
-      !!merge <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8301/actuator/health | grep UP"]
+    restart: unless-stopped
 
 networks:
   simpl-network:
