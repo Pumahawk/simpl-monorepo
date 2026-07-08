@@ -603,6 +603,7 @@ fi
   echo "Delete realm authority"; kcadm_remote auth delete realms/authority || true
   echo "Delete realm consumer"; kcadm_remote auth delete realms/consumer || true
   echo "Delete realm participant"; kcadm_remote auth delete realms/participant || true
+  echo "Delete realm dataprovider"; kcadm_remote auth delete realms/dataprovider || true
 wait
 """
 
@@ -640,7 +641,7 @@ done
 [tasks."cluster:keycloak-export-realms"]
 shell = "bash -ec"
 run = """
-for realm in onboarding authority participant; do
+for realm in onboarding authority participant dataprovider; do
   kubectl exec -i pod/local-authority-keycloak-0 --  env DEBUG=0 ./opt/keycloak/bin/kc.sh export --file /tmp/$realm.json --realm $realm --users same_file
   kubectl exec -i pod/local-authority-keycloak-0 -- cat /tmp/$realm.json > keycloak-realm-$realm.json
 done
@@ -989,7 +990,17 @@ cat .config/scripts/cluster_authority_initialization.bash | docker run --name in
 [tasks."cluster:initialization_ejbca"]
 shell = "bash -ec"
 run = """
-EJBCA_POD="$(kubectl -n local-authority get pod -o name --sort-by={.metadata.creationTimestamp} | grep ejbca-community-helm | tail -n1)"
+i=1
+while EJBCA_POD="$(kubectl -n local-authority get pod -o name --sort-by={.metadata.creationTimestamp} | grep ejbca-community-helm | tail -n1)"; [ -z "$EJBCA_POD" ]; do
+  if [[ $i -gt 10 ]]; then
+    echo "failure: ejbca not found"
+    exit 1
+  fi
+  echo "wait ejbca pod ($i/10)"
+  i=$(($i + 1))
+  sleep 10;
+done
+
 DOCKER_DIR=".config/docker/simpl-services"
 EJBCA_DOCKER_DIR="$DOCKER_DIR/ejbca"
 IDENTITY_DOCKER_DIR="$DOCKER_DIR/identity-provider"

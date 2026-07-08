@@ -183,7 +183,7 @@ services:
   authentication-provider-dataprovider:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/authentication_provider:${SIMPL_SERVICE_AUTHENTICATION_PROVIDER_VERSION}
     ports:
-      - "8205:8205"
+      - "8305:8305"
     networks:
       - simpl-network
     env_file:
@@ -193,7 +193,7 @@ services:
     mem_limit: 512m
     healthcheck:
       !!merge <<: *default-healthcheck
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8205/actuator/health | grep UP"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8305/actuator/health | grep UP"]
 
   tier1-gateway-dataprovider:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/tier1-gateway:${SIMPL_SERVICE_TIER1_GATEWAY_VERSION}
