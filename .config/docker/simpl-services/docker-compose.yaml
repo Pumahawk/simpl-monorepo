@@ -130,6 +130,16 @@ services:
       - users-roles/application-local-consumer.env
     mem_limit: 512m
     restart: unless-stopped
+  consent-management-dataprovider:
+    image: code.europa.eu:4567/simpl/simpl-open/governance/consent-management/consent-management-service/consent-management-be:${SIMPL_SERVICE_CONSENT_MANAGEMENT_VERSION}
+    ports:
+      - "8306:8306"
+    networks:
+    - simpl-network
+    env_file:
+      - consent-management/application-local-dataprovider.env
+    mem_limit: 512m
+    restart: unless-stopped
   # static-assets:
   #   image: python
   #   ports:
