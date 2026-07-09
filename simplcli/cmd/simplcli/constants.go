@@ -9,6 +9,7 @@ var prIdsDemux = projectIdsDemux{
 		"tier1-gateway",
 		"tier2-gateway",
 		"users-roles",
+		"consent-management-be",
 	},
 	"microfe": {
 		"fe-authentication-provider",
@@ -111,6 +112,10 @@ var prIds = projectNameSvT{
 	// Backend Users roles
 	"users-roles": "771",
 	"usr":         "771",
+
+	// Backend Consent management be
+	"consent-management-be": "1723",
+	"cmb":                   "1723",
 
 	// Chart authority
 	"ch-authority": "1402",
