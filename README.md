@@ -89,6 +89,32 @@ The following tools must be available on your system:
 > In particular, you must update the **CoreDNS ConfigMap** in your Kubernetes cluster to resolve host.docker.internal to the WSL host.
 > This setup is intended for advanced users and is not officially supported by default.
 
+**kubectl -n kube-system get configmap  coredns -oyaml**
+
+```bash
+# Get WSL IP
+cat /etc/resolv.conf
+```
+
+
+```
+apiVersion: v1
+data:
+  Corefile: |
+    .:53 {
+        errors
+
+        hosts {
+           ${WSL IP} host.docker.internal
+           fallthrough
+        }
+
+        health {
+           lameduck 5s
+        }
+...
+```
+
 ## Key Features
 
 This repository provides a set of automation tools to simplify the setup and management of the **Simpl IAA** development environment.
