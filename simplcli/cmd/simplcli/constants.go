@@ -3,15 +3,16 @@ package main
 var prIdsDemux = projectIdsDemux{
 	"microbe": {
 		"authentication-provider",
+		"consent-management-be",
 		"identity-provider",
 		"onboarding",
 		"security-attributes-provider",
 		"tier1-gateway",
 		"tier2-gateway",
 		"users-roles",
-		"consent-management-be",
 	},
 	"microfe": {
+		"consent-management-fe",
 		"fe-authentication-provider",
 		"fe-identity-provider",
 		"fe-onboarding",
@@ -116,6 +117,10 @@ var prIds = projectNameSvT{
 	// Backend Consent management be
 	"consent-management-be": "1723",
 	"cmb":                   "1723",
+
+	// Frontend Consent management fe
+	"consent-management-fe": "1950",
+	"cmf":                   "1950",
 
 	// Chart authority
 	"ch-authority": "1402",
