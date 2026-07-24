@@ -33,6 +33,7 @@ var prIdsDemux = projectIdsDemux{
 		"ch-authority",
 		"ch-consumer",
 		"ch-provider",
+		"ch-participant",
 	},
 }
 
@@ -133,4 +134,8 @@ var prIds = projectNameSvT{
 	// Chart consumer
 	"ch-provider": "1403",
 	"ch-pro":      "1403",
+
+	// Chart participant
+	"ch-participant": "1492",
+	"ch-par":         "1492",
 }
