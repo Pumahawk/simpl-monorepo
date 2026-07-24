@@ -192,6 +192,7 @@ var MergeRequestCheckCmd = cmd.Command[MergeRequestCheckModel]{
 				jobs := fmt.Sprintf("%d/%d", jobsok, jobst)
 				model = append(model, MRChPipeline{
 					Id:            res.md.Id,
+					Iid:           res.md.Iid,
 					Project:       res.projectName,
 					PipelineState: res.md.State,
 					Pipeline:      res.p.Status,
@@ -218,6 +219,7 @@ type MergeRequestCheckModel []MRChPipeline
 
 type MRChPipeline struct {
 	Id            int // pipelineId
+	Iid           int
 	Project       string
 	PipelineState string
 	Pipeline      string
