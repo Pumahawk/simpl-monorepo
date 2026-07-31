@@ -43,6 +43,11 @@ services:
     env_file:
       - fe-users-and-roles-participant.env
     mem_limit: 100m
+  fe-consent-management-participant:
+    image: code.europa.eu:4567/simpl/simpl-open/governance/consent-management/consent-management/consent-management-service/consent-management-fe:${SIMPL_SERVICE_FE_CONSENT_MANAGEMENT}
+    env_file:
+      - fe-consent-management-participant.env
+    mem_limit: 100m
 
 configs:
   nginx_conf:
