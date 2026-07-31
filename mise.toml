@@ -612,6 +612,7 @@ wait
 shell = "bash -ec"
 run = """
 EIDAS_ENABLED="${EIDAS_ENABLED-1}"
+OID4VP_ENABLED="${OID4VP_ENABLED-1}"
 DIR="simpl-repo/backend/misc/tier1-authentication/tools/keycloak-realm-configurator"
 HOST="${KEYCLOAK_HOST-http://localhost:8100/auth}"
 echo "Generate Realm"
@@ -619,16 +620,24 @@ for realm in authority participant onboarding dataprovider; do
   echo "process realm=[$realm]"
   echo "Start keycloak-config-cli"
   config="values/${realm}.yaml,values/test-default.yaml"
-  if [[ "$EIDAS_ENABLED" == 1 ]]; then
+  
+  if [[ "$EIDAS_ENABLED" == 1 && "$OID4VP_ENABLED" == 1 ]]; then
+    echo "Eidas and OID4VP enabled"
+    config="$config,values/eidas-default.yaml,values/ssi-tier1-default.yaml"
+  elif [[ "$EIDAS_ENABLED" == 1 ]]; then
     echo "Eidas enabled"
     config="$config,values/eidas-default.yaml"
+  elif [[ "$OID4VP_ENABLED" == 1 ]]; then
+    echo "OID4VP enabled"
+    config="$config,values/ssi-tier1-default.yaml"
   fi
+
   try_n=0
   echo "Values files: $config"
-  until try_n=$(( $try_n + 1 )) && env -C "$DIR" sh ./configure-realm.sh \\
-    -CONFIG "$config" \\
-    -URL "$HOST" \\
-    -USER admin \\
+  until try_n=$(( $try_n + 1 )) && env -C "$DIR" sh ./configure-realm.sh \
+    -CONFIG "$config" \
+    -URL "$HOST" \
+    -USER admin \
     -PASSWORD admin || [[ try_n == 3 ]]; do
     if [[ try_n -ge 3 ]]; then
       echo "Unable to import realm $realm"
@@ -637,7 +646,7 @@ for realm in authority participant onboarding dataprovider; do
     echo "Failed command. Repeate the command. ($(( try_n + 1 ))/3)"
   done
 done
-"""
+""" 
 
 [tasks."cluster:keycloak-export-realms"]
 shell = "bash -ec"
