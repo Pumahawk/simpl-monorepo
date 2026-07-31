@@ -230,13 +230,15 @@ keycloak:
       value: |-
         {
           "authority": "http://host.docker.internal:8101/tier1/v2",
-          "consumer": "http://host.docker.internal:8201/tier1/v2"
+          "consumer": "http://host.docker.internal:8201/tier1/v2",
+          "dataprovider": "http://host.docker.internal:8301/tier1/v2"
         }
     - name: AUTHENTICATION_PROVIDER_URLS_MAP
       value: |-
         {
           "authority": "http://host.docker.internal:8105/tier1/v2",
-          "consumer": "http://host.docker.internal:8205/tier1/v2"
+          "consumer": "http://host.docker.internal:8205/tier1/v2",
+          "dataprovider": "http://host.docker.internal:8305/tier1/v2"
         }
 
     - name: KEYCLOAK_BASE_URL

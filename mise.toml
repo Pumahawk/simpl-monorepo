@@ -585,6 +585,7 @@ fi
 keylogin
 keycloak_update_attribute authority attributes.frontendUrl http://localhost:8100/auth
 keycloak_update_attribute consumer attributes.frontendUrl http://localhost:8200/auth
+keycloak_update_attribute dataprovider attributes.frontendUrl http://localhost:8300/auth
 """
 
 [tasks."cluster:keycloak-clean-realms"]

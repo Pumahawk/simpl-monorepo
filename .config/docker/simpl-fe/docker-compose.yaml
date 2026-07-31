@@ -4,6 +4,7 @@ services:
     ports:
       - "4100:4100"
       - "4200:4200"
+      - "4300:4300"
     configs:
       - source: nginx_conf
         target: /etc/nginx/nginx.conf
@@ -12,11 +13,6 @@ services:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/fe-authentication-provider:${SIMPL_SERVICE_FE_AUTHENTICATION_PROVIDER}
     env_file:
       - fe-authentication-provider-authority.env
-    mem_limit: 100m
-  fe-authentication-provider-participant:
-    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/fe-authentication-provider:${SIMPL_SERVICE_FE_AUTHENTICATION_PROVIDER}
-    env_file:
-      - fe-authentication-provider-participant.env
     mem_limit: 100m
   fe-identity-provider-authority:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/fe-identity-provider:${SIMPL_SERVICE_FE_IDENTITY_PROVIDER}
@@ -38,10 +34,32 @@ services:
     env_file:
       - fe-users-and-roles-authority.env
     mem_limit: 100m
-  fe-users-and-roles-participant:
+
+  fe-authentication-provider-consumer:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/fe-authentication-provider:${SIMPL_SERVICE_FE_AUTHENTICATION_PROVIDER}
+    env_file:
+      - fe-authentication-provider-consumer.env
+    mem_limit: 100m
+  fe-users-and-roles-consumer:
     image: code.europa.eu:4567/simpl/simpl-open/development/iaa/fe-users-and-roles:${SIMPL_SERVICE_FE_USERS_AND_ROLES}
     env_file:
-      - fe-users-and-roles-participant.env
+      - fe-users-and-roles-consumer.env
+    mem_limit: 100m
+
+  fe-authentication-provider-dataprovider:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/fe-authentication-provider:${SIMPL_SERVICE_FE_AUTHENTICATION_PROVIDER}
+    env_file:
+      - fe-authentication-provider-dataprovider.env
+    mem_limit: 100m
+  fe-users-and-roles-dataprovider:
+    image: code.europa.eu:4567/simpl/simpl-open/development/iaa/fe-users-and-roles:${SIMPL_SERVICE_FE_USERS_AND_ROLES}
+    env_file:
+      - fe-users-and-roles-dataprovider.env
+    mem_limit: 100m
+  fe-consent-management-dataprovider:
+    image: code.europa.eu:4567/simpl/simpl-open/governance/consent-management/consent-management/consent-management-service/consent-management-fe:${SIMPL_SERVICE_FE_CONSENT_MANAGEMENT}
+    env_file:
+      - fe-consent-management-dataprovider.env
     mem_limit: 100m
   fe-consent-management-participant:
     image: code.europa.eu:4567/simpl/simpl-open/governance/consent-management/consent-management/consent-management-service/consent-management-fe:${SIMPL_SERVICE_FE_CONSENT_MANAGEMENT}
@@ -52,3 +70,4 @@ services:
 configs:
   nginx_conf:
     file: ./nginx.conf
+
