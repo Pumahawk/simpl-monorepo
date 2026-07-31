@@ -131,7 +131,7 @@ services:
     mem_limit: 512m
     restart: unless-stopped
   consent-management-dataprovider:
-    image: code.europa.eu:4567/simpl/simpl-open/governance/consent-management/consent-management-service/consent-management-be:${SIMPL_SERVICE_CONSENT_MANAGEMENT_VERSION}
+    image: code.europa.eu:4567/simpl/simpl-open/governance/consent-management/consent-management/consent-management-service/consent-management-be:${SIMPL_SERVICE_CONSENT_MANAGEMENT_VERSION}
     ports:
       - "8306:8306"
     networks:
