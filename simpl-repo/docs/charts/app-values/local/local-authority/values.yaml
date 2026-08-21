@@ -335,6 +335,7 @@ keycloak:
             echo "Skipping download: /${EIDAS_EXTENSION_ARTIFACT}.jar is present, moving to /custom-spi";
             cp "/${EIDAS_EXTENSION_ARTIFACT}.jar" "/custom-spi/${EIDAS_EXTENSION_ARTIFACT}.jar"
           fi
+          curl -fSL -o /custom-spi/credential-verifier-keycloak-extension.jar "https://code.europa.eu/api/v4/projects/1840/packages/maven/eu/europa/ec/simpl/credential-verifier-keycloak-extension/0.0.2-rc.30/credential-verifier-keycloak-extension-0.0.2-rc.30.jar";
       volumeMounts:
         - name: spi-volume
           mountPath: /custom-spi
