@@ -186,6 +186,23 @@ run = [
   { task = "cluster:keycloak-export-realms" },
 ]
 
+[tasks."keycloak:generate-realm-export-all"]
+shell = "bash -ec"
+run = """
+rm -rf exported-realms || true
+EIDAS_ENABLED=1 OID4VP_ENABLED=1 mise run keycloak:generate-realm-export; sleep 30;
+EIDAS_ENABLED=1 OID4VP_ENABLED=0 mise run keycloak:generate-realm-export; sleep 30;
+EIDAS_ENABLED=0 OID4VP_ENABLED=1 mise run keycloak:generate-realm-export; sleep 30;
+EIDAS_ENABLED=0 OID4VP_ENABLED=0 mise run keycloak:generate-realm-export;
+mise run keycloak:tar-exported
+"""
+
+[tasks."keycloak:tar-exported"]
+shell = "bash -ec"
+run = """
+tar -caf exported-realms.tar.gz --transform 's/exported-realms/simpl-repo/' exported-realms/ 
+"""
+
 [tasks."initialization:zscaler"]
 description = "Configures the environment for Z-Scaler certificates:"
 run = [
@@ -612,6 +629,7 @@ wait
 shell = "bash -ec"
 run = """
 EIDAS_ENABLED="${EIDAS_ENABLED-1}"
+OID4VP_ENABLED="${OID4VP_ENABLED-1}"
 DIR="simpl-repo/backend/misc/tier1-authentication/tools/keycloak-realm-configurator"
 HOST="${KEYCLOAK_HOST-http://localhost:8100/auth}"
 echo "Generate Realm"
@@ -619,16 +637,24 @@ for realm in authority participant onboarding dataprovider; do
   echo "process realm=[$realm]"
   echo "Start keycloak-config-cli"
   config="values/${realm}.yaml,values/test-default.yaml"
-  if [[ "$EIDAS_ENABLED" == 1 ]]; then
+  
+  if [[ "$EIDAS_ENABLED" == 1 && "$OID4VP_ENABLED" == 1 ]]; then
+    echo "Eidas and OID4VP enabled"
+    config="$config,values/eidas-default.yaml,values/ssi-tier1-default.yaml"
+  elif [[ "$EIDAS_ENABLED" == 1 ]]; then
     echo "Eidas enabled"
     config="$config,values/eidas-default.yaml"
+  elif [[ "$OID4VP_ENABLED" == 1 ]]; then
+    echo "OID4VP enabled"
+    config="$config,values/ssi-tier1-default.yaml"
   fi
+
   try_n=0
   echo "Values files: $config"
-  until try_n=$(( $try_n + 1 )) && env -C "$DIR" sh ./configure-realm.sh \\
-    -CONFIG "$config" \\
-    -URL "$HOST" \\
-    -USER admin \\
+  until try_n=$(( $try_n + 1 )) && env -C "$DIR" sh ./configure-realm.sh \
+    -CONFIG "$config" \
+    -URL "$HOST" \
+    -USER admin \
     -PASSWORD admin || [[ try_n == 3 ]]; do
     if [[ try_n -ge 3 ]]; then
       echo "Unable to import realm $realm"
@@ -637,15 +663,37 @@ for realm in authority participant onboarding dataprovider; do
     echo "Failed command. Repeate the command. ($(( try_n + 1 ))/3)"
   done
 done
-"""
+""" 
 
 [tasks."cluster:keycloak-export-realms"]
 shell = "bash -ec"
 run = """
+EIDAS_ENABLED="${EIDAS_ENABLED-1}"
+OID4VP_ENABLED="${OID4VP_ENABLED-1}"
+mkdir -p exported-realms
+
+NAME_SUFFIX=".json"
+if [ $EIDAS_ENABLED == 1 ] && [ $OID4VP_ENABLED == 1 ]; then
+  NAME_SUFFIX="-with-eidas-and-oid4vp.json"
+elif [ $EIDAS_ENABLED == 1 ]; then
+  NAME_SUFFIX="-with-eidas.json"
+elif [ $OID4VP_ENABLED == 1 ]; then
+  NAME_SUFFIX="-with-oid4vp.json"
+fi
+
 for realm in onboarding authority participant dataprovider; do
   kubectl exec -i pod/local-authority-keycloak-0 --  env DEBUG=0 ./opt/keycloak/bin/kc.sh export --file /tmp/$realm.json --realm $realm --users same_file
-  kubectl exec -i pod/local-authority-keycloak-0 -- cat /tmp/$realm.json > keycloak-realm-$realm.json
+  kubectl exec -i pod/local-authority-keycloak-0 -- cat /tmp/$realm.json > exported-realms/${realm}${NAME_SUFFIX}
 done
+
+mkdir -p exported-realms/authority-iaa/charts/data/keycloak
+mkdir -p exported-realms/consumer-iaa/charts/data/keycloak-consumer
+mkdir -p exported-realms/provider-iaa/charts/data/keycloak-dataprovider
+mv -v -t exported-realms/authority-iaa/charts/data/keycloak exported-realms/authority*json
+mv -v -t exported-realms/authority-iaa/charts/data/keycloak exported-realms/onboarding*json
+mv -v -t exported-realms/consumer-iaa/charts/data/keycloak-consumer exported-realms/participant*json
+mv -v -t exported-realms/provider-iaa/charts/data/keycloak-dataprovider exported-realms/dataprovider*json
+ls exported-realms/provider-iaa/charts/data/keycloak-dataprovider | grep dataprovider | while read line; do mv -v exported-realms/provider-iaa/charts/data/keycloak-dataprovider/$line exported-realms/provider-iaa/charts/data/keycloak-dataprovider/${line/dataprovider/participant}; done
 """
 
 [tasks."cluster:keycloak-download-secret-onboarding-sa"]
