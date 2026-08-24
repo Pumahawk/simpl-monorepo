@@ -8,7 +8,7 @@
 	branch = develop
 [submodule "simpl-repo/backend/microservices/users-roles"]
 	path = simpl-repo/backend/microservices/users-roles
-	url = https://code.europa.eu/simpl/simpl-open/development/iaa/users-roles.git
+	url = https://code.europa.eu/simpl/simpl-open/governance/participant-management/user-roles/user-roles/users-roles-be.git
 	branch = develop
 [submodule "simpl-repo/backend/microservices/tier1-gateway"]
 	path = simpl-repo/backend/microservices/tier1-gateway
@@ -92,7 +92,7 @@
 	branch = develop
 [submodule "simpl-repo/frontend/microfe/fe-users-and-roles"]
 	path = simpl-repo/frontend/microfe/fe-users-and-roles
-	url = https://code.europa.eu/simpl/simpl-open/development/iaa/fe-users-and-roles
+	url = https://code.europa.eu/simpl/simpl-open/governance/participant-management/user-roles/user-roles/users-roles-fe.git
 	branch = develop
 [submodule "simpl-repo/eidas-demo-keycloak-extension"]
 	path = simpl-repo/backend/misc/eidas-demo-keycloak-extension
