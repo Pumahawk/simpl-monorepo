@@ -684,16 +684,35 @@ fi
 for realm in onboarding authority participant dataprovider; do
   kubectl exec -i pod/local-authority-keycloak-0 --  env DEBUG=0 ./opt/keycloak/bin/kc.sh export --file /tmp/$realm.json --realm $realm --users same_file
   kubectl exec -i pod/local-authority-keycloak-0 -- cat /tmp/$realm.json > exported-realms/${realm}${NAME_SUFFIX}
+  if [ $realm == "authority" ] ; then
+    mkdir -p exported-realms/authority-iaa/charts/data/keycloak
+    mv -v -t exported-realms/authority-iaa/charts/data/keycloak exported-realms/authority*json
+  elif  [ $realm == "onboarding" ]; then
+    mkdir -p exported-realms/authority-iaa/charts/data/keycloak
+    mv -v -t exported-realms/authority-iaa/charts/data/keycloak exported-realms/onboarding*json
+  elif  [ $realm == "participant" ]; then
+    mkdir -p exported-realms/consumer-iaa/charts/data/keycloak-consumer
+    mkdir -p exported-realms/provider-iaa/charts/data/keycloak-consumer
+    cp -v -t exported-realms/consumer-iaa/charts/data/keycloak-consumer exported-realms/participant*json
+    mv -v -t exported-realms/provider-iaa/charts/data/keycloak-consumer exported-realms/participant*json
+  elif  [ $realm == "dataprovider" ]; then
+    mkdir -p exported-realms/provider-iaa/charts/data/keycloak-dataprovider
+    mkdir -p exported-realms/consumer-iaa/charts/data/keycloak-dataprovider
+    cp -v -t exported-realms/provider-iaa/charts/data/keycloak-dataprovider exported-realms/dataprovider*json
+    mv -v -t exported-realms/consumer-iaa/charts/data/keycloak-dataprovider exported-realms/dataprovider*json
+    ls exported-realms/provider-iaa/charts/data/keycloak-dataprovider |
+    grep dataprovider |
+    while read line; do
+      mv -v exported-realms/provider-iaa/charts/data/keycloak-dataprovider/$line exported-realms/provider-iaa/charts/data/keycloak-dataprovider/${line/dataprovider/participant}
+    done
+    ls exported-realms/consumer-iaa/charts/data/keycloak-dataprovider |
+    grep dataprovider |
+    while read line; do
+      mv -v exported-realms/consumer-iaa/charts/data/keycloak-dataprovider/$line exported-realms/consumer-iaa/charts/data/keycloak-dataprovider/${line/dataprovider/participant}
+    done
+  fi
 done
 
-mkdir -p exported-realms/authority-iaa/charts/data/keycloak
-mkdir -p exported-realms/consumer-iaa/charts/data/keycloak-consumer
-mkdir -p exported-realms/provider-iaa/charts/data/keycloak-dataprovider
-mv -v -t exported-realms/authority-iaa/charts/data/keycloak exported-realms/authority*json
-mv -v -t exported-realms/authority-iaa/charts/data/keycloak exported-realms/onboarding*json
-mv -v -t exported-realms/consumer-iaa/charts/data/keycloak-consumer exported-realms/participant*json
-mv -v -t exported-realms/provider-iaa/charts/data/keycloak-dataprovider exported-realms/dataprovider*json
-ls exported-realms/provider-iaa/charts/data/keycloak-dataprovider | grep dataprovider | while read line; do mv -v exported-realms/provider-iaa/charts/data/keycloak-dataprovider/$line exported-realms/provider-iaa/charts/data/keycloak-dataprovider/${line/dataprovider/participant}; done
 """
 
 [tasks."cluster:keycloak-download-secret-onboarding-sa"]
