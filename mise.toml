@@ -187,7 +187,6 @@ DIR="simpl-repo/backend/misc/tier1-authentication/tools/keycloak-realm-configura
 
 EIDAS_ENABLED="${EIDAS_ENABLED-1}"
 OID4VP_ENABLED="${OID4VP_ENABLED-1}"
-rm -vr exported-realms || true
 mkdir -p exported-realms
 
 NAME_SUFFIX=".yaml"
@@ -206,9 +205,9 @@ echo done
 shell = "bash -ec"
 run = """
 rm -rf exported-realms || true
-EIDAS_ENABLED=1 OID4VP_ENABLED=1 mise run keycloak:generate-realm-export; sleep 30;
-EIDAS_ENABLED=1 OID4VP_ENABLED=0 mise run keycloak:generate-realm-export; sleep 30;
-EIDAS_ENABLED=0 OID4VP_ENABLED=1 mise run keycloak:generate-realm-export; sleep 30;
+EIDAS_ENABLED=1 OID4VP_ENABLED=1 mise run keycloak:generate-realm-export; sleep 1;
+EIDAS_ENABLED=1 OID4VP_ENABLED=0 mise run keycloak:generate-realm-export; sleep 1;
+EIDAS_ENABLED=0 OID4VP_ENABLED=1 mise run keycloak:generate-realm-export; sleep 1;
 EIDAS_ENABLED=0 OID4VP_ENABLED=0 mise run keycloak:generate-realm-export;
 mise run keycloak:tar-exported
 """
