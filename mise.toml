@@ -179,12 +179,28 @@ run = [
 ]
 
 [tasks."keycloak:generate-realm-export"]
+shell = "bash -ec"
 description = "Configures the environment for Z-Scaler certificates:"
-run = [
-  { task = "cluster:keycloak-clean-realms" },
-  { task = "cluster:keycloak-realm-autoconfigure" },
-  { task = "cluster:keycloak-export-realms" },
-]
+run = """
+REALM_NAME="${REALM_NAME-realm}"
+DIR="simpl-repo/backend/misc/tier1-authentication/tools/keycloak-realm-configurator"
+
+EIDAS_ENABLED="${EIDAS_ENABLED-1}"
+OID4VP_ENABLED="${OID4VP_ENABLED-1}"
+rm -vr exported-realms || true
+mkdir -p exported-realms
+
+NAME_SUFFIX=".yaml"
+[ $EIDAS_ENABLED == 1 ] && NAME_SUFFIX="-eidas$NAME_SUFFIX"
+[ $OID4VP_ENABLED == 1 ] && NAME_SUFFIX="-oid4vp$NAME_SUFFIX"
+
+SKIPDEPLOY=1 mise run cluster:keycloak-realm-autoconfigure
+
+ls "$DIR/outtmp" | while read -r line; do 
+mv -v "$DIR/outtmp/$line" "exported-realms/${line%.yaml}$NAME_SUFFIX"
+done
+echo done
+"""
 
 [tasks."keycloak:generate-realm-export-all"]
 shell = "bash -ec"
@@ -624,6 +640,45 @@ fi
   echo "Delete realm dataprovider"; kcadm_remote auth delete realms/dataprovider || true
 wait
 """
+[tasks."cluster:keycloak-realm-yaml-generation"]
+shell = "bash -ec"
+run = """
+EIDAS_ENABLED="${EIDAS_ENABLED-1}"
+OID4VP_ENABLED="${OID4VP_ENABLED-1}"
+DIR="simpl-repo/backend/misc/tier1-authentication/tools/keycloak-realm-configurator"
+echo "Generate Realm"
+for realm in authority participant onboarding dataprovider; do
+  echo "process realm=[$realm]"
+  echo "Start keycloak-config-cli"
+  config="values/${realm}.yaml,values/test-default.yaml"
+  
+  if [[ "$EIDAS_ENABLED" == 1 && "$OID4VP_ENABLED" == 1 ]]; then
+    echo "Eidas and OID4VP enabled"
+    config="$config,values/eidas-default.yaml,values/ssi-tier1-default.yaml"
+  elif [[ "$EIDAS_ENABLED" == 1 ]]; then
+    echo "Eidas enabled"
+    config="$config,values/eidas-default.yaml"
+  elif [[ "$OID4VP_ENABLED" == 1 ]]; then
+    echo "OID4VP enabled"
+    config="$config,values/ssi-tier1-default.yaml"
+  fi
+
+  try_n=0
+  echo "Values files: $config"
+  until try_n=$(( $try_n + 1 )) && env -C "$DIR" sh ./configure-realm.sh \
+    -CONFIG "$config" \
+    -URL "$HOST" \
+    -USER admin \
+    -PASSWORD admin || [[ try_n == 3 ]]; do
+    if [[ try_n -ge 3 ]]; then
+      echo "Unable to generate realm $realm"
+      exit 1;
+    fi
+    echo "Failed command. Repeate the command. ($(( try_n + 1 ))/3)"
+  done
+  env -C "$DIR" mv -v out/realm.yaml out/$realm.yaml
+done
+"""
 
 [tasks."cluster:keycloak-realm-autoconfigure"]
 shell = "bash -ec"
@@ -662,6 +717,8 @@ for realm in authority participant onboarding dataprovider; do
     fi
     echo "Failed command. Repeate the command. ($(( try_n + 1 ))/3)"
   done
+  env -C "$DIR" mkdir -p outtmp
+  env -C "$DIR" cp -v out/realm.yaml outtmp/$realm.yaml
 done
 """ 
 

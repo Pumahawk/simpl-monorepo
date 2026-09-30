@@ -110,3 +110,7 @@
 	path = simpl-repo/frontend/microfe/consent-management-fe
 	url = https://code.europa.eu/simpl/simpl-open/governance/consent-management/consent-management-service/consent-management-fe.git
 	branch = develop
+[submodule "simpl-repo/backend/misc/ssi-verifier-keycloak-extension"]
+	path = simpl-repo/backend/misc/ssi-verifier-keycloak-extension
+	url = https://code.europa.eu/simpl/simpl-open/development/iaa/ssi-verifier-keycloak-extension.git
+	branch = develop
