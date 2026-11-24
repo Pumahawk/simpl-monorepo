@@ -1340,6 +1340,11 @@ run = "mise run cli --quiet --raw -- api echo"
 shell = "bash -ec"
 run = "mise run cli --quiet --raw -- api -realm consumer -baseurl http://localhost:8200 -user a.w echo"
 
+[tasks."maven:update-properties"]
+dir = "{{cwd}}"
+shell = "bash -ec"
+run = "mvnd versions:update-properties   -DallowMajorUpdates=false   -DallowMinorUpdates=false"
+
 [env]
 PROJECT_RELEASE_VERSION = "monorepo-dev"
 KUBECONFIG = "{{config_root}}/.config/.kube/config"
